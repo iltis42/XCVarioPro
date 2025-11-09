@@ -5,6 +5,7 @@
  *      Author: iltis
  */
 
+#include "math/Floats.h"
 #include "setup/SetupMenu.h"
 #include "setup/SubMenuAudio.h"
 #include "setup/SubMenuDevices.h"
@@ -295,7 +296,7 @@ int qnh_adj(SetupMenuValFloat *p) {
 	}
 	MYUCG->setPrintPos(1, 120);
 	MYUCG->setColor( COLOR_WHITE );
-	MYUCG->printf("%5d %s  ", (int) (altp + 0.5), u);
+	MYUCG->printf("%5d %s  ", fast_iroundf(altp), u);
 
 	MYUCG->setFont(ucg_font_ncenR14_hr);
 	return 0;

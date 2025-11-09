@@ -17,6 +17,7 @@
 #include "CircleWind.h"
 #include "wind/StraightWind.h"
 #include "setup/SetupNG.h"
+#include "math/Floats.h"
 #include "logdefnone.h"
 
 #include <cmath>
@@ -190,8 +191,8 @@ const char * CircleWind::getFlightModeStr() const
 
 bool CircleWind::getWind(int16_t *dir, int16_t *speed, int16_t *age)
 {
-	*dir = int16_t(cwind_dir.get() + 0.5);
-	*speed = int16_t(cwind_speed.get() + 0.5);
+	*dir = fast_iroundf(cwind_dir.get());
+	*speed = fast_iroundf_positive(cwind_speed.get());
 	*age = _age;
 	if( _age < 7200 )
 		return true;

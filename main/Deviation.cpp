@@ -19,6 +19,7 @@ Last update: 2021-03-29
 
 #include "Deviation.h"
 #include "KalmanMPU6050.h"
+#include "math/Floats.h"
 #include "vector.h"
 #include "sensor.h"
 #include "logdef.h"
@@ -152,10 +153,10 @@ bool Deviation::newDeviation( float measured_heading, float desired_heading, boo
 		k=1.0;
 	}
 	if( force )
-		devmap[ (int)(measured_heading*10.0 + 0.5) ] = deviation;  // insert as is from manual measurement
+		devmap[ fast_iroundf_positive(measured_heading*10.0) ] = deviation;  // insert as is from manual measurement
 	else{
 		// ESP_LOGI( FNAME, "old_dev %2.3f, delta %f, delta*k %f, new dev: %f",  old_dev, delta, delta*k, old_dev + (delta * k) );
-		devmap[ (int)(measured_heading*10.0 + 0.5) ] = old_dev + (delta * k);  // insert the new low pass filtered element
+		devmap[ fast_iroundf_positive(measured_heading*10.0) ] = old_dev + (delta * k);  // insert the new low pass filtered element
 	}
 #ifdef VERBOSE_LOG
 	for(auto itx = std::begin(devmap); itx != std::end(devmap); ++itx ){

@@ -28,10 +28,11 @@
 #include "setup/SetupNG.h"
 #include "Units.h"
 #include "sensor.h"
-#include "math.h"
+// #include "math.h"
 #include "sensor.h"
 #include "KalmanMPU6050.h"
 #include "math/Trigenometry.h"
+#include "math/Floats.h"
 #include "comm/DeviceMgr.h"
 #include "logdef.h"
 #include "wind/CircleWind.h"
@@ -84,8 +85,8 @@ void StraightWind::tick(){
 
 bool StraightWind::getWind(int16_t *direction, int16_t *speed, int16_t *age )
 {
-	*direction = int16_t(swind_dir.get() + 0.5);
-	*speed = int16_t(swind_speed.get() + 0.5);
+	*direction = fast_iroundf(swind_dir.get());
+	*speed = fast_iroundf_positive(swind_speed.get());
 	*age = _age;
 	return ( true );
 }

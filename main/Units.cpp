@@ -1,5 +1,6 @@
 
 #include "Units.h"
+#include "math/Floats.h"
 #include "logdefnone.h"
 
 float Units::Airspeed(float as)
@@ -223,7 +224,7 @@ int Units::QnhRounded(float qnh)
 	{
 		qnh_value = hPa2inHg(qnh);
 	}
-	return (int)(qnh_value + 0.5);
+	return fast_iroundf_positive(qnh_value);
 }
 
 float Units::hPa2inHg(float hpa)

@@ -942,7 +942,7 @@ void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float
 	float acl = Units::Vario( acl_ms );
 	float s2f = Units::Airspeed( s2f_ms );
 	float s2fd = Units::Airspeed( s2fd_ms );
-	// int airspeed =  (int)(Units::Airspeed( airspeed_kmh ) + 0.5);
+	// int airspeed = fast_iroundf_positive(Units::Airspeed( airspeed_kmh ));
 
 	// average Climb
 	if( !(tick%2) ) {
