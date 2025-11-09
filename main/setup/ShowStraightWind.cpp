@@ -49,7 +49,7 @@ void ShowStraightWind::display(int mode)
 	char buffer[32];
 	int i = 1;
 
-	sprintf( buffer, "Straight Wind enabled: %s", (wind_enable.get() & 1) ? "Yes" : "No  "  );
+	sprintf( buffer, "Straight Wind enabled: %s", (wind_enable.get() & WA_STRAIGHT) ? "Yes" : "No  "  );
 	menuPrintLn(buffer, i++);
 
 	if ( straightWind )

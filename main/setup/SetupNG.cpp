@@ -214,7 +214,7 @@ SetupNG<int>  			extwind_inst_dir( "EIWDD", 0.0, false, SYNC_BIDIR, VOLATILE ); 
 SetupNG<int>  			extwind_inst_speed( "EIWDS", 0.0, false, SYNC_BIDIR, VOLATILE );
 SetupNG<int>  			extwind_status( "EWST", -1, false, SYNC_BIDIR, VOLATILE );
 SetupNG<float>  		mag_hdm( "HDM", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		mag_hdt( "HDT", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		mag_hdt( "HDT", -1.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		average_climb( "AVCL", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		flap_pos( "FLPS", 0.0, true, SYNC_BIDIR, VOLATILE );
 SetupNG<float>  		altitude( "ALTI", 0.0, true, SYNC_FROM_MASTER, VOLATILE );

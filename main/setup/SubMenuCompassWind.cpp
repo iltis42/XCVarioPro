@@ -2,6 +2,7 @@
 #include "SubMenuCompassWind.h"
 
 #include "comm/Devices.h"
+#include "screen/element/PolarGauge.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 
@@ -13,7 +14,9 @@
 #include "CompassMenu.h"
 #include "comm/DeviceMgr.h"
 #include "logdef.h"
+#include "setup/SetupNG.h"
 #include "wind/WindCalcTask.h"
+#include "IpsDisplay.h"
 
 #include <string_view>
 
@@ -44,6 +47,9 @@ static int compassSensorCalibrateAction(SetupMenuSelect *p) {
 
 static int windSettingsAction(SetupMenuSelect *p) {
 	WindCalcTask::createWindResources();
+	if ( IpsDisplay::WNDgauge ) {
+		IpsDisplay::WNDgauge->enableWindIndicator(wind_enable.get() > WA_OFF, wind_enable.get() == WA_EXTERNAL);
+	}
 	return 0;
 }
 
@@ -222,6 +228,7 @@ void options_menu_create_compasswind(SetupMenu *top) { // dynamic!
 		windcal->addEntry("Straight", WA_STRAIGHT);
 		windcal->addEntry("Circling", WA_CIRCLING);
 		windcal->addEntry("Both", WA_BOTH);
+		windcal->addEntry("External", WA_EXTERNAL);
 		windcal->setHelp("Enable Wind calculation for straight flight (needs compass), circling, both or external source");
 		top->addEntry(windcal);
 

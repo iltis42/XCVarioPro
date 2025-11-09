@@ -59,7 +59,7 @@
 
 CircleWind *circleWind = nullptr;
 
-int CircleWind::_age = 9000;
+int16_t CircleWind::_age = 9000;
 
 CircleWind::CircleWind()
 {
@@ -188,11 +188,11 @@ const char * CircleWind::getFlightModeStr() const
 		return "undefined";
 }
 
-bool CircleWind::getWind( int *dir, float *speed, int * age )
+bool CircleWind::getWind(int16_t *dir, int16_t *speed, int16_t *age)
 {
-	*dir=rint(cwind_dir.get());
-	*speed=cwind_speed.get();
-	*age=_age;
+	*dir = int16_t(cwind_dir.get() + 0.5);
+	*speed = int16_t(cwind_speed.get() + 0.5);
+	*age = _age;
 	if( _age < 7200 )
 		return true;
 	else

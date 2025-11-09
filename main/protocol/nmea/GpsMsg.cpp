@@ -119,7 +119,7 @@ dl_action_t GpsMsg::parseGPGGA(NmeaPlugin *plg)
     {
         int numSat = atoi(sm->_frame.c_str() + word->at(6));
         ESP_LOGI(FNAME, "numSat=%d", numSat);
-        if ((numSat != Flarm::_numSat) && (wind_enable.get() != WA_OFF))
+        if ((numSat != Flarm::_numSat) && (wind_enable.get() & WA_BOTH))
         {
             Flarm::_numSat = numSat;
             if (BackgroundTaskQueue) {

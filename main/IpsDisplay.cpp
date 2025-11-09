@@ -25,7 +25,6 @@
 #include "Units.h"
 #include "Flap.h"
 #include "Flarm.h"
-#include "Compass.h"
 #include "setup/CruiseMode.h"
 #include "wind/StraightWind.h"
 #include "wind/CircleWind.h"
@@ -38,9 +37,6 @@
 #include "Rotate.h"
 #include "AdaptUGC.h"
 #include "logdefnone.h"
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 
 #include <cmath>
 #include <cstdio>
@@ -132,9 +128,6 @@ int IpsDisplay::tempalt = -2000;
 int IpsDisplay::as_prev = -1;
 
 float IpsDisplay::average_climbf = 0;
-// int   IpsDisplay::prev_winddir = 0;
-// int   IpsDisplay::prev_heading = 0;
-// int   IpsDisplay::prev_windspeed = 0;
 
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
 
@@ -177,20 +170,39 @@ IpsDisplay::IpsDisplay( AdaptUGC *aucg ) {
 }
 
 IpsDisplay::~IpsDisplay() {
-	if ( MAINgauge ) {
-		delete MAINgauge;
-		MAINgauge = nullptr;
-	}
-	if ( WNDgauge ) {
-		delete WNDgauge;
-		WNDgauge = nullptr;
-	}
-	if ( MCgauge ) {
-		delete MCgauge;
-		MCgauge = nullptr;
-	}
+    if (MAINgauge) {
+        delete MAINgauge;
+        MAINgauge = nullptr;
+    }
+    if (WNDgauge) {
+        delete WNDgauge;
+        WNDgauge = nullptr;
+    }
+    if (MCgauge) {
+        delete MCgauge;
+        MCgauge = nullptr;
+    }
+    if (S2FBARgauge) {
+        delete S2FBARgauge;
+        S2FBARgauge = nullptr;
+    }
+    if (BATgauge) {
+        delete BATgauge;
+        BATgauge = nullptr;
+    }
+    if (ALTgauge) {
+        delete ALTgauge;
+        ALTgauge = nullptr;
+    }
+    if (VCSTATgauge) {
+        delete VCSTATgauge;
+        VCSTATgauge = nullptr;
+    }
+    if (FLAPSgauge) {
+        delete FLAPSgauge;
+        FLAPSgauge = nullptr;
+    }
 }
-
 
 void IpsDisplay::writeText( int line, const char *text )
 {
@@ -275,7 +287,7 @@ void IpsDisplay::initDisplay() {
         if ( !S2FBARgauge) {
             S2FBARgauge = new S2FBar(DISPLAY_W - 54, AMIDY, 28, 32);
         }
-	}
+   }
     else {
         if ( MCgauge ) {
             delete MCgauge;
@@ -288,9 +300,6 @@ void IpsDisplay::initDisplay() {
     }
     if (!BATgauge) {
         BATgauge = new Battery(DISPLAY_W - 10, DISPLAY_H - 12);
-    }
-    if (!ALTgauge) {
-        ALTgauge = new Altimeter(INNER_RIGHT_ALIGN, (1. - OPT_Y_IN) * DISPLAY_H + 19);
     }
     if ( !VCSTATgauge ) {
         VCSTATgauge = new CruiseStatus(INNER_RIGHT_ALIGN - 8, 18);
@@ -311,27 +320,36 @@ void IpsDisplay::initDisplay() {
 
     MAINgauge->drawScale();
     MAINgauge->forceAllRedraw();
-
     MAINgauge->setFigOffset(AVGOFFX, 0);
+
     if (!WNDgauge) {
+        // create it always, because also the center aid is using it (keep it simple here)
         WNDgauge = new PolarGauge(AMIDX + AVGOFFX, AMIDY, 360, 50, PolarGauge::COMPASS);
+        WNDgauge->enableWindIndicator(true, wind_enable.get() == WA_EXTERNAL);
     }
     WNDgauge->setWindRef(wind_reference.get());
     WNDgauge->setColor(needle_color.get());
+
     if (vario_centeraid.get()) {
         CenterAid::create(*WNDgauge);
     } else {
         CenterAid::remove();
     }
+
     VCSTATgauge->useSymbol(true);
     if (MCgauge) {
         MCgauge->setLarge(true);
     }
+
     if (vario_lower_gauge.get()) {
-        ALTgauge->setRef(INNER_RIGHT_ALIGN, (1.0 - OPT_Y_IN) * DISPLAY_H + 19);
+        if (!ALTgauge) {
+            ALTgauge = new Altimeter(INNER_RIGHT_ALIGN, (1. - OPT_Y_IN) * DISPLAY_H + 19);
+        }
     } else {
-        delete ALTgauge;
-        ALTgauge = nullptr;
+        if (ALTgauge) {
+            delete ALTgauge;
+            ALTgauge = nullptr;
+        }
     }
     if (S2FBARgauge) {
         if (display_orientation.get() == DISPLAY_NINETY) {
@@ -455,8 +473,6 @@ void IpsDisplay::redrawValues()
 	if ( FLAPSgauge ) FLAPSgauge->forceRedraw();
 	old_vario_bar_val = 0;
 	old_sink_bar_val = 0;
-	// prev_winddir = -1000;
-	// prev_heading = -1000;
     _ate = -1000;
 }
 
@@ -601,59 +617,6 @@ void IpsDisplay::drawTemperature( int x, int y, float t ) {
 	ucg->printf("%s ", Units::TemperatureUnitStr(temperature_unit.get()));
 }
 
-
-// static int wx0,wy0,wx1,wy1,wx3,wy3 = 0;  // initialize by zero
-
-// // draw windsock style alike arrow white and red
-// void IpsDisplay::drawWindArrow( float a, float speed, int type ){
-// 	const int X=75;
-// 	const int Y=215;
-// 	float si=fast_sin_deg(a);
-// 	float co=fast_cos_deg(a);
-// 	const int b=9; // width of the arrow
-// 	int s=speed*0.6;
-// 	int s2=s;
-// 	if( s>30 )
-// 		s2=30;   // maximum space we got on the display
-// 	if( s<10 )
-// 		s2=10;    // minimum size, otherwise arrow is not readable
-
-// 	int xn_0 = rint(X-s2*si);    // tip
-// 	int yn_0 = rint(Y+s2*co);
-
-// 	int xn_1 = rint(X+s2*si - b*co);  // left back
-// 	int yn_1 = rint(Y-s2*co - b*si);
-
-// 	int xn_3 = rint(X+s2*si + b*co);  // right back
-// 	int yn_3 = rint(Y-s2*co + b*si);
-
-// 	int xn_2 = rint(X+(s2*si*0.2));  // tip of second smaller arrow in red
-// 	int yn_2 = rint(Y-(s2*co*0.2));
-
-// 	// ESP_LOGI(FNAME,"IpsDisplay::drawWindArrow  x0:%d y0:%d x1:%d y1:%d x2:%d y2:%d x3:%d y3:%d", (int)xn_0, (int)yn_0, (int)xn_1 ,(int)yn_1, (int)xn_2, (int)yn_2, (int)xn_3 ,(int)yn_3 );
-// 	// cleanup previous incarnation
-// 	if( wx0 ){  // check if not zero (init condition, not yet drawn)
-// 		ucg->setColor(  COLOR_BLACK  );
-// 		Flarm::drawAirplane( wx0, wy0, false, true ); // clear small airplane symbol, need to clear anytime as it moves...
-// 		ucg->drawTriangle(wx0,wy0,wx1,wy1,wx3,wy3);
-// 	}
-// 	if( s > 1 ){
-// 		ucg->setColor( COLOR_WHITE );
-// 		ucg->drawTriangle(xn_0,yn_0,xn_1,yn_1,xn_3,yn_3);
-// 		ucg->setColor(  COLOR_RED  );
-// 		ucg->drawTriangle(xn_2,yn_2,xn_1,yn_1,xn_3,yn_3);
-// 	}
-// 	if( wind_reference.get() != WR_NORTH ){
-// 		ucg->setColor( COLOR_WHITE );
-// 		Flarm::drawAirplane( xn_0, yn_0, false, true ); // draw a small airplane symbol
-// 	}
-// 	wx0 = xn_0;
-// 	wy0 = yn_0;
-// 	wx1 = xn_1;
-// 	wy1 = yn_1;
-// 	wx3 = xn_3;
-// 	wy3 = yn_3;
-// }
 
 void IpsDisplay::setBottomDirty()
 {
@@ -955,114 +918,6 @@ float getHeading(){
 }
 
 
-// // Compass or Wind Display
-// bool IpsDisplay::drawCompass(int16_t x, int16_t y, bool _dirty, bool compass_dirty) {
-// 	bool ret=false;
-// 	// ESP_LOGI(FNAME, "drawCompass: %d ", _dirty );
-// 	bool wind_ok = false;
-// 	if( (wind_display.get() & WD_DIGITS) || (wind_display.get() & WD_ARROW) ){
-// 		int winddir=0;
-// 		float wind=0;
-// 		int ageStraight, ageCircling;
-// 		char type = '/';
-// 		if( straightWind ) {
-// 			// check what kind of wind is available from calculator
-// 			wind_ok = straightWind->getWind( &winddir, &wind, &ageStraight );
-// 			type = '|';
-// 		}
-// 		else if( circleWind ){
-// 			wind_ok = circleWind->getWind( &winddir, &wind, &ageCircling );
-// 		}
-// 		else if( wind_enable.get() == WA_BOTH ){  // dynamically change type depending on younger calculation
-// 			int wds=0, wdc;
-// 			float ws=0, wc;
-// 			bool oks=false, okc=false;
-// 			if ( straightWind ) {
-// 				oks = straightWind->getWind( &wds, &ws, &ageStraight );
-// 			}
-// 			if ( circleWind ) {
-// 				okc = circleWind->getWind( &wdc, &wc, &ageCircling);
-// 			}
-// 			if( oks && ageStraight <= ageCircling ){
-// 				wind = ws;
-// 				winddir = wds;
-// 				type = '|';
-// 				wind_ok = true;
-// 			}
-// 			else if( okc && ageCircling <= ageStraight )
-// 			{
-// 				wind = wc;
-// 				winddir = wdc;
-// 				type = '/';
-// 				wind_ok = true;
-// 			}
-// 			ESP_LOGI(FNAME, "SWIND dir=%d, SSPEED=%f ageC=%d ageS=%d okc:=%d oks=%d ok:=%d", wds, ws, ageCircling, ageStraight, okc, oks, wind_ok  );
-// 		}
-
-// 		ucg->setPrintPos(85,104);
-// 		// ESP_LOGI(FNAME, "WIND dir %d, speed %f, ok=%d", winddir, wind, ok );
-// 		// Windspeed and Direction digital
-// 		int windspeed = (int)( Units::Airspeed(wind)+0.5 );
-// 		if( prev_winddir != winddir || prev_windspeed != windspeed || compass_dirty ){
-// 			ucg->setPrintPos(85,104);
-// 			ucg->setColor(  COLOR_WHITE  );
-// 			// ucg->setFont(ucg_font_fub20_hr);
-// 			ucg->setFont(ucg_font_fub17_hf, true);
-// 			char s[32];
-// 			if( wind_display.get() & WD_DIGITS ){
-// 				if( wind_ok ){
-// 					sprintf(s,"%3d°%c%2d", winddir, type, windspeed );
-// 					if( windspeed < 10 )
-// 						ucg->printf("%s    ", s);
-// 					else if( windspeed < 100 )
-// 						ucg->printf("%s   ", s);
-// 					else
-// 						ucg->printf("%s  ", s);
-// 					compass_dirty = false;
-// 					ret = true;
-// 				}
-// 			}
-// 		}
-// 		float heading = getHeading();
-// 		// Wind arrow
-// 		if( (prev_winddir != winddir) || (prev_windspeed != windspeed) || _dirty || (int)heading != (int)prev_heading ){
-// 			// ESP_LOGI(FNAME, "draw WIND arrow");
-// 			prev_winddir = winddir;  // absolute windir related to geographic north
-// 			prev_heading = heading;  // two things to consider here, heading and wind direction
-// 			if( wind_display.get() & WD_ARROW  ){ // draw wind arror
-// 				float dir = Vector::angleDiffDeg( winddir, heading );
-// 				drawWindArrow( dir, windspeed, 0 );
-// 				// ESP_LOGI(FNAME, "gap = false");
-// 				ret = true;
-// 			}
-// 			prev_windspeed = windspeed;
-// 		}
-// 	}
-// 	// Compass
-// 	if( (wind_display.get() & WD_COMPASS) || ((wind_display.get() & WD_DIGITS) && !wind_ok) ){
-// 		int heading = static_cast<int>(rintf(mag_hdt.get()));
-// 		if( heading >= 360 )
-// 			heading -= 360;
-// 		// ESP_LOGI(FNAME, "heading %d", heading );
-// 		if( prev_heading != heading || compass_dirty ){
-// 			char s[32];
-// 			if( heading < 0 )
-// 				sprintf(s,"%s", "   ---" );
-// 			else
-// 				sprintf(s," %4d°  ", heading );
-// 			ucg->setColor( COLOR_WHITE );
-// 			ucg->setFont(ucg_font_fub20_hr, true);
-// 			ucg->setPrintPos(110, 104);
-// 			ucg->print(s);
-// 			prev_heading = heading;
-// 			compass_dirty = false;
-// 			ret = true;
-// 		}
-// 	}
-// 	return ret;
-// }
-
-
 void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
 		float temp, float volt, float s2fd_ms, float s2f_ms, float acl_ms, float wksensor ){
 	// ESP_LOGI(FNAME,"drawDisplay polar_sink: %f AVario: %f m/s", polar_sink_ms, ate_ms );
@@ -1129,31 +984,33 @@ void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float
 		if ( theCenteraid && ! VCMode.getCMode() ) {
 			theCenteraid->drawCenterAid();
 		}
-		else {
-			static int wdir=-1, idir=-1;
-			static int wval=0, ival=0;
-			// check the wind
+		else if ( wind_enable.get() > WA_OFF ) {
+			// static int16_t wdir=-1, idir=-1;
+			// static int16_t wval=0, ival=0;
+			// the wind simulator to check the wind indicator
 			// float d = (rand()%180) / M_PI_2;
 			// idir += abs(sin(d)) + 2;
 			// ival = int((wval+d))%120;
 
-			// int ageStraight;
-			// int ageCircling;
-			// if ( wind_enable.get() & WA_BOTH ) {
-			// 	if ( straightWind && ! straightWind->getWind(&iwdir, &iw, &ageStraight) ) {
-			// 		iwdir = -1;
-			// 	}
+			int16_t wdir=-1, idir=-1;
+			int16_t wval=0, ival=0;
+			int16_t ageStraight;
+			int16_t ageCircling;
+			if ( wind_enable.get() & WA_BOTH ) {
+				if ( straightWind && ! straightWind->getWind(&wdir, &wval, &ageStraight) ) {
+					wdir = -1;
+				}
 
-			// 	if ( circleWind && ! circleWind->getWind(&swdir, &iw, &ageCircling) ) {
-			// 		iwdir = -1;
-			// 	}
-			// }
-		// else{
+				if ( circleWind && ! circleWind->getWind(&wdir, &wval, &ageCircling) ) {
+					wdir = -1;
+				}
+			}
+			else {
 				idir = extwind_inst_dir.get();
 				ival = extwind_inst_speed.get();
 				wdir = extwind_sptc_dir.get();
 				wval = extwind_sptc_speed.get();
-		// 	}
+			}
 			WNDgauge->drawWind(wdir, wval, idir, ival);
 		}
 	}
@@ -1188,8 +1045,7 @@ void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float
         VCSTATgauge->draw();
         if (vario_centeraid.get() && !VCMode.getCMode()) {
             WNDgauge->clearGauge();
-        }
-        else {
+        } else {
             WNDgauge->drawRose();
         }
         mode_dirty = false;

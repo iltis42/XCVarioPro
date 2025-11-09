@@ -39,7 +39,7 @@ public:
 
 	// Return the last calculated wind. If return result is true, the wind data
 	// are valid otherwise false.
-	static bool getWind( int* direction, float* speed, int *age );
+	static bool getWind(int16_t *direction, int16_t *speed, int16_t *age );
 
 	void setWind( float direction, float speed ){
 		windDir = direction;
@@ -74,7 +74,7 @@ private:
 	float  circlingWindSpeed;
 	int    circlingWindAge;
 	float  airspeedCorrection;
-	static int    _age;
+	static int16_t _age;
 	int    _tick;
 	bool   gpsStatus;
 	float  deviation_cur;

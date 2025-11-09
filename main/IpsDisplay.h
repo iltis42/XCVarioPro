@@ -53,10 +53,16 @@ public:
 	static inline AdaptUGC *getDisplay() { return ucg; };
 	static AdaptUGC *ucg;
 
-private:
-	// static int prev_winddir;
-	// static int prev_heading;
-	// static int prev_windspeed;
+    static PolarGauge *MAINgauge;
+    static PolarGauge *WNDgauge;
+    static McCready *MCgauge;
+    static S2FBar *S2FBARgauge;
+    static Battery *BATgauge;
+    static Altimeter *ALTgauge;
+    static CruiseStatus *VCSTATgauge;
+    static FlapsBox *FLAPSgauge;
+
+  private:
 
 	static int tick;
 
@@ -69,14 +75,6 @@ private:
 
 	static float average_climbf;
 
-	static PolarGauge* MAINgauge;
-    static PolarGauge* WNDgauge;
-	static McCready*   MCgauge;
-	static S2FBar*     S2FBARgauge;
-	static Battery*    BATgauge;
-	static Altimeter*  ALTgauge;
-    static CruiseStatus* VCSTATgauge;
-	static FlapsBox*   FLAPSgauge;
 	static temp_status_t siliconTempStatusOld;
 
 	static void drawBT();

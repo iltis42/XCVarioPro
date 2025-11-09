@@ -41,7 +41,7 @@
 #include <algorithm>
 #include <cmath>
 
-int StraightWind::_age = 10000;
+int16_t StraightWind::_age = 10000;
 
 
 StraightWind::StraightWind() :
@@ -82,10 +82,10 @@ void StraightWind::tick(){
 	_tick++;
 }
 
-bool StraightWind::getWind( int* direction, float* speed, int *age )
+bool StraightWind::getWind(int16_t *direction, int16_t *speed, int16_t *age )
 {
-	*direction = int( swind_dir.get() + 0.5 );
-	*speed = float( swind_speed.get() );
+	*direction = int16_t(swind_dir.get() + 0.5);
+	*speed = int16_t(swind_speed.get() + 0.5);
 	*age = _age;
 	return ( true );
 }

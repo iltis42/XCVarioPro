@@ -67,7 +67,6 @@ PolarGauge::PolarGauge(int16_t refx, int16_t refy, int16_t scale_end, int16_t ra
     }
     else {
         _wind_avg = new WindIndicator(*this, false);
-        _wind_live = new WindIndicator(*this, true);
 
         _unit_fac = 1.;
         _range = 360.;
@@ -91,6 +90,23 @@ PolarGauge::~PolarGauge()
     }
     if ( func ) {
         delete func;
+    }
+}
+
+void PolarGauge::enableWindIndicator(bool avg, bool live) {
+    if (avg && !_wind_avg) {
+        _wind_avg = new WindIndicator(*this, false);
+    }
+    else if (!avg && _wind_avg) {
+        delete _wind_avg;
+        _wind_avg = nullptr;
+    }
+    if (live && !_wind_live) {
+        _wind_live = new WindIndicator(*this, true);
+    }
+    else if (!live && _wind_live) {
+        delete _wind_live;
+        _wind_live = nullptr;
     }
 }
 
@@ -197,17 +213,17 @@ void PolarGauge::drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival
     wval *= _unit_fac;
     wdir -= heading;
     // ESP_LOGI(FNAME,"PW  d:%d - %d", wdir%360, wval);
-    bool redraw_w = _wind_avg->changed(wdir, wval) || _dirty;
+    if ( _wind_avg ) {
+        if (_wind_avg->changed(wdir, wval) || _dirty) {
+            _wind_avg->drawWind();
+        }
+    }
 
     ival *= _unit_fac;
     idir -= heading;
-    bool redraw_i = _wind_live->changed(idir, ival) || _dirty;
-
-    if (redraw_w || redraw_i) {
-        if (redraw_w) {
-            _wind_avg->drawWind();
-        }
-        if (redraw_i || (angleDiffDeg(idir, wdir) % 180) < 20) {
+    if ( _wind_live ) {
+        if (_dirty || _wind_live->changed(idir, ival)
+            || (angleDiffDeg(idir, wdir) % 180) < 20) {
             _wind_live->drawWind();
         }
     }

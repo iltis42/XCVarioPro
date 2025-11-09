@@ -47,7 +47,7 @@ void ShowCirclingWind::display(int mode)
 	char buffer[32];
 	int i = 1;
 
-	sprintf( buffer, "Circling Wind enabled: %s", (wind_enable.get() & 2) ? "Yes" : "No  "  );
+	sprintf( buffer, "Circling Wind enabled: %s", (wind_enable.get() & WA_CIRCLING) ? "Yes" : "No  "  );
 	menuPrintLn(buffer, i++);
 
 	if ( circleWind )

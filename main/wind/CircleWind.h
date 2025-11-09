@@ -68,7 +68,7 @@ public:
 
   void newWind(float angle, float speed);
 
-  static bool getWind(int *dir, float *speed, int *age);
+  static bool getWind(int16_t *dir, int16_t *speed, int16_t *age);
 
   float getNumCircles() const { return circleCount + (circleDegrees / 360.0); }
   int getSatCnt() const { return satCnt; }
@@ -97,7 +97,7 @@ private:
   Vector result;
   float jitter = 0;
   t_circling flightMode = undefined;
-  static int _age;
+  static int16_t _age;
   const char *status;
   float headingDiff = 0.;
   std::list<Vector> windVectors;
