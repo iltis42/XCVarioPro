@@ -331,7 +331,7 @@ void PolarGauge::drawBow(int16_t idx, int16_t &old, int16_t w, int16_t off, int1
     int inc = (idx - old > 0) ? 1 : -1;
     if ( std::abs(w) > 5 && std::abs(old - idx) > 8)
     {
-        inc *= 2;
+        inc *= 6;
     }
     int16_t step = std::abs(inc) * ((old<0||idx<0)?-1:1);
     for (int i = old; i != idx; i += inc)
