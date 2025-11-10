@@ -30,6 +30,7 @@ public:
     using VarioModeBits = enum { MODE_BRUTTO=0, MODE_NORMAL_NETTO=1, MODE_REL_NETTO=3 }; // vario mode bits
     CruiseMode();
     bool getCMode() const { return _cmode; };
+    bool isGross() const { return _vmode == MODE_BRUTTO; }
     bool isNetto() const { return _vmode != MODE_BRUTTO; }
     bool audioIsVario() const { return _audio_vario; }
     bool audioIsChopping() const { return _audio_chopping; }

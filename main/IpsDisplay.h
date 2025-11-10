@@ -74,8 +74,6 @@ public:
 	static bool wireless_alive;
 	static int tempalt;
 
-	static float average_climbf;
-
 	static temp_status_t siliconTempStatusOld;
 
 	static void drawBT();

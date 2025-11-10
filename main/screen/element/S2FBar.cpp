@@ -8,9 +8,10 @@
 
 #include "S2FBar.h"
 
+#include "math/Floats.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cstdio>
 #include <cmath>

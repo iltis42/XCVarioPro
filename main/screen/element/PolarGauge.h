@@ -24,7 +24,7 @@ class GaugeFunc
 public:
     GaugeFunc(float scale, float zero) : _scale_k(scale), _zero_at(zero) {}
     virtual ~GaugeFunc() = default;
-    // calculate a gauge indicator position in rad (-_scale_max .. _scale_max) for a value
+    // calculate a gauge indicator position in rad (-_scale_max .. _scale_max) for an gauge indicated value
     virtual float operator()(float a) const { return 0.; }
     // inverse to operator. Get the value for an indicator position in radian
     virtual float invers(float rad) const { return 0.; }
@@ -62,6 +62,7 @@ public:
     void draw(float a);
     void drawIndicator(float a);
     void drawPolarSink(float a);
+    void drawAVG();
     void drawFigure(float a);
     void drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival);
     using BowColorIdx = enum { GREEN, BLUE, ORANGE, RED };
@@ -70,7 +71,6 @@ public:
     void drawScaleBottom();
     void drawRose(int16_t at = -1000) const;
     void clearGauge();
-    // drawAVG();
 
   private:
     // indicator and attributes
@@ -87,6 +87,7 @@ public:
     int16_t _old_idx = 360; // discretized previous index value
     int16_t _old_bow_idx = 0;
     int16_t _old_polar_sink = 0;
+    float _old_avc = -1.f;
 
     // gauge value as average or figures
     LargeFigure *_figure = nullptr;
@@ -108,6 +109,7 @@ public:
     int16_t CosDeg2(int16_t val, int16_t len) const;
 
     // gauge helpers
+    void drawDisc(float val, bool clean=false) const;
     void drawOneScaleLine(float a, int16_t l2, int16_t w, int16_t cidx) const;
     void drawBow(int16_t idx, int16_t &old, int16_t w, int16_t off, int16_t cidx = 0) const;
     void drawOneLabel(float val, int16_t labl) const;

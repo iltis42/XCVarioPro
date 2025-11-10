@@ -127,8 +127,6 @@ int IpsDisplay::s2fdalt=0;
 bool IpsDisplay::wireless_alive = false;
 int IpsDisplay::tempalt = -2000;
 
-float IpsDisplay::average_climbf = 0;
-
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
 
 // constexpr float sincosScale = 180.f/My_PIf*2.f; // rad -> deg/2 a 0.5deg resolution discrete scale
@@ -406,61 +404,6 @@ void IpsDisplay::begin() {
 }
 
 
-// static float avc_old=-1000;
-
-void IpsDisplay::drawAvg( float avclimb, float delta ){
-	// static int yusize=6;
-	// static int ylsize=6;
-
-	// ESP_LOGD(FNAME,"drawAvg: av=%.2f delta=%.2f", avclimb, delta );
-	// int pos=145;
-	// int size=7;
-	// float a;
-	// if( avc_old != avclimb ){
-	// 	ucg->setColor( COLOR_BLACK );
-	// 	a = (_gauge)(avc_old);
-	// 	int x=gaugeCosCentered(a, pos);
-	// 	int y=gaugeSinCentered(a, pos);
-	// 	ucg->drawTetragon( x+size, y, x,y+ylsize, x-size,y, x,y-yusize );
-	// 	// refresh scale around old AVG icon
-	// 	drawScale( _range, -_range, DISPLAY_H/2-20, avc_old*10.f );
-	// }
-	// if( delta > (mean_climb_major_change.get())/core_climb_history.get() ){
-	// 	ucg->setColor( COLOR_GREEN );
-	// 	yusize=size*2;
-	// 	ylsize=size;
-	// }
-	// else if ( delta < -(mean_climb_major_change.get())/core_climb_history.get() ){
-	// 	ucg->setColor( COLOR_RED );
-	// 	ylsize=size*2;
-	// 	yusize=size;
-	// }
-	// else if( delta > (mean_climb_major_change.get()/2.0)/core_climb_history.get() ){
-	// 	ucg->setColor( COLOR_GREEN );
-	// 	yusize=size;
-	// 	ylsize=size;
-	// }
-	// else if ( delta < -(mean_climb_major_change.get()/2.0)/core_climb_history.get() ){
-	// 	ucg->setColor( COLOR_RED );
-	// 	ylsize=size;
-	// 	yusize=size;
-	// }
-	// else{
-	// 	ucg->setColor( COLOR_WHITE );
-	// 	ylsize=size;
-	// 	yusize=size;
-	// }
-
-	// if( avclimb > _range ) // clip values off weeds
-	// 	avclimb = _range;
-	// a = (_gauge)(avclimb);
-	// int x=gaugeCosCentered(a, pos);
-	// int y=gaugeSinCentered(a, pos);
-	// ESP_LOGD(FNAME,"drawAvg: x=%d  y=%d", x,y );
-	// ucg->drawTetragon( x+size,y, x, y+ylsize, x-size,y, x,y-yusize );
-	// avc_old=avclimb;
-}
-
 void IpsDisplay::redrawValues()
 {
 	// ESP_LOGI(FNAME,"IpsDisplay::redrawValues()");
@@ -482,8 +425,6 @@ void IpsDisplay::redrawValues()
         S2FBARgauge->forceRedraw();
     }
     mode_dirty = true;
-
-	average_climbf = -1000.0;
 
 	if ( FLAPSgauge ) FLAPSgauge->forceRedraw();
 	old_vario_bar_val = 0;
@@ -868,7 +809,6 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 	}
 
 	// Unit adaption for mph and knots
-	float acl = Units::Vario( acl_ms );
 	float s2f = Units::Speed( s2f_ms );
 	float s2fd = Units::Speed( s2fd_ms );
 	// int airspeed = fast_iroundf_positive(Units::Airspeed( airspeed_kmh ));
@@ -947,8 +887,8 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 
 	// Vario indicator
 	MAINgauge->draw(te_ms);
-	if( !(tick%2) ){
-        MAINgauge->drawPolarSink(VCMode.isNetto() ? 0. : polar_sink);
+	if( VCMode.isGross() ){
+        MAINgauge->drawPolarSink(polar_sink);
     }
 
 	// Battery
@@ -981,14 +921,15 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
         mode_dirty = false;
     }
 
-	// Medium Climb Indicator
-	// ESP_LOGI(FNAME,"acl:%f nt:%d", acl, average_climbf, !(tick%9) );
-	if( acl != average_climbf && !(tick%4) && acl > 0 ){
-		drawAvg( acl, acl-average_climbf );
-		average_climbf = acl;
-	}
-    if (bottom_dirty)
-    {
+    // Medium Climb Indicator
+    if (!(tick % 4)) {
+        // static float s = 0; // check the diamond
+        // average_climb.set(sin(s) * 2.);
+        // s += 0.1;
+        MAINgauge->drawAVG();
+    }
+
+    if (bottom_dirty) {
         ESP_LOGI(FNAME, "redraw scale around %f", -_range + 2);
         bottom_dirty = false;
         MAINgauge->drawScaleBottom();

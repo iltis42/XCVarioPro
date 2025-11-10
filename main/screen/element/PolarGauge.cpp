@@ -119,6 +119,7 @@ void PolarGauge::forceAllRedraw()
     }
     _old_bow_idx = 0; // redraw bows
     _old_polar_sink = 0;
+    _old_avc = -1.f;
 }
 
 void PolarGauge::setRange(float pos_range, float zero_at, bool log)
@@ -195,6 +196,37 @@ void PolarGauge::drawPolarSink(float a)
     drawBow(val, _old_polar_sink, 5, 1, BLUE);
 }
 
+void PolarGauge::drawAVG(){
+    // average climb in [m/sec]
+    float avclimb = Units::Vario( average_climb.get() );
+    float delta = avclimb - _old_avc;
+
+    ESP_LOGI(FNAME, "drawAVG: av=%.2f delta=%.2f", avclimb, delta);
+    if ( std::fabs(delta) < 0.05 || avclimb < 0.05) {
+        return; // that is just noise
+    }
+    if (_old_avc > .0) {
+        drawDisc(_old_avc, true);
+        ESP_LOGI(FNAME, "clean scale at: %f", _old_avc);
+        drawScale(_old_avc);
+    }
+    if (delta > (mean_climb_major_change.get()) / core_climb_history.get()) {
+        MYUCG->setColor(COLOR_GREEN);
+    } else if (delta < -(mean_climb_major_change.get()) / core_climb_history.get()) {
+        MYUCG->setColor(COLOR_RED);
+    } else if (delta > (mean_climb_major_change.get() / 2.0) / core_climb_history.get()) {
+        MYUCG->setColor(COLOR_GREEN);
+    } else if (delta < -(mean_climb_major_change.get() / 2.0) / core_climb_history.get()) {
+        MYUCG->setColor(COLOR_RED);
+    } else {
+        MYUCG->setColor(COLOR_WHITE);
+    }
+
+    drawDisc(avclimb);
+    _old_avc = avclimb;
+    MYUCG->setColor(COLOR_WHITE);
+}
+
 void PolarGauge::drawFigure(float a)
 {
     if ( _figure ) {
@@ -230,6 +262,21 @@ void PolarGauge::drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival
     }
 }
 
+// a : in [scale units]
+// set color before calling
+void PolarGauge::drawDisc(float a, bool clean) const
+{
+    if ( clean ) {
+        MYUCG->setColor(COLOR_BLACK);
+        // siz += 1;
+    }
+    int16_t val = dice_up(clipValue(a));
+    ESP_LOGI( FNAME,"draw disc val %.2f diced: %d", a, val );
+    int16_t pos = _radius + 8;
+    int x = CosCenteredDeg2(val, pos);
+    int y = SinCenteredDeg2(val, pos);
+    MYUCG->drawDisc(x, y, 4, UCG_DRAW_ALL);
+}
 
 // a : in [rad]
 // l2 : line end radius in [pixel]
