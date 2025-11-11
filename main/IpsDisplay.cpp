@@ -41,6 +41,7 @@
 #include "logdefnone.h"
 
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -116,7 +117,6 @@ constexpr const float OPT_Y_IN = 0.262f;
 
 static int16_t INNER_RIGHT_ALIGN = 170;
 static int16_t LOAD_MPG_POS = 0;
-static int16_t LOAD_MNG_POS = 0;
 static int16_t LOAD_MIAS_POS = 0;
 
 AdaptUGC *IpsDisplay::ucg = 0;
@@ -143,9 +143,8 @@ static void initRefs()
 	AVGOFFX = -5-38;
 	SPEEDYPOS = OPT_Y_IN * DISPLAY_H + 19;
 	INNER_RIGHT_ALIGN = DISPLAY_W - 44;
-	LOAD_MPG_POS = DISPLAY_H*0.25;
-	LOAD_MNG_POS = DISPLAY_H*0.64;
-	LOAD_MIAS_POS = DISPLAY_H*0.81;
+	LOAD_MPG_POS = DISPLAY_H*0.3;
+	LOAD_MIAS_POS = DISPLAY_H*0.7;
 
 	// grab screen layout
 	AMIDX = (DISPLAY_W/2 + 30);
@@ -154,7 +153,6 @@ static void initRefs()
 		INNER_RIGHT_ALIGN = DISPLAY_W - 74;
 		AMIDX = DISPLAY_W/2 - 43;
 		AVGOFFX = -2;
-		LOAD_MNG_POS = DISPLAY_H*0.53;
 	}
 }
 
@@ -598,13 +596,17 @@ static float old_ias_max = -1;
 
 void IpsDisplay::drawLoadDisplayTexts(){
 	ucg->setFont(ucg_font_fub11_hr, true);
-	ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MPG_POS);
-	ucg->setColor(  COLOR_HEADER_LIGHT  );
-	ucg->print( "MAX POS G" );
-	ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MNG_POS);
-	ucg->print( "MAX NEG G" );
-	ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MIAS_POS);
-	ucg->printf( "MAX IAS %s", Units::SpeedUnitStr() );
+	const char *text = "ext. G-Loads";
+	int16_t text_width = ucg->getStrWidth( text );
+	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MPG_POS);
+	ucg->setColor( COLOR_HEADER_LIGHT );
+	ucg->print( text );
+	// ucg->setPrintPos(INNER_RIGHT_ALIGN-60, LOAD_MNG_POS);
+	// ucg->print( "MAX NEG G" );
+	text = "max. IAS";
+	text_width = ucg->getStrWidth( text );
+	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MIAS_POS);
+	ucg->print( text );
 }
 
 void IpsDisplay::initLoadDisplay(){
@@ -741,34 +743,36 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 	}
 
 	// Min/Max values
-	if( old_gmax != gload_pos_max.get() || !(tick%10)) {
-		if( gload_pos_max.get() < gload_pos_limit.get() )
-			ucg->setColor(  COLOR_WHITE  );
-		else
-			ucg->setColor(  COLOR_RED  );
-		ucg->setFont(ucg_font_fub20_hr, true);
-		ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MPG_POS+30);
-		ucg->printf("  %+1.2f   ", gload_pos_max.get() );
+	if( old_gmax != gload_pos_max.get() || old_gmin != gload_neg_max.get() || !(tick%10) ) {
+		if( gload_pos_max.get() < gload_pos_limit.get() && gload_neg_max.get() > gload_neg_limit.get()) {
+			ucg->setColor( COLOR_WHITE );
+		}
+		else {
+			ucg->setColor( COLOR_RED );
+		}
+
+		ucg->setFont(ucg_font_fub14_hr, true);
+		char buf[60];
+		sprintf( buf, "  %+1.1f / %+1.1f g", gload_pos_max.get(), gload_neg_max.get() );
+		int16_t text_width = ucg->getStrWidth( buf );
+		ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MPG_POS+24);
+		ucg->print(buf);
 		old_gmax = gload_pos_max.get();
-	}
-	if( old_gmin != gload_neg_max.get() || !(tick%10)){
-		if( gload_neg_max.get() > gload_neg_limit.get() )
-			ucg->setColor(  COLOR_WHITE  );
-		else
-			ucg->setColor(  COLOR_RED  );
-		ucg->setFont(ucg_font_fub20_hr, true);
-		ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MNG_POS+30);
-		ucg->printf("  %+1.2f   ", gload_neg_max.get() );
 		old_gmin = gload_neg_max.get();
 	}
 	if( old_ias_max != airspeed_max.get() || !(tick%10)){
-		if( airspeed_max.get() < v_max.get() )
-			ucg->setColor(  COLOR_WHITE  );
-		else
-			ucg->setColor(  COLOR_RED  );
-		ucg->setFont(ucg_font_fub20_hr, true);
-		ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MIAS_POS+30);
-		ucg->printf("  %3d   ", Units::SpeedRounded( airspeed_max.get() ) );
+		if( airspeed_max.get() < v_max.get() ) {
+			ucg->setColor( COLOR_WHITE );
+		} else {
+			ucg->setColor( COLOR_RED );
+		}
+		
+		ucg->setFont(ucg_font_fub14_hr, true);
+		char buf[60];
+		sprintf( buf, "  %3d %s", Units::SpeedRounded(airspeed_max.get()), Units::SpeedUnitStr() );
+		int16_t text_width = ucg->getStrWidth( buf );
+		ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MIAS_POS+24);
+		ucg->print(buf);
 		old_ias_max = airspeed_max.get();
 	}
 
