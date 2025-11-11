@@ -55,18 +55,19 @@ public:
     void ConfigureIntf(int cfg) override;                // 0:SM_FLARM, 1:SM_RADIO, 2: ..
     int Send(const char *msg, int &len, int port=0) override;
     void stop(); // the ConfigureIntf call would start it again
+    bool selfTest(void); // only do test as long as uart is not configured and in use
 
     // integrated vom ex HardwareSerial
-    void flush();
-    int number() const { return uart_nr; }
-    int getBreakCount() const { return break_count; }
+    // void flush();
+    // int number() const { return uart_nr; }
+    // int getBreakCount() const { return break_count; }
 
 private:
-    void loadProfile(e_profile profile);    // load defaults according to profile given
-    void loadSetupDefaults();
     void applyBaud();
     void applyPins();
     void applyLineInverse();
+    void loadProfile(e_profile profile);    // load defaults according to profile given
+    void loadSetupDefaults();
     void start();                           // starts RS232 interface
 
     t_serial_cfg cfg;

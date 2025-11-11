@@ -868,8 +868,25 @@ void system_startup(void *args){
 
     // Create serial interfaces
     S1 = new SerialLine((uart_port_t)1, GPIO_NUM_16, GPIO_NUM_17);
+    logged_tests += "Serial Interface: ";
+    bool ser_test = true;
+    if ( ! S1->selfTest() ) {
+        ser_test = false;
+        logged_tests += "S1 ";
+    }
     if (hardwareRevision.get() >= XCVARIO_21) {
         S2 = new SerialLine((uart_port_t)2, GPIO_NUM_18, GPIO_NUM_4);
+        if ( ! S2->selfTest() ) {
+            ser_test = false;
+            logged_tests += "S2 ";
+        }
+    }
+    if ( ser_test ) {
+        logged_tests += passed_text;
+    } else {
+        MBOX->pushMessage(1, "Serial port: Fail");
+        logged_tests += failed_text;
+        ESP_LOGE(FNAME, "Error: Serial Interface failed");
     }
 
     // Create CAN based on known HW revision (not the very first boot)
