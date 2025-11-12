@@ -1051,6 +1051,10 @@ void system_startup(void *args){
 		if( ok )
 			dynamicP = p;
 		ias.set( Atmosphere::pascal2kmh( dynamicP ) );
+
+        // Initialize the airborne status
+        airborne.set(ias.get() > glider_min_ias);
+
 		ESP_LOGI(FNAME,"Aispeed sensor current speed=%f", ias.get() );
 		if( !offset_plausible && ( ias.get() < 50 ) ){
 			ESP_LOGE(FNAME,"Error: air speed presure sensor offset out of bounds, act value=%d", offset );
@@ -1300,9 +1304,6 @@ void system_startup(void *args){
 		sleep(3);
 		esp_restart();
 	}
-
-    // Initialize the airborne status
-    airborne.set(ias.get() > glider_min_ias);
 
 	Speed2Fly.begin();
 	Version myVersion;
