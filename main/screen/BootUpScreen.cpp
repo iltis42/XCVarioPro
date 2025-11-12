@@ -12,6 +12,7 @@
 #include "DrawDisplay.h"
 #include "UiEvents.h"
 #include "protocol/Clock.h"
+#include "setup/ShowBootMsg.h"
 #include "AdaptUGC.h"
 #include "sensor.h"
 
@@ -159,6 +160,10 @@ BootUpScreen::BootUpScreen() :
     srand(time(NULL)); // seed for randomness
     MYUCG->setColor(COLOR_WHITE);
 
+    if ( gflags.schedule_reboot ) {
+        // factory first boot, do not show the logo animation
+        return;
+    }
     // allocate bitmap and decode the rle compressed logo
     logo_bitmap = (uint8_t*)calloc(LOGO_HEIGHT * LOGO_WIDTH/8, 1);
     decode_rle_bits(logo_bitmap_rle, sizeof(logo_bitmap_rle), logo_bitmap, LOGO_HEIGHT * LOGO_WIDTH);
@@ -185,13 +190,20 @@ void BootUpScreen::terminate()
 BootUpScreen::~BootUpScreen()
 {
     Clock::stop(this);
-    free(logo_bitmap);
+    if (logo_bitmap) {
+        free(logo_bitmap);
+    }
 }
 
 // call 1, 1, 2, ..  (DIVIDER-1) for the parts that got positivly finished
 // otherwise skip a part
 void BootUpScreen::finish(int part)
 {
+    if ( gflags.schedule_reboot ) {
+        ShowBootMsg bm("");
+        bm.display(part+1);
+        return;
+    }
     if ( fini_part < part-1 ) {
         yline = LOGO_HEIGHT*(DIVIDER-part)/4;
     }

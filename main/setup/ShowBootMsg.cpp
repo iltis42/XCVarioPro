@@ -21,7 +21,7 @@ ShowBootMsg::ShowBootMsg( const char* title ) :
 
 void ShowBootMsg::display(int mode)
 {
-    clear();
+    if ( mode <= 1 ) { clear(); }
 
     const int line_height = 20;
     int ln = line_height;
@@ -34,6 +34,8 @@ void ShowBootMsg::display(int mode)
         MYUCG->print(line.c_str());
         ln += line_height;
     }
-    MYUCG->setPrintPos(20, ln+line_height);
-    MYUCG->print("Press button to exit");
+    if ( mode == 0 ) {
+        MYUCG->setPrintPos(20, ln+line_height);
+        MYUCG->print("Press button to exit");
+    }
 }

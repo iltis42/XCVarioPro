@@ -886,6 +886,7 @@ void system_startup(void *args){
     } else {
         MBOX->pushMessage(1, "Serial port: Fail");
         logged_tests += failed_text;
+        selftestPassed = false;
         ESP_LOGE(FNAME, "Error: Serial Interface failed");
     }
 
@@ -1294,7 +1295,9 @@ void system_startup(void *args){
 
 	// hardware components now got all detected
 	if ( gflags.schedule_reboot ) {
+		boot_screen->finish(3);
 		SetupCommon::commitDirty();
+		sleep(3);
 		esp_restart();
 	}
 
