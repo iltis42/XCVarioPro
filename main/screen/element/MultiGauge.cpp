@@ -79,7 +79,12 @@ void MultiGauge::draw()
     if (vario_upper_gauge.get() == GAUGE_SLIP || vario_upper_gauge.get() == GAUGE_NETTO ) {
         sprintf(s, "  %.1f", fval/10.f);
     } else {
-        sprintf(s, "  %3d", val);
+        // here we have only positive values
+        if ( val >= 0 ) {
+            sprintf(s, "  %3d", val);
+        } else {
+            strcpy(s, "---");
+        }
     }
     MYUCG->setPrintPos(_ref_x - MYUCG->getStrWidth(s), _ref_y);
     MYUCG->print(s);
