@@ -106,6 +106,7 @@ OneWire32::OneWire32(uint8_t pin)
 			.io_loop_back = 0,
 			.io_od_mode = 1,
 			.allow_pd = 0,
+			.init_level = 0
 		}
 	};
 
