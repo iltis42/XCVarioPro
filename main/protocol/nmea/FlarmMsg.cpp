@@ -195,6 +195,7 @@ dl_action_t FlarmMsg::parsePFLAX(NmeaPlugin *plg)
 dl_action_t FlarmMsg::parseExcl_xc(NmeaPlugin *plg)
 {
     // need this to support Wind Simulator with Compass simulation
+    // fixme need to move into a sim protocol
 
     ProtocolState *sm = plg->getNMEA().getSM();
     const char *s = sm->_frame.c_str();
