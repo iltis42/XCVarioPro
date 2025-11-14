@@ -91,9 +91,8 @@ void UiEventLoop(void *arg)
                     if (!gflags.inSetup) {
                         switch (MenuRoot->getActiveScreen()) {
                             case SCREEN_VARIO:
-                                Display->drawDisplay(te_vario.get(), aTE, 
-                                            polar_sink, altitude.get(), temp, batteryVoltage, s2f_delta, 
-                                            as2f, average_climb.get());
+                                Display->drawDisplay(te_vario.get(), aTE, polar_sink, 
+                                            altitude.get(), temp, batteryVoltage, s2f_delta, as2f);
                                 break;
                             case SCREEN_GMETER:
                                 Display->drawLoadDisplay( IMU::getGliderAccelZ() );

@@ -13,7 +13,7 @@
 #include "sensor.h"
 #include "AdaptUGC.h"
 #include "KalmanMPU6050.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cstring>
 
@@ -67,7 +67,7 @@ CenterAid::CenterAid(PolarGauge &g) :
 }
 
 void CenterAid::drawThermal( int tn, int idir, bool draw_red ){
-	// ESP_LOGI(FNAME,"drawThermal, th: %d, idir: %d, ds: %d", th, idir, draw_sink );
+	ESP_LOGI(FNAME,"drawThermal, tn: %d, idir: %d, ds: %d", tn, idir, draw_red );
 	if( idir > CA_NUM_DIRS || idir < 0 ){
 		ESP_LOGE(FNAME,"index out of range: %d", agedir );
 		return;

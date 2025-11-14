@@ -564,7 +564,7 @@ void PolarGauge::drawRose(int16_t at) const
 void PolarGauge::clearGauge()
 {
     int16_t tmp = 0;
-    drawBow(720, tmp, 14, 10, -1 );
+    drawBow(720, tmp, 15, 8, -1 );
     // remove last indicator print
     if (_wind_live) {
         _wind_live->drawWind(true);

@@ -800,7 +800,7 @@ float getHeading() { // fixme move to compass
 
 // fixme arg not needed on stack
 void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
-		float temp, float volt, float s2fd_ms, float s2f_ms, float acl_ms){
+		float temp, float volt, float s2fd_ms, float s2f_ms){
 	// ESP_LOGI(FNAME,"drawDisplay polar_sink: %f AVario: %f m/s", polar_sink_ms, ate_ms );
 	if( !(screens_init & INIT_DISPLAY_RETRO) ){
 		initDisplay();
@@ -824,89 +824,87 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 	float s2fd = Units::Speed( s2fd_ms );
 	// int airspeed = fast_iroundf_positive(Units::Airspeed( airspeed_kmh ));
 
-	// average Climb
-	if( !(tick%2) ) {
-		MAINgauge->drawFigure(ate_ms);
-	}
+    // average Climb
+    if (!(tick % 2)) {
+        MAINgauge->drawFigure(ate_ms);
+    }
 
-	// S2F bar
-    if ( (((int)s2fd != s2fdalt) || (s2falt != (int)(s2f+0.5)) || !(tick%11)) && S2FBARgauge ) {
-		// static float s=0; // check the bar code
-		// s2fd = sin(s) * 42.;
-		// s+=0.04;
-		S2FBARgauge->draw(s2fd);
-		S2FBARgauge->drawSpeed(s2f);
-	}
+    // S2F bar
+    if ((((int)s2fd != s2fdalt) || (s2falt != (int)(s2f + 0.5)) || !(tick % 11)) && S2FBARgauge) {
+        // static float s=0; // check the bar code
+        // s2fd = sin(s) * 42.;
+        // s+=0.04;
+        S2FBARgauge->draw(s2fd);
+        S2FBARgauge->drawSpeed(s2f);
+    }
 
-	// MC val
-	if( MCgauge && !(tick%5) ) {
-		MCgauge->draw(MC.get());
-	}
+    // MC val
+    if (MCgauge && !(tick % 5)) {
+        MCgauge->draw(MC.get());
+    }
 
-	// Bluetooth etc
+    // Bluetooth etc
 	if( !(tick%12) )
 	{
 		drawConnection(DISPLAY_W-25, FLOGO );
 	}
 
-	// Upper gauge
-	if( vario_upper_gauge.get() && !(tick%3) ) {
-		TOPgauge->draw();
-	}
+    // Upper gauge
+    if (vario_upper_gauge.get() && !(tick % 3)) {
+        TOPgauge->draw();
+    }
 
-	// Altitude
-	if( ALTgauge ) {
-		ALTgauge->draw(altitude_m);
-	}
+    // Altitude
+    if (ALTgauge) {
+        ALTgauge->draw(altitude_m);
+    }
 
-	// Wind & center aid
-	if( !(tick%2) ){
-		if ( theCenteraid && ! VCMode.getCMode() ) {
-			theCenteraid->drawCenterAid();
-		}
-		else if ( wind_enable.get() > WA_OFF ) {
-			// static int16_t wdir=-1, idir=-1;
-			// static int16_t wval=0, ival=0;
-			// the wind simulator to check the wind indicator
-			// float d = (rand()%180) / M_PI_2;
-			// idir += abs(sin(d)) + 2;
-			// ival = int((wval+d))%120;
+    // Wind & center aid
+    if (!(tick % 2)) {
+        if (theCenteraid && !VCMode.getCMode()) {
+            theCenteraid->drawCenterAid();
+        } else if (wind_enable.get() > WA_OFF) {
+            // static int16_t wdir=-1, idir=-1;
+            // static int16_t wval=0, ival=0;
+            // the wind simulator to check the wind indicator
+            // float d = (rand()%180) / M_PI_2;
+            // idir += abs(sin(d)) + 2;
+            // ival = int((wval+d))%120;
 
-			int16_t wdir=-1, idir=-1;
-			int16_t wval=0, ival=0;
-			int16_t ageStraight;
-			int16_t ageCircling;
-			if ( wind_enable.get() & WA_BOTH ) {
-				if ( straightWind && ! straightWind->getWind(&wdir, &wval, &ageStraight) ) {
-					wdir = -1;
-				}
+            int16_t wdir = -1, idir = -1;
+            int16_t wval = 0, ival = 0;
+            int16_t ageStraight;
+            int16_t ageCircling;
+            if (wind_enable.get() & WA_BOTH) {
+                if (straightWind && !straightWind->getWind(&wdir, &wval, &ageStraight)) {
+                    wdir = -1;
+                }
 
-				if ( circleWind && ! circleWind->getWind(&wdir, &wval, &ageCircling) ) {
-					wdir = -1;
-				}
-			}
-			else {
-				idir = extwind_inst_dir.get();
-				ival = extwind_inst_speed.get();
-				wdir = extwind_sptc_dir.get();
-				wval = extwind_sptc_speed.get();
-			}
-			WNDgauge->drawWind(wdir, wval, idir, ival);
-		}
-	}
+                if (circleWind && !circleWind->getWind(&wdir, &wval, &ageCircling)) {
+                    wdir = -1;
+                }
+            } else {
+                idir = extwind_inst_dir.get();
+                ival = extwind_inst_speed.get();
+                wdir = extwind_sptc_dir.get();
+                wval = extwind_sptc_speed.get();
+            }
+            WNDgauge->drawWind(wdir, wval, idir, ival);
+        }
+    }
 
-	// Vario indicator
-	MAINgauge->draw(te_ms);
-	if( VCMode.isGross() ){
+    // Vario indicator
+    MAINgauge->draw(te_ms);
+    if (VCMode.isGross()) {
         MAINgauge->drawPolarSink(polar_sink);
     }
 
-	// Battery
-	if ( !(tick%15) ) {
-		BATgauge->draw(volt);
-	}
+    // Battery
+    if (!(tick % 15)) {
+        BATgauge->draw(volt);
+    }
 
-	// Temperature Value
+    // Temperature Value
 	temp_status_t mputemp = MPU.getSiliconTempStatus();
 	if( (((int)(temp*10) != tempalt) || (mputemp != siliconTempStatusOld)) && !(tick%12)) {
 		drawTemperature( 4, 30, temp );
@@ -914,18 +912,16 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 		siliconTempStatusOld = mputemp;
 	}
 
-	// WK-Indicator
-	if( FLAPSgauge && !(tick%3) )
-	{
-		FLAPSgauge->draw(ias.get());
-	}
+    // WK-Indicator
+    if (FLAPSgauge && !(tick % 3)) {
+        FLAPSgauge->draw(ias.get());
+    }
 
-	// Cruise mode or circling
-	if( mode_dirty ) {
+    // Cruise mode or circling
+    if( mode_dirty ) {
         VCSTATgauge->draw();
-        if (vario_centeraid.get() && !VCMode.getCMode()) {
-            WNDgauge->clearGauge();
-        } else {
+        WNDgauge->clearGauge();
+        if (!vario_centeraid.get() || VCMode.getCMode()) {
             WNDgauge->drawRose();
         }
         mode_dirty = false;
