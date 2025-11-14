@@ -137,7 +137,7 @@ void UiEventLoop(void *arg)
             }
         }
 
-        if ( ! gflags.inSetup )
+        if ( ! BootUpScreen::isActive() )
         {
             temp = OAT.get();
             if (gflags.validTemperature == false) {

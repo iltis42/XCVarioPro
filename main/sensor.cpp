@@ -159,7 +159,7 @@ uint8_t g_col_header_light_b;
 uint8_t gyro_flash_savings=0;
 
 // boot with flasg "inSetup":=true and release the screen for other purpouse by setting it false.
-global_flags gflags = { true, false, false, false, false, false, false, false, false};
+global_flags gflags = { false, false, false, false, false, false, false, false, false};
 
 int  ccp=60;
 float tas = 0;
@@ -1408,7 +1408,6 @@ void system_startup(void *args){
 
 		BootUpScreen::terminate();
 		Display->clear();
-		gflags.inSetup = false;
 	}
 
 	// Wind calculation

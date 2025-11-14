@@ -18,7 +18,7 @@
 #include "Units.h"
 
 #include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 // bit field of all configured screens
 // set to zero for boot-up
@@ -66,8 +66,7 @@ void SetupRoot::begin(MenuEntry *setup)
 {
     ESP_LOGI(FNAME,"SetupMenu %s", _title.c_str());
     // root will always own only one child
-    bool very_first = _childs.empty();
-    if ( ! very_first ) {
+    if ( ! _childs.empty() ) {
         ESP_LOGW(FNAME,"Found root menu not empty");
     }
 
@@ -84,7 +83,7 @@ void SetupRoot::begin(MenuEntry *setup)
     }
 
     // Todo setup able to recurse
-    if ( ! gflags.inSetup  || very_first ) {
+    if ( ! gflags.inSetup ) {
         gflags.inSetup = true;
         _childs.front()->enter();
     }
