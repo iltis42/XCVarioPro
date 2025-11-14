@@ -612,7 +612,7 @@ void vario_menu_create_s2f(SetupMenu *top) {
 
 	SetupMenuSelect *s2fmod = new SetupMenuSelect("S2F Mode", RST_NONE, s2fModeChange, &s2f_switch_mode);
 	s2fmod->setHelp("Select data source for switching between S2F and Vario modes", 230);
-	s2fmod->addEntry("Switch", AM_SWITCH);
+	s2fmod->addEntry("Manual", AM_MANUALLY);
 	s2fmod->addEntry("AutoSpeed", AM_AUTOSPEED);
 	if ( FLAP ) {
 		s2fmod->addEntry("AutoFlap", AM_FLAP); // not dynamic, exit setup to change
