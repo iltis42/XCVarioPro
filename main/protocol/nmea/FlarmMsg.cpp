@@ -10,11 +10,13 @@
 #include "protocol/FlarmBin.h"
 #include "Flarm.h"
 #include "sensor.h"
-
+#include "screen/MessageBox.h"
 #include "comm/DeviceMgr.h"
 
-#include "logdef.h"
+#include "logdefnone.h"
 
+
+static bool status_ok = false;
 
 // The FLARM protocol parser.
 //
@@ -155,6 +157,12 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
     sprintf( Flarm::ID, "%06x", atoi(s + word->at(8)));
     // ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
     Flarm::_tick=0;
+
+    if ( !status_ok && Flarm::GPS > 0 && Flarm::TX > 0 ) {
+        ESP_LOGI(FNAME, "FLARM status OK %d,%d,%d,%d", Flarm::RX, Flarm::TX, Flarm::GPS, Flarm::Power);
+        status_ok = true;
+        MBOX->pushMessage(0, "FLARM status Okay");
+    }
     return DO_ROUTING;
 }
 
