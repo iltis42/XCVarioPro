@@ -1,5 +1,7 @@
-#include <math.h>
+
 #include "Rotate.h"
+
+#include <cmath>
 
 Point Point::rotate(const Point& center, float radians) {
 

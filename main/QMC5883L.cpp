@@ -25,14 +25,10 @@ Last update: 2021-04-05
 // #define DEBUG_COMP 1
 
 #include "QMC5883L.h"
-#include "KalmanMPU6050.h"
-#include "setup/SetupNG.h"
-#include "vector.h"
 #include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cassert>
-#include <cmath>
 
 /* Register numbers */
 #define REG_X_LSB 0         // Output Data Registers for magnetic sensor.
@@ -231,7 +227,7 @@ esp_err_t QMC5883L::initialize2( int a_odr, int a_osr )
 	return ESP_FAIL;
 }
 
-bool QMC5883L::readRaw( t_magn_axes &mag )
+bool QMC5883L::readRaw( vector_i16 &mag )
 {
 	uint8_t data[6];
 	uint8_t status = 0;

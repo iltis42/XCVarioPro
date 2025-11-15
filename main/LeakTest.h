@@ -1,10 +1,8 @@
-#ifndef LEAK_TEST_H
-#define LEAK_TEST_H
 
+#pragma once
 
-#include "sensor.h"
-#include "PressureSensor.h"
-#include "AirspeedSensor.h"
+class PressureSensor;
+class AirspeedSensor;
 
 class LeakTest{
 
@@ -15,4 +13,3 @@ public:
 
 
 
-#endif

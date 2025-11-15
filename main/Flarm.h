@@ -1,11 +1,9 @@
-#ifndef FLARM_H
-#define FLARM_H
-#include <cstdlib> // abs
-#include <string> // std::string
-#include <locale> // std::locale, std::toupper
-#include <AdaptUGC.h>
+
+#pragma once
+
 #include "Units.h"
 
+class AdaptUGC;
 class FlarmMsg;
 class GarminMsg;
 class GpsMsg;
@@ -75,4 +73,4 @@ private:
 	static bool time_sync;
 };
 
-#endif
+

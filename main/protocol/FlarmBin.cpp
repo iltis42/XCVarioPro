@@ -11,7 +11,6 @@
 #include "comm/Messages.h"
 #include "comm/DataLink.h"
 #include "comm/DeviceMgr.h"
-#include "comm/SerialLine.h"
 #include "nmea_util.h"
 
 #include "logdefnone.h"

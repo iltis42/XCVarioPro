@@ -16,8 +16,8 @@
 
 #include "Units.h"
 #include "vector.h"
+#include "math/Trigonometry.h"
 #include "math/Floats.h"
-#include "logdefnone.h"
 
 #include <cmath>
 

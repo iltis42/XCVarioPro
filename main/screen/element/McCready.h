@@ -10,7 +10,7 @@
 
 #include "ScreenElement.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 // MC screen element
 class McCready : public ScreenElement

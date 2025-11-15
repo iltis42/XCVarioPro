@@ -1,13 +1,11 @@
 #pragma once
 
 #include "comm/InterfaceCtrl.h"
-#include "comm/DataLink.h"
 
 #include <esp_wifi.h>
 #include <esp_event.h>
 #include <lwip/sockets.h>
 
-#include <string>
 #include <list>
 
 extern bool netif_initialized;

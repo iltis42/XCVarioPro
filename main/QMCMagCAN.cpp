@@ -13,12 +13,10 @@
 
 #include "QMCMagCAN.h"
 
-#include "vector.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
 
-#include <cmath>
 
 /*
   Creates instance for CAN bus magnet sensor
@@ -44,7 +42,7 @@ esp_err_t QMCMagCAN::selfTest()
 	return ESP_FAIL;
 }
 
-void QMCMagCAN::fromExternal( const t_magn_axes *magaxes )
+void QMCMagCAN::fromExternal( const vector_i16 *magaxes )
 {
 	// fixme, use a queue
 	can = *magaxes;
@@ -52,7 +50,7 @@ void QMCMagCAN::fromExternal( const t_magn_axes *magaxes )
 	age = 0;
 }
 
-bool QMCMagCAN::readRaw( t_magn_axes &mag )
+bool QMCMagCAN::readRaw( vector_i16 &mag )
 {
 	if ( age < 5 ) {
 		mag.x = can.x;

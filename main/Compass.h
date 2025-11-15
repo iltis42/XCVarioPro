@@ -20,9 +20,12 @@ Last update: 2021-03-07
 #pragma once
 
 #include "comm/InterfaceCtrl.h"
+#include "comm/I2CWrapper.h"
 #include "protocol/ClockIntf.h"
-#include "average.h"
 #include "Deviation.h"
+#include "MagnetSensor.h"
+#include "vector_3d.h"
+#include "average.h"
 
 class MagnetSensor;
 

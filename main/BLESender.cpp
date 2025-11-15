@@ -1,26 +1,27 @@
-#include <esp_log.h>
+
 #include "BLESender.h"
-#include <string>
-#include "sdkconfig.h"
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_task_wdt.h"
-#include <freertos/semphr.h>
-#include <algorithm>
-#include <driver/uart.h>
-#include <logdef.h>
-#include "S2fSwitch.h"
-#include "sensor.h"
-#include "Flarm.h"
+#include "setup/SetupCommon.h"
+#include "logdef.h"
+// #include "S2fSwitch.h"
+// #include "sensor.h"
+// #include "Flarm.h"
 // #include <BLEDevice.h>
 // #include <BLEServer.h>
 // #include <BLEUtils.h>
 // #include <BLE2902.h>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <esp_task_wdt.h>
+#include <freertos/semphr.h>
+#include <driver/uart.h>
 #include <esp_bt.h>
 #include <esp_gatts_api.h>
 #include <esp_gap_ble_api.h>
 #include <esp_bt_main.h>
+
+#include <string>
+#include <cstdio>
 
 static esp_gatt_if_t my_gatts_if = 0;
 static uint16_t service_handle = 0;

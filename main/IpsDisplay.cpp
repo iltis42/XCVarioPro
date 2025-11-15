@@ -38,6 +38,7 @@
 #include "CenterAid.h"
 #include "Rotate.h"
 #include "AdaptUGC.h"
+#include "Colors.h"
 #include "logdefnone.h"
 
 #include <cmath>

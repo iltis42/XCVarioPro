@@ -20,18 +20,17 @@ Last update: 2021-12-30
 #include "CompassMenu.h"
 
 #include "setup/SetupMenu.h"
+#include "AdaptUGC.h"
 #include "sensor.h"  // we need spiMutex
 #include "vector.h"
 #include "Colors.h"
-#include "MagnetSensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
-#include <cstring>
 #include <cstdlib>
 #include <cmath>
 #include <esp_system.h>
 
-
+extern AdaptUGC *MYUCG;
 SetupMenuSelect* CompassMenu::menuPtr = nullptr;
 
 // Initialise static members

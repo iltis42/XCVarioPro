@@ -10,7 +10,7 @@
 
 #include "ScreenElement.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 
 // a speed to fly indicator bars

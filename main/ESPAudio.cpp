@@ -11,9 +11,10 @@
 #include "mcp4018.h"
 #include "cat5171.h"
 #include "S2fSwitch.h"
+#include "S2F.h"
 #include "I2Cbus.hpp"
 #include "setup/CruiseMode.h"
-#include "protocol/Clock.h"
+#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "logdefnone.h"
 

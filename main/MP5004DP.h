@@ -1,11 +1,8 @@
-#ifndef __MP5004DP_H__
-#define __MP5004DP_H__
 
-#include "ESP32NVS.h"
-#include "mcp3221.h"
-#include "setup/SetupNG.h"
-#include <math.h>
+#pragma once
+
 #include "AirspeedSensor.h"
+#include "I2Cbus.hpp"
 
 
 const float correction    = 5000.0/4096.0;  // according to above formula, this is the relation between adc readout and Pascal
@@ -36,6 +33,5 @@ private:
 	float _correction;
 };
 
-#endif
 
 

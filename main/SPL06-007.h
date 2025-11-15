@@ -3,9 +3,7 @@
 #include "PressureSensor.h"
 #include "I2Cbus.hpp"
 
-#include <cinttypes>
-#include <cstdio>
-#include <cstring>
+#include <cstdint>
 
 
 
@@ -36,13 +34,13 @@ private:
 
 	double get_scale_factor( int reg );
 
-	inline uint8_t get_spl_id(){ return i2c_read_uint8( 0x0D ); }		// Get ID Register 		0x0D
-	inline uint8_t get_spl_prs_cfg(){ return i2c_read_uint8( 0x06 ); };	// Get PRS_CFG Register	0x06
-	inline uint8_t get_spl_tmp_cfg(){ return i2c_read_uint8( 0x07 ); };	// Get TMP_CFG Register	0x07
-	inline uint8_t get_spl_meas_cfg(){ return i2c_read_uint8( 0x08 ); };	// Get MEAS_CFG Register	0x08
-	inline uint8_t get_spl_cfg_reg(){ return i2c_read_uint8( 0x09 ); };	// Get CFG_REG Register	0x09
-	inline uint8_t get_spl_int_sts(){ return i2c_read_uint8( 0x0A ); };	// Get INT_STS Register	0x0A
-	inline uint8_t get_spl_fifo_sts(){ return i2c_read_uint8( 0x0B ); };	// Get FIFO_STS Register	0x0B
+	uint8_t get_spl_id(){ return i2c_read_uint8( 0x0D ); }		// Get ID Register 		0x0D
+	uint8_t get_spl_prs_cfg(){ return i2c_read_uint8( 0x06 ); };	// Get PRS_CFG Register	0x06
+	uint8_t get_spl_tmp_cfg(){ return i2c_read_uint8( 0x07 ); };	// Get TMP_CFG Register	0x07
+	uint8_t get_spl_meas_cfg(){ return i2c_read_uint8( 0x08 ); };	// Get MEAS_CFG Register	0x08
+	uint8_t get_spl_cfg_reg(){ return i2c_read_uint8( 0x09 ); };	// Get CFG_REG Register	0x09
+	uint8_t get_spl_int_sts(){ return i2c_read_uint8( 0x0A ); };	// Get INT_STS Register	0x0A
+	uint8_t get_spl_fifo_sts(){ return i2c_read_uint8( 0x0B ); };	// Get FIFO_STS Register	0x0B
 
 
 	int16_t get_16bit( uint8_t addr );

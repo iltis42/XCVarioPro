@@ -1,15 +1,17 @@
 #pragma once
 
-#include "ESP32NVS.h"
-#include "PressureSensor.h"
-
-#include "setup/SetupNG.h"
+#include "average.h"
 #include "S2F.h"
-#include <stdio.h>
+
+#include <driver/gpio.h>
+
+
 /*
      Implementation of a stable Vario with flight optimized Iltis-Kalman filter
 
  */
+
+class PressureSensor;
 
 // #define SPS 10                   // samples per second
 constexpr const int FILTER_LEN = 34; // Max Filter length

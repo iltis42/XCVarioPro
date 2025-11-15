@@ -8,9 +8,10 @@
 #pragma once
 
 #include "ESPRotary.h"
-#include "setup/SetupNG.h"
 #include "setup/SetupMenuCommon.h"
+
 #include <string>
+#include <cstdint>
 
 struct bitfield {
     e_restart_mode_t _restart :2;

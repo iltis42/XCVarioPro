@@ -8,10 +8,7 @@
 
 #include "KRT2Remote.h"
 #include "nmea_util.h"
-// #include "comm/Messages.h"
-#include "logdef.h"
-#include <cstring>
-#include <string>
+#include "logdefnone.h"
 
 constexpr uint8_t KRT2_STX_START = 0x02;
 

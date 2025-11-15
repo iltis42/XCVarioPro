@@ -15,7 +15,6 @@
 #include "setup/ShowBootMsg.h"
 #include "screen/element/MultiGauge.h"
 #include "Colors.h"
-#include "ESPAudio.h"
 #include "BMPVario.h"
 #include "S2F.h"
 #include "Version.h"
@@ -26,28 +25,28 @@
 #include "Flap.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
-#include "setup/SetupMenuChar.h"
 #include "setup/SetupAction.h"
-#include "esp_wifi.h"
+#include "setup/SetupNG.h"
 #include "Flarm.h"
 #include "protocol/FlarmSim.h"
 #include "KalmanMPU6050.h"
+#include "PressureSensor.h"
+#include "AnalogInput.h"
+#include "AirspeedSensor.h"
+#include "AdaptUGC.h"
 #include "sensor.h"
-#include "setup/SetupNG.h"
-
-#include "comm/DeviceMgr.h"
-#include "protocol/NMEA.h"
-#include "comm/SerialLine.h"
-#include "coredump_to_server.h"
-#include "protocol/nmea/JumboCmdMsg.h"
 #include "logdefnone.h"
 
-#include <inttypes.h>
-#include <iterator>
+#include "comm/DeviceMgr.h"
+#include "math/Trigonometry.h"
+#include "protocol/NMEA.h"
+#include "protocol/nmea/JumboCmdMsg.h"
+
 #include <algorithm>
-#include <string>
 #include <array>
 #include <string_view>
+
+extern AdaptUGC *MYUCG;
 
 static void setup_create_root(SetupMenu *top);
 

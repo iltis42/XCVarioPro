@@ -11,7 +11,6 @@
 #include "ProtocolItf.h"
 #include "ClockIntf.h"
 
-#include <string>
 
 class TestQuery final : public ProtocolItf, public Clock_I
 {

@@ -1,8 +1,8 @@
 
 #include "setup/SubMenuGlider.h"
 
+#include "glider/Polars.h"
 #include "setup/SubMenuFlap.h"
-#include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
 #include "setup/SetupMenu.h"
@@ -10,8 +10,11 @@
 #include "screen/UiEvents.h"
 #include "screen/DrawDisplay.h"
 #include "Flap.h"
+#include "AdaptUGC.h"
 #include "sensor.h"
 #include "logdefnone.h"
+
+extern AdaptUGC *MYUCG;
 
 static int polar_select(SetupMenuSelect *p) {
 	ESP_LOGI(FNAME,"glider-index %d", p->getValue());

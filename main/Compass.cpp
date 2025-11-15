@@ -22,11 +22,12 @@ Author: Axel Pauli, deviation and refactoring by Eckhard Völlm Dec 2021
 #include "QMC5883L.h"
 #include "math/Quaternion.h"
 #include "vector.h"
-#include "comm/DeviceMgr.h"
 #include "comm/I2CWrapper.h"
 #include "protocol/Clock.h"
+#include "setup/SetupNG.h"
+#include "ESPRotary.h"
 #include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <esp_system.h>
 

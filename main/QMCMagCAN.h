@@ -53,12 +53,12 @@ public:
     bool overflowFlag() override { return false; }  // no support
 
 	// Read in raw format into variables, return true if success
-	bool readRaw( t_magn_axes &mag ) override;
+	bool readRaw( vector_i16 &mag ) override;
 	// In micro Tesla unit, bias and scale corrected, return true if success
 	// bool readBiased( vector_ijk &mag );
 
 	// If device is connected via CAN, just get X,Y,Z data from there
-    void fromExternal(const t_magn_axes *magaxes) override;
+    void fromExternal(const vector_i16 *magaxes) override;
 
 	int curX() override { return (int)can.x; }
 	int curY() override { return (int)can.y; }
@@ -66,7 +66,7 @@ public:
 
 private:
 	bool initialized = false;
-	t_magn_axes can = {};
+	vector_i16 can = {};
 	// vector_ijk calib, stage;
 	int age = 100;
 };

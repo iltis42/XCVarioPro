@@ -8,15 +8,13 @@
 
 #pragma once
 
-#include "esp_system.h"
-#include "setup/SetupNG.h"
-#include "AdaptUGC.h"
-#include "Colors.h"
+#include <MPU.h>
 #include <string>
 
 typedef enum e_sreens { INIT_DISPLAY_NULL, INIT_DISPLAY_RETRO=1, INIT_DISPLAY_FLARM=2, INIT_DISPLAY_GLOAD=4, INIT_DISPLAY_HORIZON=8 } e_screens_t;
 extern int screens_init;
 
+class AdaptUGC;
 class PolarGauge;
 class WindIndicator;
 class McCready;

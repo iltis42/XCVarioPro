@@ -1,10 +1,9 @@
+
 #include "MP5004DP.h"
-#include "sdkconfig.h"
-#include "math.h"
-#include "string"
-#include "esp_task_wdt.h"
-#include <logdef.h>
-#include "sensor.h"
+
+#include "setup/SetupNG.h"
+#include "mcp3221.h"
+#include "logdefnone.h"
 
 
 

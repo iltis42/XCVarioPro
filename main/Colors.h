@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cinttypes>
+#include <cstdint>
 
 extern uint8_t g_col_background;
 extern uint8_t g_col_highlight;

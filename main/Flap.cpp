@@ -9,6 +9,7 @@
 #include "logdefnone.h"
 
 #include <array>
+#include <algorithm>
 
 
 constexpr float GENERAL_V_MIN = 50;

@@ -9,7 +9,6 @@
 #include "Altimeter.h"
 
 #include "Colors.h"
-#include "setup/SetupNG.h"
 #include "math/Floats.h"
 #include "Units.h"
 #include "AdaptUGC.h"

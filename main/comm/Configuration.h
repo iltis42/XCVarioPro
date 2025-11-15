@@ -9,7 +9,7 @@
 #pragma once
 
 #include "Devices.h"
-#include "InterfaceCtrl.h"
+#include "comm/InterfaceCtrl.h"
 
 #include <cinttypes>
 #include <set>

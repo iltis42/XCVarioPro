@@ -11,12 +11,13 @@
  #include "OTA.h"
 
 #include "IpsDisplay.h"
+#include "AdaptUGC.h"
+#include "setup/SetupNG.h"
 #include "comm/WifiApSta.h"
 #include "setup/SetupNG.h"
 #include "Webserver.h"
 #include "qrcodegen.h"
-#include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

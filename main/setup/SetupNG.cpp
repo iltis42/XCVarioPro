@@ -8,16 +8,12 @@
 #include "setup/SetupNG.h"
 
 #include "IpsDisplay.h"
-#include "setup/SetupMenuCommon.h"
 #include "setup/CruiseMode.h"
 #include "math/Quaternion.h"
-#include "ESP32NVS.h"
 #include "ESPAudio.h"
-#include "BMPVario.h"
 #include "glider/Polars.h"
 #include "mpu/types.hpp"  // MPU data types and definitions
 #include "sensor.h"
-#include "S2fSwitch.h"
 #include "wind/StraightWind.h"
 #include "wind/CircleWind.h"
 #include "ESPAudio.h"
@@ -42,11 +38,6 @@
 #include <esp_system.h>
 #include <esp_http_server.h>
 
-#include <cstdio>
-#include <cmath>
-#include <string>
-#include <iostream>
-#include <map>
 
 // Specialization for float
 template<typename T>

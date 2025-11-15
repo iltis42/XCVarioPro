@@ -13,10 +13,15 @@
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
+#include "AnalogInput.h"
+#include "AdaptUGC.h"
 #include "sensor.h"
 #include "logdefnone.h"
 
 #include <string>
+#include <cstdint>
+
+extern AdaptUGC *MYUCG;
 
 static int new_level_label_idx;
 const limits_t polar_speed_limits = {0.0, 450.0, 1};

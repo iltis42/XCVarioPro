@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "setup/SetupNG.h"
 #include "setup/MenuEntry.h"
 
 

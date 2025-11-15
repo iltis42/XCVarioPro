@@ -45,6 +45,14 @@ nvs_handle_t ESP32NVS::open(){
 		ESP_LOGE(FNAME,"ESP32NVS open storage error");
 		return 0;
 	}
+	// nvs_stats_t stats;
+	// nvs_get_stats(NULL, &stats); // NULL = Standard-Partition
+
+	// printf("Used entries: %d\n", stats.used_entries);
+	// printf("Free entries: %d\n", stats.free_entries);
+	// printf("Total entries: %d\n", stats.total_entries);
+	// printf("Namespace count: %d\n", stats.namespace_count);
+
 	return h;
 }
 

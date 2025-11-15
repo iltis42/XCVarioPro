@@ -23,19 +23,19 @@
 #include "StraightWind.h"
 
 #include "protocol/ProtocolItf.h"
+#include "protocol/NMEA.h"
 #include "Compass.h"
 #include "Flarm.h"
 #include "setup/SetupNG.h"
 #include "Units.h"
 #include "sensor.h"
-// #include "math.h"
 #include "sensor.h"
 #include "KalmanMPU6050.h"
 #include "math/Trigonometry.h"
 #include "math/Floats.h"
 #include "comm/DeviceMgr.h"
-#include "logdef.h"
 #include "wind/CircleWind.h"
+#include "logdef.h"
 
 #include <esp_system.h>
 

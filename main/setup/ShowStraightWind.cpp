@@ -20,12 +20,12 @@ Last update: 2021-04-18
 #include "wind/StraightWind.h"
 #include "ShowStraightWind.h"
 #include "setup/SetupNG.h"
+#include "AdaptUGC.h"
 #include "Units.h"
-#include "sensor.h"
-#include "Compass.h"
 
 #include "logdef.h"
 
+extern AdaptUGC *MYUCG;
 
 StraightWind *straightWind = nullptr;
 

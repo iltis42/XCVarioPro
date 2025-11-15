@@ -4,18 +4,16 @@
  */
 #include "BME280_ESP32_SPI.h"
 
-// #include <sdkconfig.h>
 #include "Atmosphere.h"
 #include "sensor.h"
 #include <logdefnone.h>
 
-#include "freertos/FreeRTOS.h"
-#include <freertos/task.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 #include <cstring>
 #include <cstdint>
 #include <cstdio>
-#include <cmath>
 
 extern SemaphoreHandle_t spiMutex;
 

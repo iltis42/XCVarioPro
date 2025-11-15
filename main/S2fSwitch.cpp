@@ -10,6 +10,7 @@
 
 #include "protocol/Clock.h"
 #include "setup/CruiseMode.h"
+#include "setup/SetupNG.h"
 #include "screen/UiEvents.h"
 #include "screen/DrawDisplay.h"
 #include "sensor.h"

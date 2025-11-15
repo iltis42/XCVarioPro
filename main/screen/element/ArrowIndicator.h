@@ -10,7 +10,7 @@
 
 #include "AdaptUGC.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 class PolarGauge;
 

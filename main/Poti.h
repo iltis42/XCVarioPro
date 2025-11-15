@@ -2,7 +2,7 @@
 
 #include <protocol/ClockIntf.h>
 
-#include <cinttypes>
+#include <cstdint>
 
 namespace i2cbus {
     class I2C;

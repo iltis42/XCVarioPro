@@ -7,10 +7,12 @@
  ***********************************************************/
 
 #include "SetupAction.h"
-#include "setup/SetupMenu.h"
-#include "sensor.h"
 
-#include "logdef.h"
+#include "setup/SetupMenu.h"
+#include "AdaptUGC.h"
+#include "logdefnone.h"
+
+extern AdaptUGC *MYUCG;
 
 constexpr const char action_help[] = "Long Press to exit action control.";
 

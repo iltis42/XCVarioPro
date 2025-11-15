@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-// #include "eglib/config.h"
 #include "eglib/types.h"
 #include "eglib/drawing.h"
 

@@ -1,14 +1,10 @@
-#ifndef MCPH21_H
-#define MCPH21_H
 
-#include <inttypes.h>
-#include <stdio.h>
-// #include "I2C.h"
-#include <string.h>
-#include "setup/SetupNG.h"
-#include <math.h>
-#include "I2Cbus.hpp"
+#pragma once
+
 #include "AirspeedSensor.h"
+#include "I2Cbus.hpp"
+
+#include <cstdint>
 
 
 #define I2C_ADDRESS_MCPH21    0x7F  //  Datasheet testcode: IC_Send(0xFE,..) what is 7F shifted right 1 bit
@@ -61,5 +57,4 @@ class MCPH21 : public AirspeedSensor
     
 };  // end of the class
  
-#endif 
  

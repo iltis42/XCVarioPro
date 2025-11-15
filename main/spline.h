@@ -24,14 +24,11 @@
  */
 
 
-#ifndef TK_SPLINE_H
-#define TK_SPLINE_H
+#pragma once
 
 #include <cstdio>
 #include <cassert>
-#include <cmath>
 #include <vector>
-#include <algorithm>
 #ifdef HAVE_SSTREAM
 #include <sstream>
 #include <string>
@@ -186,4 +183,3 @@ public:
 
 }
 
-#endif /* TK_SPLINE_H */

@@ -10,12 +10,10 @@
 
 #include "math/Floats.h"
 #include "PolarGauge.h"
-#include "IpsDisplay.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
 #include "logdefnone.h"
 
-#include <cmath>
 #include <cstdio>
 
 extern AdaptUGC *MYUCG;

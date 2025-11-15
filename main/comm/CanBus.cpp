@@ -1,9 +1,8 @@
 
 #include "CanBus.h"
 
-#include "Messages.h"
-#include "DeviceMgr.h"
 #include "DataLink.h"
+#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "logdefnone.h"
 

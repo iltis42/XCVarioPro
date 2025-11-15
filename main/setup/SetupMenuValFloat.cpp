@@ -8,14 +8,14 @@
 #include "setup/SetupMenuValFloat.h"
 
 #include "setup/SetupMenu.h"
+#include "AdaptUGC.h"
 #include "IpsDisplay.h"
 #include "BMPVario.h"
-#include "glider/Polars.h"
 #include "Units.h"
 #include "sensor.h"
-#include "ESPAudio.h"
 #include "logdefnone.h"
 
+extern AdaptUGC *MYUCG;
 
 SetupMenuValFloat::SetupMenuValFloat( const char* title, const char *unit, int (*action)( SetupMenuValFloat *p ), 
 	bool end_menu, SetupNG<float> *anvs, e_restart_mode_t restart, bool sync, bool live_update ) :

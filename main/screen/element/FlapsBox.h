@@ -11,7 +11,7 @@
 #include "ScreenElement.h"
 #include "math/Floats.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 class Flap; // where all the data and logic resides
 

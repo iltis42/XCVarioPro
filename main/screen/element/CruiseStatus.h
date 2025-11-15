@@ -10,7 +10,7 @@
 
 #include "ScreenElement.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 // cruise status screen element
 class CruiseStatus : public ScreenElement

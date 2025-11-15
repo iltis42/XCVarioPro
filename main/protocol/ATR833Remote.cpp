@@ -8,10 +8,7 @@
 
 #include "ATR833Remote.h"
 #include "nmea_util.h"
-// #include "comm/Messages.h"
-#include "logdef.h"
-#include <cstring>
-#include <string>
+#include "logdefnone.h"
 
 
 // Binary frame start

@@ -9,7 +9,6 @@
 #include "InterfaceCtrl.h"
 
 #include "DataLink.h"
-#include "setup/SetupNG.h"
 #include "logdef.h"
 
 // 1..n relation from interface to data link layer

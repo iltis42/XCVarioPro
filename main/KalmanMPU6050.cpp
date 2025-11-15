@@ -1,11 +1,12 @@
+
 #include "KalmanMPU6050.h"
-#include <MPU.hpp>
-#include <mpu/math.hpp>
-#include "sensor.h"
+#include "setup/SetupNG.h"
+#include "mpu/math.hpp"
 #include "math/Quaternion.h"
 #include "math/Trigonometry.h"
 #include "vector.h"
-#include "logdef.h"
+#include "sensor.h"
+#include "logdefnone.h"
 
 #include <simplex.h>
 #include <vector>

@@ -7,22 +7,16 @@
 #include "setup/MenuEntry.h"
 
 #include "setup/SetupMenu.h"
-#include "IpsDisplay.h"
+#include "setup/SetupCommon.h"
+#include "Colors.h"
 #include "ESPAudio.h"
-#include "BMPVario.h"
-#include "S2F.h"
-#include "Version.h"
-#include "glider/Polars.h"
 #include "sensor.h"
-#include "Cipher.h"
-#include "Units.h"
-#include "S2fSwitch.h"
-#include "Flap.h"
+#include "AdaptUGC.h"
 #include "logdef.h"
 
-#include <inttypes.h>
-#include <iterator>
-#include <algorithm>
+#include <cstdint>
+
+extern AdaptUGC *MYUCG;
 
 MenuEntry* MenuEntry::selected = nullptr;
 bool MenuEntry::_restart = false;

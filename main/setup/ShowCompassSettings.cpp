@@ -20,11 +20,11 @@ Last update: 2021-04-18
 #include "ShowCompassSettings.h"
 
 #include "setup/SetupNG.h"
-#include "QMC5883L.h"
 #include "sensor.h"
-
 #include <AdaptUGC.h>
 #include <logdef.h>
+
+extern AdaptUGC *MYUCG;
 
 ShowCompassSettings::ShowCompassSettings( const char* title) :
 SetupMenuDisplay( title, nullptr )

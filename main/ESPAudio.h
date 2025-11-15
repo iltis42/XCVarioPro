@@ -9,8 +9,7 @@
 
 #include <driver/dac_continuous.h>
 
-#include <cinttypes>
-#include <cmath>
+#include <cstdint>
 
 class Poti;
 class TestSequence;

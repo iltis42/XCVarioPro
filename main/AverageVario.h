@@ -1,8 +1,7 @@
-#ifndef AVERAGE_VARIO_H
-#define AVERAGE_VARIO_H
+
+#pragma once
 
 #include <list>
-#include <vector>
 #include <array>
 
 class AverageVario{
@@ -26,4 +25,3 @@ private:
 };
 
 
-#endif

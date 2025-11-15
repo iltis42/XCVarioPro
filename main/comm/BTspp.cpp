@@ -1,8 +1,8 @@
 #include "BTspp.h"
-#include "setup/SetupNG.h"
 
+
+#include "setup/SetupCommon.h"
 #include "comm/DataLink.h"
-#include "comm/InterfaceCtrl.h"
 
 #include "logdefnone.h"
 

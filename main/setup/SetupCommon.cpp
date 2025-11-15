@@ -8,11 +8,11 @@
 #include "setup/SetupCommon.h"
 
 #include "setup/SetupNG.h"
-#include "sdkconfig.h"
 #include "ESP32NVS.h"
 #include "sensor.h"
 #include "comm/DeviceMgr.h"
 #include "comm/CanBus.h"
+#include "protocol/nmea/XCVSyncMsg.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>

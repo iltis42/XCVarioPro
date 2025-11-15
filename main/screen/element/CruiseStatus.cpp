@@ -13,7 +13,6 @@
 #include "AdaptUGC.h"
 #include "logdefnone.h"
 
-#include <cstdio>
 
 extern AdaptUGC *MYUCG;
 

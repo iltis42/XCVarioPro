@@ -21,11 +21,12 @@ Last update: 2021-04-18
 
 #include "wind/CircleWind.h"
 #include "setup/SetupNG.h"
+#include "AdaptUGC.h"
 #include "Units.h"
-#include "sensor.h"
 #include "logdef.h"
 
-#include "AdaptUGC.h"
+extern AdaptUGC *MYUCG;
+
 
 ShowCirclingWind::ShowCirclingWind( const char* title ) :
 SetupMenuDisplay( title, nullptr )

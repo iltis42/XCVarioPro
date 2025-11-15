@@ -14,10 +14,7 @@
 #include <freertos/task.h>
 #include <driver/gpio.h>
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
-#include <algorithm>
 #include <mutex>
 
 // the global access to the rotary knob

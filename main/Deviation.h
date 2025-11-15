@@ -18,8 +18,10 @@ Author: Eckhard Völlm, December 2021
 
 #pragma once
 
-#include "QMC5883L.h"
 #include "spline.h"
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 #include <map>
 

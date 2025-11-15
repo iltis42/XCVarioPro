@@ -9,7 +9,6 @@
 #include "MultiGauge.h"
 
 #include "Colors.h"
-#include "IpsDisplay.h"
 #include "math/Floats.h"
 #include "setup/SetupNG.h"
 #include "Units.h"

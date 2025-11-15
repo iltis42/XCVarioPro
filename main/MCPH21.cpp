@@ -1,7 +1,11 @@
+
 #include "MCPH21.h"
+
+#include "setup/SetupNG.h"
 #include "sensor.h"
-#include <math.h>
-#include <logdef.h>
+#include "logdefnone.h"
+
+#include <cmath>
 
 // Long term stability of Sensor as from datasheet FS* 0.15 + 0.3 (dT) % per year -> 16777216 * 0.00015 = 2516
 #define MAX_AUTO_CORRECTED_OFFSET 73000    // pressure for minimum of 60 Pa: 911868 Offset according to datasheet: 838861, difference: ~73000 and ~1% FS of 7549746

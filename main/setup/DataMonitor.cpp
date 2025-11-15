@@ -1,16 +1,16 @@
 #include "setup/DataMonitor.h"
 
-#include "Colors.h"
 #include "comm/DeviceMgr.h"
-#include "setup/SetupMenu.h"
 #include "setup/SetupAction.h"
-#include "sensor.h"
 #include "setup/SetupNG.h"
-#include "Flarm.h"
+#include "Colors.h"
+#include "AdaptUGC.h"
+#include "sensor.h"
 #include "logdefnone.h"
 
 constexpr int SCROLL_TOP = 20;
 
+extern AdaptUGC *MYUCG;
 DataMonitor *DM = nullptr;
 
 DataMonitor::DataMonitor() :

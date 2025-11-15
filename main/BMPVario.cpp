@@ -1,15 +1,14 @@
 #include "BMPVario.h"
 
+#include "PressureSensor.h"
 #include "Atmosphere.h"
 #include "S2F.h"
 #include "AverageVario.h"
+#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "logdefnone.h"
 
-#include "freertos/FreeRTOS.h"
-#include <freertos/task.h>
 
-#include <atomic>
 #include <cmath>
 
 const double sigmaAdjust = 255 * 2.0/33;  // 2 Vss

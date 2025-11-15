@@ -1,13 +1,12 @@
 #include "Flarm.h"
-#include "logdef.h"
 #include "Colors.h"
 #include "ESPAudio.h"
 #include "IpsDisplay.h"
 #include "math/Trigonometry.h"
-#include "sensor.h"
-#include "wind/CircleWind.h"
+#include "AdaptUGC.h"
+#include "logdef.h"
+
 #include <cmath>
-#include <ctime>
 #include <sys/time.h>
 
 int Flarm::RX = 0;

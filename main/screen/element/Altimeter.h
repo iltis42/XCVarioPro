@@ -10,7 +10,7 @@
 
 #include "ScreenElement.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 // altimeter screen element
 class Altimeter : public ScreenElement

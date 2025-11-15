@@ -4,7 +4,6 @@
 #include "Cipher.h"
 #include "BME280_ESP32_SPI.h"
 #include "mcp3221.h"
-#include "mcp4018.h"
 #include "ESP32NVS.h"
 #include "MP5004DP.h"
 #include "MS4525DO.h"
@@ -28,15 +27,16 @@
 #include "protocol/MagSensBin.h"
 #include "protocol/NMEA.h"
 #include "protocol/WatchDog.h"
+#include "protocol/nmea/XCVSyncMsg.h"
 #include "screen/SetupRoot.h"
 #include "screen/BootUpScreen.h"
 #include "screen/MessageBox.h"
 #include "screen/DrawDisplay.h"
 #include "screen/UiEvents.h"
 
-#include "math/Quaternion.h"
-#include "math/Floats.h"
-#include "wmm/geomag.h"
+// #include "math/Quaternion.h"
+// #include "math/Floats.h"
+// #include "wmm/geomag.h"
 #include "OTA.h"
 #include "S2fSwitch.h"
 #include "AverageVario.h"
@@ -46,7 +46,6 @@
 #include "mpu/types.hpp"  // MPU data types and definitions
 #include "I2Cbus.hpp"
 #include "KalmanMPU6050.h"
-#include "comm/WifiApSta.h"
 #include "LeakTest.h"
 #include "Units.h"
 #include "Flap.h"
@@ -55,11 +54,10 @@
 #include "comm/SerialLine.h"
 #include "comm/CanBus.h"
 #include "comm/DeviceMgr.h"
-#include "protocol/TestQuery.h"
+// #include "protocol/TestQuery.h"
 #include "AdaptUGC.h"
 #include "OneWireESP32.h"
 #include "logdef.h"
-#include "math/Trigenometry.h"
 #include "comm/Messages.h"
 
 #include <freertos/FreeRTOS.h>
@@ -72,6 +70,7 @@
 #include <soc/sens_reg.h> // needed for adc pin reset
 #include <esp_sleep.h>
 #include <esp_system.h>
+#include <esp_wifi.h>
 #include <esp_flash.h>
 #include <esp_chip_info.h>
 #include <driver/gpio.h>
@@ -95,7 +94,6 @@ BMP:
 #define SPL06_007_BARO 0x77
 #define SPL06_007_TE   0x76
 
-MCP3221 *MCP=0;
 OneWire32  ds18b20( GPIO_NUM_23 );  // GPIO_NUM_23 standard, alternative  GPIO_NUM_17
 uint8_t t_devices = 0;
 uint64_t t_addr[1];
@@ -212,7 +210,7 @@ static void grabMPU()
 		// ESP_LOGI(FNAME,"GS=%.3f %d", GS, gpsOK );
 		if( gpsOK && GS < 2 && ias.get() < 5 ){  // GPS status, groundspeed and airspeed regarded for still stand
 			// check low rotation on all 3 axes = on ground
-			if( abs( gyroDPS.a ) < MAXDRIFT && abs( gyroDPS.b ) < MAXDRIFT && abs( gyroDPS.c ) < MAXDRIFT ) {
+			if( abs( gyroDPS.x ) < MAXDRIFT && abs( gyroDPS.y ) < MAXDRIFT && abs( gyroDPS.z ) < MAXDRIFT ) {
 				num_gyro_samples++;
 				cur_gyro_bias[0] = IMU::getRawGyroX();
 				cur_gyro_bias[1] = IMU::getRawGyroY();
@@ -1349,12 +1347,9 @@ void system_startup(void *args){
 		bool ok;
         if (ae > NO_ELEVATION) {
             float baroP = baroSensor->readPressure(ok);
-            float alt = 0.0f;
             if (Flarm::validExtAlt() && alt_select.get() == AS_EXTERNAL) {
                 // correct altitude according to ISA model = 27ft / hPa
-                alt = alt_external + (QNH.get() - 1013.25f) * 8.2296f;
-            } else {
-                alt = ae;
+                ae = alt_external + (QNH.get() - 1013.25f) * 8.2296f;
             }
 
             float qnh_best = Atmosphere::calcQNHPressure(baroP, ae);

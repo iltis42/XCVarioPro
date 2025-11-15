@@ -1,6 +1,8 @@
 #include "MS4525DO.h"
-#include <math.h>
-#include <logdef.h>
+#include "setup/SetupNG.h"
+#include "logdefnone.h"
+
+#include <cmath>
 
 #define MAX_AUTO_CORRECTED_OFFSET 50
 

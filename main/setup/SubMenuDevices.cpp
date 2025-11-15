@@ -6,6 +6,8 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
+#include "SubMenuDevices.h"
+
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuChar.h"
@@ -15,6 +17,7 @@
 #include "comm/CanBus.h"
 #include "comm/SerialLine.h"
 #include "comm/WifiApSta.h"
+#include "protocol/NMEA.h"
 #include "setup/DataMonitor.h"
 #include "sensor.h"
 #include "logdef.h"
@@ -23,7 +26,6 @@
 
 #include <cinttypes>
 #include <string_view>
-#include "SubMenuDevices.h"
 
 static DeviceId new_device;
 static InterfaceId new_interface;

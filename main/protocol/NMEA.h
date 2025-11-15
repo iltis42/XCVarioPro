@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <algorithm>
 
 
 // Assuming that all seen NMEA message id's last 4 chars are different,

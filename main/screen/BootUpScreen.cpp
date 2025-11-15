@@ -18,8 +18,10 @@
 
 #include <esp_random.h>
 
-#include <cinttypes>
+#include <cstdint>
 #include <ctime>
+
+extern AdaptUGC *MYUCG;
 
 BootUpScreen *BootUpScreen::inst = nullptr;
 
@@ -201,7 +203,7 @@ void BootUpScreen::finish(int part)
 {
     if ( gflags.schedule_reboot ) {
         ShowBootMsg bm("");
-        bm.display(part+1);
+        bm.display(part+1); // factory only case .. no display synch here
         return;
     }
     if ( fini_part < part-1 ) {

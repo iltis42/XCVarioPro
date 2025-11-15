@@ -5,11 +5,9 @@
   *
   */
 
-#ifndef UbloxGNSSdecode_H_
-#define UbloxGNSSdecode_H_
+#pragma once
 
-// #include "SString.h"
-#include "types.h"
+#include <cstdint>
 
 typedef struct _gnss_data {
 	struct {
@@ -78,4 +76,3 @@ private:
 };
 
 
-#endif /* UbloxGNSSdecode_H_ */

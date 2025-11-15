@@ -1,8 +1,5 @@
 // WMM geomag routine to calc mag field at a point
 
-// #include <cstdio>
-// #include <cstdlib>
-// #include <cstring>
 #include "geomag.h"
 #include "wmm_2020.h"
 

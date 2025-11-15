@@ -1,7 +1,8 @@
 #include "ABPMRR.h"
-#include <math.h>
-#include <logdef.h>
+#include "setup/SetupNG.h"
+#include <logdefnone.h>
 
+#include <cmath>
 
 ABPMRR::ABPMRR()
 {

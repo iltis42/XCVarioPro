@@ -8,6 +8,7 @@
 
 #include "DataLink.h"
 
+#include "Messages.h"
 #include "protocol/nmea/CANMasterRegMsg.h"
 #include "protocol/nmea/CANClientQueryMsg.h"
 #include "protocol/nmea/JumboCmdMsg.h"
@@ -20,12 +21,12 @@
 #include "protocol/nmea/BorgeltMsg.h"
 #include "protocol/nmea/CambridgeMsg.h"
 #include "protocol/nmea/MagSensMsg.h"
+#include "protocol/nmea/XCVSyncMsg.h"
 #include "protocol/Anemoi.h"
 #include "protocol/FlarmBin.h"
 #include "protocol/KRT2Remote.h"
 #include "protocol/MagSensBin.h"
 #include "protocol/TestQuery.h"
-#include "Messages.h"
 #include "DeviceMgr.h"
 #include "setup/DataMonitor.h"
 #include "protocol/AliveMonitor.h"

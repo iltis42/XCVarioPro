@@ -1,8 +1,8 @@
 #include "AdaptUGC.h"
 
-#include "sensor.h"
-#include "logdef.h"
 #include "setup/SetupNG.h"
+#include "sensor.h"
+#include "logdefnone.h"
 
 
 #include <eglib/display/ili9341.h>

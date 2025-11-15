@@ -9,9 +9,7 @@
 #pragma once
 
 #include "ProtocolItf.h"
-#include "ClockIntf.h"
 
-#include <string>
 
 class ATR833Remote final : public ProtocolItf
 {

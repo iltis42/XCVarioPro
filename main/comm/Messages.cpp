@@ -7,9 +7,7 @@
  ***********************************************************/
 
 #include "Messages.h"
-#include "logdef.h"
 
-#include <iostream>
 #include <sstream>
 #include <iomanip>
 

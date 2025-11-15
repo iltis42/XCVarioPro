@@ -18,12 +18,14 @@ Last update: 2021-02-25
  ****************************************************************************/
 
 #include "DisplayDeviations.h"
+#include "Compass.h"
 #include "Colors.h"
-#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "AdaptUGC.h"
 
 #include "logdef.h"
+
+extern AdaptUGC *MYUCG;
 
 
 DisplayDeviations::DisplayDeviations( const char * title ) :

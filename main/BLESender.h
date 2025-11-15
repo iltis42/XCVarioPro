@@ -1,8 +1,5 @@
 #pragma once
 
-// #include <btstack.h>
-#include <esp_log.h>
-#include <string>
 
 
 #define RFCOMM_SERVER_CHANNEL 1

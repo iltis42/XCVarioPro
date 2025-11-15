@@ -12,11 +12,12 @@
 #include "DrawDisplay.h"
 #include "UiEvents.h"
 #include "protocol/Clock.h"
+#include "AdaptUGC.h"
 #include "logdefnone.h"
-#include "sensor.h"
 
 #include <mutex>
 
+extern AdaptUGC *MYUCG;
 MessageBox *MBOX; // the global representation
 
 const int CLOCK_DIVIDER = 8;

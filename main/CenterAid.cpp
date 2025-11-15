@@ -12,10 +12,10 @@
 #include "Flarm.h"
 #include "sensor.h"
 #include "AdaptUGC.h"
+#include "Colors.h"
 #include "KalmanMPU6050.h"
 #include "logdefnone.h"
 
-#include <cstring>
 
 constexpr int CA_STEP = 360/CA_NUM_DIRS; // 15
 constexpr float CA_STEP_2 = CA_STEP/2.f;  // 7.5

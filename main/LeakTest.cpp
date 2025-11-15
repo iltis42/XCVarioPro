@@ -1,7 +1,10 @@
 #include "LeakTest.h"
 
+#include "AirspeedSensor.h"
+#include "PressureSensor.h"
 #include "IpsDisplay.h"
 #include "ESPRotary.h"
+#include "sensor.h"
 #include "logdefnone.h"
 
 #define LOOPS 150

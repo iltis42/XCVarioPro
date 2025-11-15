@@ -25,6 +25,9 @@
 
 #include "spline.h"
 
+#include <cmath>
+#include <algorithm>
+
 // spline implementation
 // -----------------------
 

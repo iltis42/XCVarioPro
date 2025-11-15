@@ -1,7 +1,7 @@
 #pragma once
 
 #include "I2Cbus.hpp"
-#include <hal/gpio_types.h>
+#include <driver/gpio.h>
 
 class PressureSensor {
 public:

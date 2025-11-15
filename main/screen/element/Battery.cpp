@@ -9,11 +9,9 @@
 #include "Battery.h"
 
 #include "Colors.h"
-#include "setup/SetupNG.h"
 #include "Units.h"
 #include "AdaptUGC.h"
 
-#include <cstdio>
 #include "logdefnone.h"
 
 

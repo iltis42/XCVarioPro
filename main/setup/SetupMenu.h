@@ -9,6 +9,8 @@
 
 #include "setup/MenuEntry.h"
 
+#include <vector>
+
 constexpr const char* FORMATSTRING_AND_SPACE = "%s                ";
 
 class SetupMenuValFloat;

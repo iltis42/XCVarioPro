@@ -15,7 +15,6 @@
 #include <soc/uart_reg.h>
 
 #include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include <freertos/queue.h>
 
 constexpr int BUF_LEN = 128;

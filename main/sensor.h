@@ -1,19 +1,12 @@
 #pragma once
 
-#include "MPU.hpp"        // main file, provides the class itself
-#include "AnalogInput.h"
-#include "MP5004DP.h"
-#include "MS4525DO.h"
-#include "Compass.h" // 3-Axis Magnetic Sensor
-#include "S2F.h"
-#include "AdaptUGC.h"
 #include "vector_3d.h"
-#include "BMPVario.h"
-#include "AirspeedSensor.h"
+#include "S2F.h"
 
-#include <hal/gpio_types.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
 #include <esp_timer.h>
-
 #include <string>
 
 // Display 4 Wire SPI and Display CS
@@ -49,13 +42,22 @@ class AnalogInput;
 class PressureSensor;
 class SetupRoot;
 class WatchDog_C;
+class BMPVario;
+class AirspeedSensor;
+namespace mpud {
+    class MPU;
+}
+namespace i2cbus {
+    class I2C;
+}
+
+extern S2F Speed2Fly;
+extern BMPVario bmpVario;
 
 extern global_flags gflags;
-extern BMPVario bmpVario;
-extern CANbus* CAN;
+extern CANbus *CAN;
 extern SerialLine *S1,*S2;
 extern Clock *MY_CLOCK;
-extern SemaphoreHandle_t xMutex;
 extern AirspeedSensor *asSensor;
 extern PressureSensor *baroSensor;
 extern SetupRoot *MenuRoot;
@@ -66,7 +68,7 @@ extern std::string logged_tests;
 
 extern float getTAS();
 
-extern I2C_t& i2c;
+extern i2cbus::I2C& i2c;
 
 extern AnalogInput *AnalogInWk;
 
@@ -81,7 +83,6 @@ extern float polar_sink;
 extern float alt_external;
 extern float wksensor;
 
-extern S2F Speed2Fly;
 extern int MyGliderPolarIndex;
 extern float meanClimb;
 extern float baroP;    // Static pressure
@@ -93,9 +94,6 @@ extern ESPRotary *Rotary;
 
 extern SemaphoreHandle_t spiMutex;
 
-class AdaptUGC;
-extern AdaptUGC *MYUCG;
-
 extern vector_ijk gravity_vector;
 extern float batteryVoltage;
 
@@ -103,7 +101,7 @@ extern float batteryVoltage;
 
 extern float mpu_target_temp;
 
-extern MPU_t MPU;
+extern mpud::MPU MPU;
 
 // Arduino.h remains
 inline unsigned long millis()

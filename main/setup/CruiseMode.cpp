@@ -8,6 +8,7 @@
 
 #include "CruiseMode.h"
 
+#include "setup/SetupNG.h"
 #include "logdefnone.h"
 
 CruiseMode VCMode; // a global variable

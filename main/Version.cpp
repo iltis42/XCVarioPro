@@ -8,7 +8,6 @@
 #include "Version.h"
 #include <stdio.h>
 #include <string.h>
-#include <logdef.h>
 
 char Version::_version[32];
 char * program_version;

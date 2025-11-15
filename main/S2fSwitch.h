@@ -11,7 +11,7 @@
 #include "protocol/ClockIntf.h"
 
 #include <driver/gpio.h>
-#include <cinttypes>
+#include <cstdint>
 
 class S2fSwitch final : public Clock_I
 {

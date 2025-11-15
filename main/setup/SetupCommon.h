@@ -7,8 +7,11 @@
 
 #pragma once
 
-#include "protocol/nmea/XCVSyncMsg.h"
+#include <string>
+#include <cstdint>
 #include <vector>
+
+class XCVSyncMsg;
 
 struct httpd_req;
 

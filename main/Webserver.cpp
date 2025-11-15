@@ -1,13 +1,13 @@
 
-// #include "setup/SetupCommon.h"
 #include "Webserver.h"
-#include "logdef.h"
 #include "coredump_to_server.h"
-#include "setup/SetupNG.h"
+#include "setup/SetupCommon.h"
 #include "comm/DeviceMgr.h"
 #include "protocol/NMEA.h"
+#include "logdef.h"
 
 #include <esp_ota_ops.h>
+#include <cstdint>
 
 cWebserver* cWebserver::m_instance = nullptr;
 extern char * program_version;

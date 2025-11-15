@@ -5,8 +5,7 @@
  *      Author: iltis
  */
 
-#ifndef MAIN_VERSION_H_
-#define MAIN_VERSION_H_
+#pragma once
 
 class Version {
 public:
@@ -16,5 +15,3 @@ public:
 	static char *version()  { return _version; };
 };
 
-
-#endif /* MAIN_VERSION_H_ */

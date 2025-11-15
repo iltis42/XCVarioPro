@@ -6,12 +6,9 @@
  */
 #pragma once
 
-// #include "types.h"
-// #include "IpsDisplay.h"
-#include "Colors.h"
 #include "wind/CircleWind.h"
 
-#include <cinttypes>
+#include <cstdint>
 
 constexpr int CA_NUM_DIRS = 24;  // every 15°
 

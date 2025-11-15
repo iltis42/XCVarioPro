@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include "setup/SetupNG.h"
-
-#include <cinttypes>
+#include <cstdint>
 
 // A wrapper to the logic of the setup variables:
 // vario_mode - persistent info, but individual for master/client, about brutto/netto

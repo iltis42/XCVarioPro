@@ -1,14 +1,11 @@
-#ifndef MS4525DO_H
-#define MS4525DO_H
 
-#include <inttypes.h>
-#include <stdio.h>
-// #include "I2C.h"
-#include <string.h>
-#include "setup/SetupNG.h"
-#include <math.h>
-#include "I2Cbus.hpp"
+#pragma once
+
+
 #include "AirspeedSensor.h"
+#include "I2Cbus.hpp"
+
+#include <cstdint>
 
 #define I2C_ADDRESS_MS4525DO    0x28    /**< 7-bit address =0x28. 8-bit is 0x50. Depends on the order code (this is for code "I") */
  
@@ -70,5 +67,5 @@ class MS4525DO : public AirspeedSensor
     
 };  // end of the class
  
-#endif 
- 
+
+

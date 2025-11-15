@@ -16,7 +16,6 @@
 #include "logdef.h"
 
 #include <cstring>
-#include <string>
 
 TestQuery::TestQuery(DeviceId did, int mp, ProtocolState &sm, DataLink &dl)
   : ProtocolItf(did, mp, sm, dl),

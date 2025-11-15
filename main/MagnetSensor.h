@@ -14,7 +14,6 @@ Magnetic Sensor Abstraction.
 #pragma once
 
 #include "vector_3d.h"
-#include "esp_system.h"
 
 
 typedef struct magn_axes {

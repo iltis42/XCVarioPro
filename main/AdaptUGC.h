@@ -2,7 +2,7 @@
 #pragma once
 
 #include <eglib.h>
-#include <cinttypes>
+#include <cstdint>
 #include <cstring>
 
 

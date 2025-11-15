@@ -20,10 +20,14 @@ Last update: 2021-03-28
 
 #pragma once
 
-#include <sys/time.h>
-#include "esp_system.h"
-#include "I2Cbus.hpp"
 #include "MagnetSensor.h"
+
+#include "vector_3d.h"
+#include "I2Cbus.hpp"
+
+#include <esp_system.h>
+
+#include <cstdint>
 
 
 /* The default I2C address of this chip */
@@ -56,7 +60,7 @@ public:
 	//  Write with data part
 	bool overflowFlag() override { return overflowWarning; }
 	// Read out the registers X, Y, Z (0...5) in raw format into variables, return true if success
-	bool readRaw( t_magn_axes &mag ) override;
+	bool readRaw( vector_i16 &mag ) override;
 	int curX() override { return axes.x; }
 	int curY() override { return axes.y; }
 	int curZ() override { return axes.z; }
@@ -83,6 +87,6 @@ private:
 	uint8_t range; // magnetic resolution of sensor
 	uint8_t osr; // over sample ratio
 	bool overflowWarning = false;
-	t_magn_axes axes;
+	vector_i16 axes;
 	int age = 0;
 };
