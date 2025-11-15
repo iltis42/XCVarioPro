@@ -9,7 +9,7 @@
 #include "ArrowIndicator.h"
 
 #include "PolarGauge.h"
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "Colors.h"
 #include "logdef.h"
 

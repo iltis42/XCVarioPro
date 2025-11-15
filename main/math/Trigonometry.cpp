@@ -6,7 +6,7 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-#include "Trigenometry.h"
+#include "Trigonometry.h"
 
 #include "Floats.h"
 #include "logdef.h"
@@ -52,7 +52,7 @@ int angleDiffDeg(int a1, int a2)
 
 
 //
-// fast trigenometric helpers in 0.5 degree steps
+// fast trigonometric helpers in 0.5 degree steps
 // esp32 takes 1000~3000 cycles to approximate a sinus, tan, atan, and log do not perform as well
 // for all discrete gauge math the precision is just fine, not for other purposes (!)
 //

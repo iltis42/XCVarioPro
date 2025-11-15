@@ -3,7 +3,7 @@
 #include <mpu/math.hpp>
 #include "sensor.h"
 #include "math/Quaternion.h"
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "vector.h"
 #include "logdef.h"
 

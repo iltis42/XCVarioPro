@@ -8,7 +8,7 @@
 #include "CenterAid.h"
 
 #include "screen/element/PolarGauge.h"
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "Flarm.h"
 #include "sensor.h"
 #include "AdaptUGC.h"

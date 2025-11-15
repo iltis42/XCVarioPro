@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-// general trigenometric helper
+// general trigonometric helper
 constexpr double My_PId = 3.14159265358979323846;
 constexpr float My_PIf = static_cast<float>(My_PId);
 constexpr float PI2f = 2.0f * static_cast<float>(My_PId);

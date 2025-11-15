@@ -19,7 +19,7 @@
 #include "screen/element/CruiseStatus.h"
 #include "screen/element/FlapsBox.h"
 
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "comm/DeviceMgr.h"
 #include "BLESender.h"
 #include "OneWireESP32.h"

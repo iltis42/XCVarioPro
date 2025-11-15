@@ -7,7 +7,7 @@
  ***********************************************************/
 
 #include "math/Quaternion.h"
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "logdefnone.h"
 
 #include <esp_timer.h>

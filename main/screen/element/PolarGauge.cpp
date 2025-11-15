@@ -11,7 +11,7 @@
 #include "ArrowIndicator.h"
 #include "WindIndicator.h"
 #include "LargeFigure.h"
-#include "math/Trigenometry.h"
+#include "math/Trigonometry.h"
 #include "math/Floats.h"
 #include "Units.h"
 #include "Colors.h"
@@ -575,7 +575,7 @@ void PolarGauge::clearGauge()
 }
 
 ////////////////////////////
-// trigenometric helpers for gauge painters
+// trigonometric helpers for gauge painters
 
 // get sin/cos position from gauge index in radian with gauge centered mapping
 int16_t PolarGauge::SinCentered(float val, int16_t len) const {

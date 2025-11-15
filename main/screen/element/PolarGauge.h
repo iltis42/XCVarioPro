@@ -9,8 +9,7 @@
 #pragma once
 
 #include "ScreenElement.h"
-#include "math/Trigenometry.h"
-#include "AdaptUGC.h"
+#include "math/Trigonometry.h"
 
 class ArrowIndicator;
 class WindIndicator;
@@ -98,7 +97,7 @@ public:
     int16_t dice_up(float a) const { return (int16_t)(IDX_SCALE*(*func)(a)); } // output in 0.5° steps
     int16_t dice_rad(float rad) const { return (int16_t)(rad*IDX_SCALE); } // input in [rad], output in 0.5° steps
 
-    // trigenometric macros
+    // trigonometric macros
     int16_t SinCentered(float val, int16_t len) const; // output in pixel
     int16_t CosCentered(float val, int16_t len) const;
     int16_t SinCenteredDeg2(int16_t val, int16_t len) const;
