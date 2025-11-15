@@ -83,21 +83,21 @@ public:
    *
    * @returns The accelerometer X reading in glider reference
    */
-  static inline float getGliderAccelX()  { return accel.a; };
+  static inline float getGliderAccelX()  { return accel.x; };
 
   /**
    * Gets the accelerometer Y reading, as per last read() call.
    *
    * @returns The accelerometer Y reading
    */
-  static inline float getGliderAccelY()   { return accel.b; };
+  static inline float getGliderAccelY()   { return accel.y; };
 
   /**
    * Gets the accelerometer Z reading, as per last read() call.
    *
    * @returns The accelerometer Z reading
    */
-  static inline float getGliderAccelZ()  { return accel.c; };
+  static inline float getGliderAccelZ()  { return accel.z; };
 
   // Gets the acceleration along the earth g-vector in [times g]
   static float getVerticalAcceleration();
@@ -113,29 +113,29 @@ public:
    *
    * @returns The gyroscope X reading in glider reference.
    */
-  static inline float getGliderGyroX()   { return gyro.a; };
-  static inline float getGliderNogateGyroX()   { return nogate_gyro.a; };
+  static inline float getGliderGyroX()   { return gyro.x; };
+  static inline float getGliderNogateGyroX()   { return nogate_gyro.x; };
 
   /**
    * Gets the gyroscope Y reading, as per last read() call.
    *
    * @returns The gyroscope Y reading.
    */
-  static inline float getGliderGyroY()   { return gyro.b; };
-  static inline float getGliderNogateGyroY()   { return nogate_gyro.b; };
+  static inline float getGliderGyroY()   { return gyro.y; };
+  static inline float getGliderNogateGyroY()   { return nogate_gyro.y; };
 
   /**
    * Gets the gyroscope Z reading, as per last read() call.
    *
    * @returns The gyroscope Z reading.
    */
-  static inline float getGliderGyroZ()   { return gyro.c; };
-  static inline float getGliderNogateGyroZ()   { return nogate_gyro.c; };
+  static inline float getGliderGyroZ()   { return gyro.z; };
+  static inline float getGliderNogateGyroZ()   { return nogate_gyro.z; };
 
   // Get the last raw gyro reads
-  static inline float getRawGyroX()   { return raw_gyro.a; };
-  static inline float getRawGyroY()   { return raw_gyro.b; };
-  static inline float getRawGyroZ()   { return raw_gyro.c; };
+  static inline float getRawGyroX()   { return raw_gyro.x; };
+  static inline float getRawGyroY()   { return raw_gyro.y; };
+  static inline float getRawGyroZ()   { return raw_gyro.z; };
 
   /**
    * Gets the roll (X rotation) in degress from the Kalman Filter.
@@ -159,14 +159,13 @@ public:
   static inline float getXCSPitch()  { return -float(RAD_TO_DEG) * filterPitch_rad;  }
   static inline double getYaw()  { return filterYaw;  }
 
-  static inline double getGyroRate()  {	return abs(gyro.a)+abs(gyro.b)+abs(gyro.c); }
+  static inline double getGyroRate()  {	return abs(gyro.x)+abs(gyro.y)+abs(gyro.z); }
 
   // Reference calibration
   static int getAccelSamplesAndCalib(int side, float &wing_angle );
   static void getGyroSamplesAndZero();
   static void defaultImuReference();
   static void applyImuReference(const float gAA, const Quaternion& basic);
-  static void doImuCalibration( SetupMenuSelect *p );
   static inline Quaternion getAHRSQuaternion() { return att_quat; };
   static inline vector_ijk getAHRSVector() { return att_vector; };
 
