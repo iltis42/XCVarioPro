@@ -926,7 +926,7 @@ void system_startup(void *args){
 	std::string wireless_id;
 	if( DEVMAN->isIntf(BT_SPP) ) {
 		ESP_LOGI(FNAME,"Use BT");
-		wireless_id.assign("BT ID: ");
+		wireless_id.assign("BT Id: ");
 	}
 	else if( DEVMAN->isIntf(BT_LE) ) {
 		ESP_LOGI(FNAME,"Use BLE");
@@ -934,7 +934,7 @@ void system_startup(void *args){
 	}
 	else  if( DEVMAN->isIntf(WIFI_APSTA) ) {
 		ESP_LOGI(FNAME,"Use WiFi");
-		wireless_id.assign("WLAN SSID: ");
+		wireless_id.assign("WLAN: ");
 	}
 	if ( ! gflags.schedule_reboot && custom_wireless_id.get().id[0] == '\0' ) {
 		custom_wireless_id.set(SetupCommon::getDefaultID()); // Default ID created from MAC address CRC

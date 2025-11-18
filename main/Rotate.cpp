@@ -1,7 +1,7 @@
 
 #include "Rotate.h"
-
-#include <cmath>
+#include "math/Trigonometry.h"
+#include "math/Floats.h"
 
 Point Point::rotate(const Point& center, float radians) {
 
@@ -10,18 +10,18 @@ Point Point::rotate(const Point& center, float radians) {
     float translatedY = y - center.y;
 
     // Berechnung der rotierten Koordinaten
-    float newX = translatedX * cosf(radians) - translatedY * sinf(radians);
-    float newY = translatedX * sinf(radians) + translatedY * cosf(radians);
+    float newX = translatedX * fast_cos_rad(radians) - translatedY * fast_sin_rad(radians);
+    float newY = translatedX * fast_sin_rad(radians) + translatedY * fast_cos_rad(radians);
 
     // Verschieben des rotierten Punktes zurück zum ursprünglichen Koordinatensystem
     newX += center.x;
     newY += center.y;
 
     // Erstellen und Zurückgeben des rotierten Punktes
-    Point rotatedPoint( rint(newX), rint(newY) );
+    Point rotatedPoint( fast_iroundf(newX), fast_iroundf(newY) );
     return rotatedPoint;
 }
 
-void Point::moveVertical(int pixel){
-	y += pixel;
+void Point::moveVertical(int16_t pixel){
+    y += pixel;
 }

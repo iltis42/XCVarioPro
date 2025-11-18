@@ -61,9 +61,11 @@ public:
 	// helper
 	const char* getTitle() const { return _title.c_str(); }
 	SetupMenu* getParent() const { return _parent; }
+	void hookToParent(SetupMenu* p) { _parent = p; }
 	void regParent(SetupMenu* p);
 	bool isRoot() const;
-	bool isActive() const { return selected == this; }
+	bool isSelected() const { return selected == this; }
+	MenuEntry *getSelected() const { return selected; }
 	void setHelp( const char *txt, int y=DEFAULT_HELP_Y_POS ) { helptext = (char*)txt; };
 	void doHighlight(int sel) const;
     void unHighlight(int sel) const;

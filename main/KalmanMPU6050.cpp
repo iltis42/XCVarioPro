@@ -39,8 +39,8 @@ vector_ijk IMU::petal(0,0,0);
 float IMU::circle_omega = 0.f;
 
 
-Quaternion IMU::att_quat(0,0,0,0);
-Quaternion IMU::omega_step(0,0,0,0);
+Quaternion IMU::att_quat;
+Quaternion IMU::omega_step;
 vector_ijk IMU::att_vector;
 EulerAngles IMU::euler_rad;
 
@@ -130,7 +130,7 @@ void IMU::init()
 	kalmanX.angle = roll; // Set starting angle
 	kalmanY.angle = pitch;
 
-	att_quat = Quaternion(1.0,0.0,0.0,0.0);
+	att_quat = Quaternion();
 	att_vector = vector_ijk(0.0,0.0,1.0);
 	euler_rad = { 0,0,0 };
 	progress = 0;

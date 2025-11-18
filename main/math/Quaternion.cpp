@@ -39,7 +39,7 @@ float Quaternion::getAngle() const
     return 2.f * std::acos(a);
 }
 
-// radions and a normalized vector
+// radians and a normalized vector
 float Quaternion::getAngleAndAxis(vector_ijk& axis) const
 {
     float angle = getAngle();

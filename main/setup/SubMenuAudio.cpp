@@ -239,7 +239,7 @@ void audio_menu_create(SetupMenu *audio) {
         audio->addEntry(dv);
 
         SetupMenuValFloat *flarmv = new SetupMenuValFloat("Alarm Vol. Raise", "%", nullptr, false, &alarm_volraise);
-        flarmv->setHelp("Audio volume raise for alarms and warnings above normal volume (min. 60%)");
+        flarmv->setHelp("Audio volume raise for alarms and warnings (min. up to 60%)");
         audio->addEntry(flarmv);
 
         SetupMenuSelect *amspvol = new SetupMenuSelect("Split Volume", RST_NONE, nullptr, &audio_split_vol);
