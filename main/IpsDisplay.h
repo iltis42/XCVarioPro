@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "vector_3d.h"
+
 #include <MPU.h>
 #include <string>
 #include <cstdint>
@@ -32,7 +34,12 @@ float getHeading();
 
 
 // Some geometry helper
-struct Point { int16_t x, y; };
+struct Point {
+    int16_t x, y;
+    Point operator+(Point p) const;
+    Point& operator+=(const Point &p) { x += p.x; y += p.y; return *this; }
+    Point rotate(float alpha) const;
+};
 
 // Hesse form of a striaght line: Normal x Pxyz + d = 0
 struct Line {
@@ -73,7 +80,8 @@ public:
 
     static void clipRectByLine(Point *rect, Line &l, Point *above, int *na, Point *below, int *nb);
     static void drawPolygon(Point *pts, int n);
-
+    static Point projectToDisplayPlane(const vector_ijk &obj, float focus);
+    static Point clipToScreenCenter(Point p);
 
   private:
     static PolarGauge *MAINgauge;

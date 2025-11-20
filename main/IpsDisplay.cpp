@@ -21,6 +21,7 @@
 #include "math/Trigonometry.h"
 #include "math/Floats.h"
 #include "math/Quaternion.h"
+#include "vector_3d.h"
 #include "comm/DeviceMgr.h"
 #include "BLESender.h"
 #include "OneWireESP32.h"
@@ -144,6 +145,17 @@ bool flarm_connected=false;
 ////////////////////////////
 // Geometry helpers
 
+Point Point::operator+(Point p) const {
+    return p += *this;
+}
+// alpha [rad]
+Point Point::rotate(float alpha) const {
+    float cos_a = fast_cos_rad(alpha);
+    float sin_a = fast_sin_rad(alpha);
+    return Point( x * cos_a - y * sin_a, x * sin_a + y * cos_a );
+}
+
+
 // Hesse horizon line parameters in the gliders Y/Z plane
 Line::Line(Quaternion q, int16_t cx, int16_t cy) {
     // normal vector of the plane
@@ -248,6 +260,59 @@ void IpsDisplay::drawPolygon(Point *pts, int n)
         i += 2;
     }
 }
+// Project from glider reference into avionik display plane (Y-Z plane)
+Point IpsDisplay::projectToDisplayPlane(const vector_ijk &obj, float focus)
+{
+    // camera model: pinhole camera at origin, looking along X axis, display plane at X = focus
+    float pos_x = std::abs(obj.x);
+    // project to display plane
+    if ( pos_x < 1e-5f ) {
+        // avoid division by zero
+        return Point( (obj.y >= 0.f) ? DISPLAY_W : 0, (obj.z >= 0.f) ? 0 : DISPLAY_H );
+    }
+    float u = focus * (obj.y / pos_x);
+    float v = focus * (obj.z / pos_x);
+
+    return Point(DISPLAY_W/2 - u, DISPLAY_H/2 - v);
+}
+// Centered screen clipping
+Point IpsDisplay::clipToScreenCenter(Point p)
+{
+    const int16_t cx = DISPLAY_W/2;
+    const int16_t cy = DISPLAY_H/2;
+
+    // direction vector from center to point
+    int16_t dx = p.x - cx;
+    int16_t dy = p.y - cy;
+
+    // check p against boundaries
+    if (p.x >= 0 && p.x < DISPLAY_W && p.y >= 0 && p.y < DISPLAY_H) {
+        return p;
+    }
+
+    // find intersection with screen border and chop scale
+    float t_min = 1.f;
+    if ( p.x < 0 ) {
+        float t = (float)(-cx) / dx;
+        if (t < t_min) t_min = t;
+    }
+    else if ( p.x >= DISPLAY_W ) {
+        float t = (float)(cx) / dx;
+        if (t < t_min) t_min = t;
+    }
+    if ( p.y < 0 ) {
+        float t = (float)(-cy) / dy;
+        if (t < t_min) t_min = t;
+    }
+    else if ( p.y >= DISPLAY_H ) {
+        float t = (float)(cy) / dy;
+        if (t < t_min) t_min = t;
+    }
+
+    // Compute intersection
+    return Point(cx + t_min * dx, cy + t_min * dy);
+}
+
 static void initRefs()
 {
 	AVGOFFX = -5-38;
@@ -802,7 +867,7 @@ void IpsDisplay::drawHorizon( Quaternion q ) {
         ucg->setColor( COLOR_EARTH );
         drawPolygon(below, nb);
     }
-    
+
 	// heading
 	if( theCompass ){
 		int heading = fast_iroundf(mag_hdt.get());
