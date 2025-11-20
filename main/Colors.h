@@ -31,10 +31,11 @@ extern uint8_t g_col_header_light_b;
 #define COLOR_WGREY  95, 95, 95
 #define COLOR_BLUE   255, 255, 0
 #define COLOR_LBLUE  200, 200, 0
+#define COLOR_SKYBLUE 167, 135, 48
 #define COLOR_BBLUE  170, 160, 0
 #define COLOR_LBBLUE  85, 80, 0
-#define COLOR_BROWN   255-50,255-15,255-5  // Chocolate Brown
-
+#define COLOR_BROWN   205, 240, 250  // Chocolate Brown
+#define COLOR_EARTH   119, 176, 232
 
 
 extern int16_t DISPLAY_H;

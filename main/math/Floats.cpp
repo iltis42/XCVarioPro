@@ -6,7 +6,6 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-
 #include <cmath>
 #include <stdint.h>
 
@@ -47,4 +46,9 @@ bool floatEqualFastAbs(float a, float b, float tol)
 float fast_floorf(float x) {
     int i = (int)x;  // truncates toward 0
     return (x < 0.0f && x != (float)i) ? (float)(i - 1) : (float)i;
+}
+
+float fast_signf(float val)
+{
+    return std::signbit(val) ? -1.f : 1.f;
 }

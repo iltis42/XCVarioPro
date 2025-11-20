@@ -8,7 +8,6 @@
 
 #include "IpsDisplay.h"
 
-#include "math/Floats.h"
 #include "screen/element/MultiGauge.h"
 #include "screen/element/PolarGauge.h"
 #include "screen/element/WindIndicator.h"
@@ -20,6 +19,8 @@
 #include "screen/element/FlapsBox.h"
 
 #include "math/Trigonometry.h"
+#include "math/Floats.h"
+#include "math/Quaternion.h"
 #include "comm/DeviceMgr.h"
 #include "BLESender.h"
 #include "OneWireESP32.h"
@@ -36,7 +37,6 @@
 #include "protocol/AliveMonitor.h"
 #include "setup/SetupNG.h"
 #include "CenterAid.h"
-#include "Rotate.h"
 #include "AdaptUGC.h"
 #include "Colors.h"
 #include "logdefnone.h"
@@ -129,6 +129,8 @@ bool IpsDisplay::wireless_alive = false;
 int IpsDisplay::tempalt = -2000;
 
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
+Point IpsDisplay::screen_edge[4];
+Line IpsDisplay::previous_horizon_line;
 
 // constexpr float sincosScale = 180.f/My_PIf*2.f; // rad -> deg/2 a 0.5deg resolution discrete scale
 static int16_t old_vario_bar_val = 0;
@@ -139,6 +141,113 @@ static bool mode_dirty = false;
 
 bool flarm_connected=false;
 
+////////////////////////////
+// Geometry helpers
+
+// Hesse horizon line parameters in the gliders Y/Z plane
+Line::Line(Quaternion q, int16_t cx, int16_t cy) {
+    // normal vector of the plane
+    vector_ijk n = q * vector_ijk(0, 0, 1);
+    _nx = -n.y;
+    _ny = -n.z;
+    _d = -n.x * 100; // projection scale to visible range
+    _d = _d + _nx * cx + _ny * cy; // offset to the middle of the screen
+    // ESP_LOGI(FNAME, "normV %0.1f,%0.1f,%0.1f", _nx, _ny, _d);
+}
+// evaluate line function at point p
+float Line::fct(Point p) {
+    return _nx * p.x + _ny * p.y - _d;
+}
+// compute intersection point of line with segment p1-p2
+Point Line::intersect(Point p1, Point p2) const {
+    int dx = p2.x - p1.x;
+    int dy = p2.y - p1.y;
+    float num = _d - (_nx * p1.x + _ny * p1.y);
+    float den = _nx * dx + _ny * dy;
+    float t = num / den;
+    // clamp t into [0,1], prevents extrusion due to rounding
+    if (t < 0.f) t = 0.f;
+    else if (t > 1.f) t = 1.f;
+    Point ret;
+    ret.x = fast_iroundf(dx * t) + p1.x;
+    ret.y = fast_iroundf(dy * t) + p1.y;
+    return ret;
+}
+bool Line::operator==(const Line &r) const
+{
+    return floatEqualFast(_nx, r._nx) && floatEqualFast(_ny, r._ny) && floatEqualFast(_d, r._d);
+}
+bool Line::similar(const Line &r) const
+{
+    return (floatEqualFastAbs(_nx, r._nx, 1e-2f)) && (floatEqualFastAbs(_ny, r._ny, 1e-2f)) && (floatEqualFastAbs(_d, r._d, 2.f));
+}
+
+
+// Clip rectangle by line into above and below parts
+void IpsDisplay::clipRectByLine(Point *rect, Line &l, Point *above, int *na, Point *below, int *nb)
+{
+    const int myEPS = 1;
+    auto inside = [&](int f) { return f > myEPS; };
+    auto onLine = [&](int f) { return abs(f) <= myEPS; };
+
+    if ( ! rect ) {
+        rect = screen_edge;
+    }
+    *na = 0;
+    *nb = 0;
+
+    for (int i=0; i<4; i++) {
+        Point P1 = rect[i];
+        Point P2 = rect[(i+1)&3];
+        int f1 = l.fct(P1);
+        int f2 = l.fct(P2);
+        bool in1 = inside(f1);
+        bool in2 = inside(f2);
+
+        if (onLine(f1)) {
+            // P1 exactly on line -> goes into BOTH lists
+            above[(*na)++] = P1;
+            below[(*nb)++] = P1;
+        }
+        else if (in1) {
+            above[(*na)++] = P1;
+            // ESP_LOGI(FNAME, "P%d above %d,%d", i, P1.x, P1.y);
+        }
+        else {
+            below[(*nb)++] = P1;
+        }
+
+        // Check on a possible intersection of screen edge with line
+        if (in1 != in2) {
+            Point I = l.intersect(P1, P2);
+            // ESP_LOGI(FNAME, "I%d at %d,%d", i, I.x, I.y);
+            above[(*na)++] = I;
+            below[(*nb)++] = I;
+        }
+    }
+}
+// Draw filled polygon defined by pts
+// n - number of points [0 .. 5]
+void IpsDisplay::drawPolygon(Point *pts, int n)
+{
+    if (n < 3) return; // nothing to draw
+    // ESP_LOGI(FNAME, "drawPolygon with %d pts", n);
+    int i = 0;
+    if (n > 3) {
+        // while (i+3 < n) {
+            ucg->drawTetragon( pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, pts[i+2].x, pts[i+2].y, pts[i+3].x, pts[i+3].y );
+            i += 3;
+        // }
+        if (i+1 < n) {
+            ucg->drawTriangle(pts[i].x, pts[i].y,pts[i+1].x, pts[i+1].y,pts[0].x, pts[0].y);
+        }
+    }
+    else {
+        // n == 3
+        ucg->drawTriangle(pts[i].x, pts[i].y,pts[i+1].x, pts[i+1].y,pts[i+2].x, pts[i+2].y);
+        i += 2;
+    }
+}
 static void initRefs()
 {
 	AVGOFFX = -5-38;
@@ -162,8 +271,12 @@ static void initRefs()
 IpsDisplay::IpsDisplay( AdaptUGC *aucg ) {
 	ucg = aucg;
 	tick = 0;
-	DISPLAY_W = ucg->getDisplayWidth();
-	DISPLAY_H = ucg->getDisplayHeight();
+    DISPLAY_W = ucg->getDisplayWidth();
+    DISPLAY_H = ucg->getDisplayHeight();
+    screen_edge[0] = {0, 0};
+    screen_edge[1] = {DISPLAY_W, 0};
+    screen_edge[2] = {DISPLAY_W, DISPLAY_H};
+    screen_edge[3] = {0, DISPLAY_H};
 }
 
 IpsDisplay::~IpsDisplay() {
@@ -644,82 +757,61 @@ void IpsDisplay::initLoadDisplay(){
 	ESP_LOGI(FNAME,"initLoadDisplay end");
 }
 
-static Point P1o;
-static Point P2o;
-static Point P3o;
-static Point P4o;
-static Point P5o;
-static Point P6o;
 
-static float oroll=0;
 static int heading_old = -1;
+static Point horizon_box[4];
 
-void IpsDisplay::drawHorizon( float pitch, float roll, float yaw ){
-	// ESP_LOGI(FNAME,"drawHorizon P: %1.1f R: %1.1f Y: %1.1f", rad2deg(pitch), rad2deg(roll), rad2deg(yaw) );
-	tick++;
-	if( !(screens_init & INIT_DISPLAY_HORIZON) ){
-		clear();
-		P1o.y = 0;
-		ucg->setColor( COLOR_WHITE );
-		ucg->drawTriangle( 1,   150, 20,  160, 1,   170 ); // Triangles l/r
-		ucg->drawTriangle( 240, 150, 220, 160, 240, 170 );
-		for( int i=-80; i<=80; i+=20 ){  // 10° scale
-			ucg->drawHLine( 1,160+i, 20 );
-			ucg->drawHLine( 220,160+i, 20 );
-		}
-		for( int i=-70; i<=70; i+=20 ){  // 5° scale
-			ucg->drawHLine( 10,160+i, 10 );
-			ucg->drawHLine( 220,160+i, 10 );
-		}
-		screens_init |= INIT_DISPLAY_HORIZON;
-	}
-	Point P1( -100, -60 );
-	Point P2(  340, -60 );
-	Point P3(  340, 160 );
-	Point P4( -100, 160 );
-	Point P5( -100, 380 );
-	Point P6(  340, 380 );
-	Point Center( 120, 160 );
-	Point P1r = P1.rotate( Center, -roll );
-	Point P2r = P2.rotate( Center, -roll );
-	Point P3r = P3.rotate( Center, -roll );
-	Point P4r = P4.rotate( Center, -roll );
-	Point P5r = P5.rotate( Center, -roll );
-	Point P6r = P6.rotate( Center, -roll );
-	int p = -rint(rad2deg( pitch )*2);  // 1 deg := 1 pixel
-	P1r.moveVertical(p);
-	P2r.moveVertical(p);
-	P3r.moveVertical(p);
-	P4r.moveVertical(p);
-	P5r.moveVertical(p);
-	P6r.moveVertical(p);
-	int heading = 0;
+void IpsDisplay::drawHorizon( Quaternion q ) {
+    tick++;
+    const int16_t BOX_SIZE = 200;
+    if( !(screens_init & INIT_DISPLAY_HORIZON) ){
+        clear();
+        int16_t left = (DISPLAY_W-BOX_SIZE) / 2;
+        int16_t top = (DISPLAY_H-BOX_SIZE) / 2;
+        // ( 20, 60, 200, 200 );
+        horizon_box[0] = {left, (int16_t)(top+BOX_SIZE)};
+        horizon_box[1] = {(int16_t)(left+BOX_SIZE), (int16_t)(top+BOX_SIZE)};
+        horizon_box[2] = {(int16_t)(left+BOX_SIZE), top};
+        horizon_box[3] = {left, top};
 
-	// ESP_LOGI(FNAME,"P1:%d/%d P2:%d/%d P3:%d/%d P4:%d/%d roll:%f d:%d ", P1r.x, P1r.y+p, P2r.x, P2r.y+p, P3r.x, P3r.y+p, P4r.x , P4r.y+p, rad2deg(roll), p  );
-	if( P1r.y != P1o.y || P1r.x != P1o.x ){
-		// ESP_LOGI(FNAME,"drawHorizon P: %1.1f R: %1.1f Y: %1.1f", rad2deg(pitch), rad2deg(roll), rad2deg(yaw) );
-		ucg->setClipRange( 20, 60, 200, 200 );
-		ucg->setColor( COLOR_LBLUE );
-		ucg->drawTetragon( P1r.x, P1r.y, P2r.x, P2r.y, P3r.x, P3r.y, P4r.x , P4r.y );
-		ucg->setColor( COLOR_BROWN );
-		ucg->drawTetragon( P4r.x, P4r.y, P3r.x, P3r.y, P6r.x, P6r.y, P5r.x , P5r.y );
-		// Flarm::drawAirplane( 120, 160, true, false );  would be nice hence flickering
-		P1o = P1r;
-		P2o = P2r;
-		P3o = P3r;
-		P4o = P4r;
-		P5o = P5r;
-		P6o = P6r;
-		oroll = roll;
-		ucg->undoClipRange();
-	}
+        // int16_t center_x = left + BOX_SIZE / 2;
+        int16_t center_y = top + BOX_SIZE / 2;
+        ucg->setColor( COLOR_WHITE );
+        ucg->drawTriangle(left - 19, center_y - 10, left, center_y, left - 19, center_y + 10); // Triangles l/r
+        ucg->drawTriangle(left + 200 + 20, center_y - 10, left + 200, center_y, left + 200 + 20, center_y + 10);
+        for (int i = -80; i <= 80; i += 20) { // 10° scale
+            ucg->drawHLine(left - 19, center_y + i, 20);
+            ucg->drawHLine(left + 200, center_y + i, 20);
+        }
+        for (int i = -70; i <= 70; i += 20) { // 5° scale
+            ucg->drawHLine(left - 10, center_y + i, 10);
+            ucg->drawHLine(left + 200, center_y + i, 10);
+        }
+        screens_init |= INIT_DISPLAY_HORIZON;
+    }
+
+    // draw sky and earth
+    Line l( q, DISPLAY_W/2, DISPLAY_H/2 );
+    if ( ! l.similar(previous_horizon_line) ) {
+        previous_horizon_line = l;
+        Point above[6], below[6];
+        int na, nb;
+        clipRectByLine(horizon_box, l, above, &na, below, &nb);
+        ucg->setColor( COLOR_SKYBLUE );
+        drawPolygon(above, na);
+        ucg->setColor( COLOR_EARTH );
+        drawPolygon(below, nb);
+    }
+    
+	// heading
 	if( theCompass ){
-		heading = fast_iroundf(mag_hdt.get());
+		int heading = fast_iroundf(mag_hdt.get());
 		ucg->setFont(ucg_font_fub20_hr, true);
 		ucg->setPrintPos(70,310);
-		if( heading >= 360 )
+		if( heading >= 360 ) {
 			heading -= 360;
-		//			ESP_LOGI(FNAME,"compass enable, heading: %d", heading );
+		}
+		// ESP_LOGI(FNAME,"compass enable, heading: %d", heading );
 		if( heading > 0  && heading != heading_old){
 			ucg->setColor( COLOR_WHITE );
 			ucg->printf("   %d°   ", heading );
@@ -937,7 +1029,7 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
     }
 
     if (bottom_dirty) {
-        ESP_LOGI(FNAME, "redraw scale around %f", -_range + 2);
+        ESP_LOGI(FNAME, "redraw scale bottom");
         bottom_dirty = false;
         MAINgauge->drawScaleBottom();
         MAINgauge->forceAllRedraw();

@@ -24,3 +24,6 @@ inline int fast_iroundf_positive(float a) {
 
 // flooring
 float fast_floorf(float x);
+
+// float sign
+float fast_signf(float val);

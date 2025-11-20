@@ -10,6 +10,7 @@
 
 #include <MPU.h>
 #include <string>
+#include <cstdint>
 
 typedef enum e_sreens { INIT_DISPLAY_NULL, INIT_DISPLAY_RETRO=1, INIT_DISPLAY_FLARM=2, INIT_DISPLAY_GLOAD=4, INIT_DISPLAY_HORIZON=8 } e_screens_t;
 extern int screens_init;
@@ -24,9 +25,27 @@ class Altimeter;
 class MultiGauge;
 class CruiseStatus;
 class FlapsBox;
+class Quaternion;
 
 // fixme needs a home
 float getHeading();
+
+
+// Some geometry helper
+struct Point { int16_t x, y; };
+
+// Hesse form of a striaght line: Normal x Pxyz + d = 0
+struct Line {
+    Line() = default;
+    Line(Quaternion q, int16_t cx, int16_t cy);
+    float _nx;
+    float _ny;
+    float _d;
+    float fct(Point p);
+    Point intersect(Point p1, Point p2) const;
+    bool operator==(const Line &r) const;
+    bool similar(const Line &r) const;
+};
 
 class IpsDisplay {
 public:
@@ -41,7 +60,7 @@ public:
 	static void drawDisplay(float te, float ate, float polar_sink, float alt, float temperature, float volt, float s2fd, float s2f);
 
 	static void drawLoadDisplay( float loadFactor );
-	static void drawHorizon( float pitch, float roll, float yaw );
+	static void drawHorizon( Quaternion q );
 	static void drawLoadDisplayTexts();
 	static void initDisplay();
 	static void clear();   // erase whole display
@@ -51,6 +70,9 @@ public:
 
 	static inline AdaptUGC *getDisplay() { return ucg; };
 	static AdaptUGC *ucg;
+
+    static void clipRectByLine(Point *rect, Line &l, Point *above, int *na, Point *below, int *nb);
+    static void drawPolygon(Point *pts, int n);
 
 
   private:
@@ -71,19 +93,17 @@ public:
 	static int s2fdalt;
 	static bool wireless_alive;
 	static int tempalt;
-
 	static temp_status_t siliconTempStatusOld;
+    static Point screen_edge[4];
+    static Line previous_horizon_line;
 
 	static void drawBT();
 	static void drawCable(int16_t x, int16_t y);
 	static void drawWifi( int x, int y );
 	static void drawConnection( int16_t x, int16_t y );
 	static void drawTemperature( int x, int y, float t );
-
-private:
 	static void initLoadDisplay();
-	static void drawAvg( float mps, float delta );
-	static bool drawTopGauge(int val, int16_t x, int16_t y, bool inc_unit=false);
+    static bool drawTopGauge(int val, int16_t x, int16_t y, bool inc_unit=false);
 };
 
 extern IpsDisplay *Display;
