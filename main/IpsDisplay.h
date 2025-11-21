@@ -57,7 +57,7 @@ struct Line {
 class IpsDisplay {
 public:
 	IpsDisplay( AdaptUGC *aucg );
-	virtual ~IpsDisplay();
+	~IpsDisplay();
 	static void begin();
 	static void bootDisplay();
 	static void setGlobalColors();
@@ -67,7 +67,6 @@ public:
 	static void drawDisplay(float te, float ate, float polar_sink, float alt, float temperature, float volt, float s2fd, float s2f);
 
 	static void drawLoadDisplay( float loadFactor );
-	static void drawHorizon( Quaternion q );
 	static void drawLoadDisplayTexts();
 	static void initDisplay();
 	static void clear();   // erase whole display
@@ -103,7 +102,6 @@ public:
 	static int tempalt;
 	static temp_status_t siliconTempStatusOld;
     static Point screen_edge[4];
-    static Line previous_horizon_line;
 
 	static void drawBT();
 	static void drawCable(int16_t x, int16_t y);

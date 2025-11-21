@@ -15,6 +15,7 @@
 #include "MessageBox.h"
 #include "BootUpScreen.h"
 #include "FlarmScreen.h"
+#include "HorizonPage.h"
 
 #include "setup/SetupMenuValFloat.h"
 #include "setup/SetupMenuDisplay.h"
@@ -99,7 +100,7 @@ void UiEventLoop(void *arg)
                                 Display->drawLoadDisplay( IMU::getGliderAccelZ() );
                                 break;
                             case SCREEN_HORIZON:
-                                Display->drawHorizon( IMU::getAHRSQuaternion() );
+                                HorizonPage::HORIZON()->draw( IMU::getAHRSQuaternion() );
                                 break;
                         }
                     }

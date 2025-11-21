@@ -131,7 +131,6 @@ int IpsDisplay::tempalt = -2000;
 
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
 Point IpsDisplay::screen_edge[4];
-Line IpsDisplay::previous_horizon_line;
 
 // constexpr float sincosScale = 180.f/My_PIf*2.f; // rad -> deg/2 a 0.5deg resolution discrete scale
 static int16_t old_vario_bar_val = 0;
@@ -782,8 +781,6 @@ void IpsDisplay::drawLoadDisplayTexts(){
 	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MPG_POS);
 	ucg->setColor( COLOR_HEADER_LIGHT );
 	ucg->print( text );
-	// ucg->setPrintPos(INNER_RIGHT_ALIGN-60, LOAD_MNG_POS);
-	// ucg->print( "MAX NEG G" );
 	text = "max. IAS";
 	text_width = ucg->getStrWidth( text );
 	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MIAS_POS);
@@ -820,69 +817,6 @@ void IpsDisplay::initLoadDisplay(){
 	old_ias_max = -1;
 	bottom_dirty = false;
 	ESP_LOGI(FNAME,"initLoadDisplay end");
-}
-
-
-static int heading_old = -1;
-static Point horizon_box[4];
-
-void IpsDisplay::drawHorizon( Quaternion q ) {
-    tick++;
-    const int16_t BOX_SIZE = 200;
-    if( !(screens_init & INIT_DISPLAY_HORIZON) ){
-        clear();
-        int16_t left = (DISPLAY_W-BOX_SIZE) / 2;
-        int16_t top = (DISPLAY_H-BOX_SIZE) / 2;
-        // ( 20, 60, 200, 200 );
-        horizon_box[0] = {left, (int16_t)(top+BOX_SIZE)};
-        horizon_box[1] = {(int16_t)(left+BOX_SIZE), (int16_t)(top+BOX_SIZE)};
-        horizon_box[2] = {(int16_t)(left+BOX_SIZE), top};
-        horizon_box[3] = {left, top};
-
-        // int16_t center_x = left + BOX_SIZE / 2;
-        int16_t center_y = top + BOX_SIZE / 2;
-        ucg->setColor( COLOR_WHITE );
-        ucg->drawTriangle(left - 19, center_y - 10, left, center_y, left - 19, center_y + 10); // Triangles l/r
-        ucg->drawTriangle(left + 200 + 20, center_y - 10, left + 200, center_y, left + 200 + 20, center_y + 10);
-        for (int i = -80; i <= 80; i += 20) { // 10° scale
-            ucg->drawHLine(left - 19, center_y + i, 20);
-            ucg->drawHLine(left + 200, center_y + i, 20);
-        }
-        for (int i = -70; i <= 70; i += 20) { // 5° scale
-            ucg->drawHLine(left - 10, center_y + i, 10);
-            ucg->drawHLine(left + 200, center_y + i, 10);
-        }
-        screens_init |= INIT_DISPLAY_HORIZON;
-    }
-
-    // draw sky and earth
-    Line l( q, DISPLAY_W/2, DISPLAY_H/2 );
-    if ( ! l.similar(previous_horizon_line) ) {
-        previous_horizon_line = l;
-        Point above[6], below[6];
-        int na, nb;
-        clipRectByLine(horizon_box, l, above, &na, below, &nb);
-        ucg->setColor( COLOR_SKYBLUE );
-        drawPolygon(above, na);
-        ucg->setColor( COLOR_EARTH );
-        drawPolygon(below, nb);
-    }
-
-	// heading
-	if( theCompass ){
-		int heading = fast_iroundf(mag_hdt.get());
-		ucg->setFont(ucg_font_fub20_hr, true);
-		ucg->setPrintPos(70,310);
-		if( heading >= 360 ) {
-			heading -= 360;
-		}
-		// ESP_LOGI(FNAME,"compass enable, heading: %d", heading );
-		if( heading > 0  && heading != heading_old){
-			ucg->setColor( COLOR_WHITE );
-			ucg->printf("   %d°   ", heading );
-			heading_old = heading;
-		}
-	}
 }
 
 

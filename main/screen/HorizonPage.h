@@ -1,0 +1,32 @@
+/***********************************************************
+ ***   THIS DOCUMENT CONTAINS PROPRIETARY INFORMATION.   ***
+ ***    IT IS THE EXCLUSIVE CONFIDENTIAL PROPERTY OF     ***
+ ***     Rohs Engineering Design AND ITS AFFILIATES.     ***
+ ***                                                     ***
+ ***       Copyright (C) Rohs Engineering Design         ***
+ ***********************************************************/
+
+#pragma once
+
+#include "IpsDisplay.h"
+#include "math/Quaternion.h"
+
+#include <cstdint>
+
+class HorizonPage {
+public:
+    static HorizonPage* HORIZON();
+    ~HorizonPage() = default;
+
+    void draw(Quaternion q);
+    void drawR(Quaternion q);
+
+    static constexpr const int16_t BOX_SIZE = 200;
+
+private:
+    HorizonPage();
+    static HorizonPage* instance;
+    Line previous_horizon_line;
+    Point horizon_box[4];
+
+};
