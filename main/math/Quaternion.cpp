@@ -299,9 +299,10 @@ Quaternion Quaternion::fromAccelerometer(const vector_ijk& accel_par)
     // Normalize
     vector_ijk an = accel_par;
     an.normalize();
-	//ESP_LOGI(FNAME,"ax=%.3f ay=%.3f az=%.3f", an.x, an.y, an.z);
+    // ESP_LOGI(FNAME,"ax=%.3f ay=%.3f az=%.3f", an.x, an.y, an.z);
+
     // There is a singularity at an.z == -1
-    if ( an.z < -0.999f ) {
+    if ( an.z < -0.999999f ) {
         float half_cos = sqrt(0.5f*(1.0f - an.z));
         float temp = .5f / half_cos;
         Quaternion orientation( -an.y*temp, half_cos, 0.0, an.x*temp );
