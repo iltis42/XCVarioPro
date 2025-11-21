@@ -493,7 +493,6 @@ extern SetupNG<int> 		wind_reference;
 extern SetupNG<float> 		wind_max_deviation;
 extern SetupNG<int> 		s2f_blockspeed;
 extern SetupNG<int>			needle_color;
-extern SetupNG<int>			s2f_arrow_color;
 extern SetupNG<int> 		wk_label_0;
 extern SetupNG<int> 		wk_label_1;
 extern SetupNG<int> 		wk_label_2;

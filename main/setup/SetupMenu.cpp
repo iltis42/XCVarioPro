@@ -709,13 +709,6 @@ void vario_menu_create_s2f(SetupMenu *top) {
 	SetupMenuValFloat *s2flag = new SetupMenuValFloat("Switch Lag", "sec", s2fModeChangeF, false, &s2f_auto_lag);
 	s2flag->setHelp("Lag to delay the auto switch event (2-20sec)");
 	top->addEntry(s2flag);
-
-	SetupMenuSelect *s2fnc = new SetupMenuSelect("Arrow Color", RST_NONE, nullptr, &s2f_arrow_color);
-	s2fnc->setHelp("Select color of the S2F arrow when painted in Up/Down position");
-	s2fnc->addEntry("White/White");
-	s2fnc->addEntry("Blue/Blue");
-	s2fnc->addEntry("Green/Red");
-	top->addEntry(s2fnc);
 }
 
 void vario_menu_create_ec(SetupMenu *top) {

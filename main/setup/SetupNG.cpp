@@ -365,7 +365,6 @@ SetupNG<int> 			wind_reference( "WIND_REF", PolarGauge::WR_HEADING );
 SetupNG<float> 			wind_max_deviation("WIND_MDEV", 30.0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.0, 180.0, 1.0));
 SetupNG<int> 			s2f_blockspeed( "S2G_BLOCKSPEED", 0, true, SYNC_BIDIR );  // considering netto vario and g load for S2F or not
 SetupNG<int> 			needle_color("NEEDLE_COLOR", VN_COLOR_ORANGE );
-SetupNG<int>			s2f_arrow_color("S2F_ARRCOL", AC_WHITE_WHITE );
 SetupNG<int> 			wk_label_0( "WKLM3", 42, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  S
 SetupNG<int> 			wk_label_1( "WKLM2",  7, false, SYNC_BIDIR, PERSISTENT, flap_update_act); // -2
 SetupNG<int> 			wk_label_2( "WKLM1",  8, false, SYNC_BIDIR, PERSISTENT, flap_update_act); // -1
