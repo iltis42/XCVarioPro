@@ -648,14 +648,12 @@ void readTemp(void *pvParameters)
 				}
 			}
 			// ESP_LOGV(FNAME,"T=%f", temperature );
-			Flarm::tick();
 			if( theCompass )
 				theCompass->ageIncr();
 		}else{
 			if( (OAT.get() > -55.0) && (OAT.get() < 85.0) )
 				gflags.validTemperature = true;
 		}
-		// Flarm::progress();
 		esp_task_wdt_reset();
 
 		if( (ttick++ % 50) == 0) {
@@ -770,7 +768,6 @@ void system_startup(void *args){
 	MYUCG = new AdaptUGC();
 	MYUCG->begin();
 	Display = new IpsDisplay( MYUCG );
-	Flarm::setDisplay( MYUCG );
 	Display->begin();
 	Display->bootDisplay();
 	MenuRoot = new SetupRoot(Display); // the root setup menu, screens still disabled

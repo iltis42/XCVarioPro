@@ -15,12 +15,7 @@ class Flarm {
 	friend class GpsMsg;
 	friend class FlarmScreen;
 public:
-	static void setDisplay( AdaptUGC *theUcg ) { ucg = theUcg; };
-	static void drawAirplane( int x, int y, bool fromBehind=false, bool smallSize=false );
 	static inline int alarmLevel(){ return AlarmLevel; };
-	static void drawFlarmWarning();
-	static void initFlarmWarning();
-	static void progress();
 	static inline bool getGPS( float &gndSpeedKmh, float &gndTrack ) {
 		if( myGPS_OK ) {
 			gndSpeedKmh = Units::knots2kmh(gndSpeedKnots);
@@ -43,7 +38,6 @@ public:
 	static inline bool gpsStatus() { return myGPS_OK; }
 	static float getGndSpeedKnots() { return gndSpeedKnots; }
 	static float getGndCourse() { return gndCourse; }
-	static void tick();
 	static bool validExtAlt() { if( ext_alt_timer ) //fixme -> watchdog
 		return true;
 	else
@@ -51,11 +45,6 @@ public:
 	}
 
 private:
-	static void drawClearTriangle( int x, int y, int rb, int dist, int size, int factor );
-	static void drawClearVerticalTriangle( int x, int y, int rb, int dist, int size, int factor );
-	static void drawTriangle( int x, int y, int rb, int dist, int size=15, int factor=2, bool erase=false );
-
-	static AdaptUGC* ucg;
 	static int RX,TX,GPS,Power;
 	static int AlarmLevel;
 	static int RelativeBearing,RelativeVertical,RelativeDistance;
@@ -64,15 +53,11 @@ private:
 	static bool   myGPS_OK;
 	static int AlarmType;
 	static char ID[20];
-	static int oldDist;
-	static int oldVertical;
-	static int oldBear;
-	static int alarmOld;
-	static int _tick;
+
 	static int ext_alt_timer;
 	static int _numSat;
-	static int clock_timer;
-	static bool time_sync;
+	// static int clock_timer;
+	// static bool time_sync;
 };
 
 

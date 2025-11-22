@@ -42,7 +42,6 @@ FlarmScreen::FlarmScreen() :
 {
     ESP_LOGI(FNAME,"FlarmScreen created");
     _time_out.start( FLARM_ALARM_HOLDING_TIME );
-    tick = 0;
 }
 
 void FlarmScreen::exit(int ups)
@@ -58,14 +57,15 @@ void FlarmScreen::exit(int ups)
 void FlarmScreen::display(int mode)
 {
     if ( mode == 0 ) {
+        AUDIO->startSound(AUDIO_ALARM_FLARM);
         Display->clear();
     }
     _time_out.pet();
+    _tick++;
 
     ESP_LOGI(FNAME, "flarm_screen mode %d", mode);
     // Draw horizon
     Quaternion attq = IMU::getAHRSQuaternion();
-    float roll = IMU::getRollRad();
     Line l( attq, dwidth/2, dheight/2 );
     Point above[6], below[6];
     int na, nb;
@@ -81,6 +81,14 @@ void FlarmScreen::display(int mode)
     vector_ijk bearingVec = qtmp * vector_ijk(Flarm::RelativeDistance, 0.f, Flarm::RelativeVertical);
     ESP_LOGI(FNAME,"BearingVec %1.1f,%1.1f,%1.1f", bearingVec.x, bearingVec.y, bearingVec.z );
 
+    // determine side and altDiff for audio alarm
+    int altDiff = Flarm::RelativeVertical / 50 + 1; // classify in 0,1,2 for <-50m, -50..+50m, >+50m
+    if ( altDiff < 0 ) { altDiff = 0; }
+    if ( altDiff > 2 ) { altDiff = 2; }
+    int currSide = -bearingVec.y / 50 + 1; // classify in 0,1,2 for >50m left, <50 any side, >50m right
+    if ( currSide < 0 ) { currSide = 0; }
+    if ( currSide > 2 ) { currSide = 2; }
+        
     // rotate according to own attitude
     vector_ijk buddyVec = attq * bearingVec;
     ESP_LOGI(FNAME,"BuddyVec %1.1f,%1.1f,%1.1f", buddyVec.x, buddyVec.y, buddyVec.z );
@@ -105,20 +113,21 @@ void FlarmScreen::display(int mode)
     if ( size < 15 ) {
         size = 15;
     }
-    // Embedd a little glider symbol
     MYUCG->drawDisc( p.x, p.y, size, UCG_DRAW_ALL);
+    // Embedd a little glider symbol
+    float roll = -IMU::getRollRad();
     if ( buddyVec.x > 0.f ) {
         MYUCG->setColor(COLOR_WHITE);
         MYUCG->drawDisc( p.x, p.y, size/3, UCG_DRAW_ALL);
         // draw little wings as tetragon rolled according to horizontal angle
-        Point w1 = Point( size, 0 ).rotate(-roll);
-        Point th = Point(0, size/6).rotate(-roll);
+        Point w1 = Point( size, 0 ).rotate(roll);
+        Point th = Point(0, size/6).rotate(roll);
         MYUCG->drawTetragon( p.x + w1.x + th.x, p.y + w1.y + th.y,
                              p.x - w1.x + th.x, p.y - w1.y + th.y,
                              p.x - w1.x - th.x, p.y - w1.y - th.y,
                              p.x + w1.x - th.x, p.y + w1.y - th.y );
-        p += Point(0, -size * 2 / 3).rotate(-roll);
-        w1 = Point(size / 3, 0).rotate(-roll);
+        p += Point(0, -size * 2 / 3).rotate(roll);
+        w1 = Point(size / 3, 0).rotate(roll);
         MYUCG->drawTetragon( p.x + w1.x + th.x, p.y + w1.y + th.y,
                              p.x - w1.x + th.x, p.y - w1.y + th.y,
                              p.x - w1.x, p.y - w1.y,
@@ -130,10 +139,15 @@ void FlarmScreen::display(int mode)
         // target is behind -> draw a black X and a circle around the disc
         MYUCG->drawCircle( p.x, p.y, size, UCG_DRAW_ALL);
         // Draw a diagonal X line
-        Point x1 = Point(size, size).rotate(-roll);
+        Point x1 = Point(size, size).rotate(roll);
         MYUCG->drawLine( p.x - x1.x, p.y - x1.y, p.x + x1.x, p.y + x1.y );
         MYUCG->drawLine( p.x - x1.y, p.y + x1.x, p.x + x1.y, p.y - x1.x );
     }
+    uint16_t alarm = Audio::encFlarmParam(AUDIO_ALARM_FCODE, Flarm::AlarmLevel, currSide, altDiff);
+    if( mode > 0 && Flarm::AlarmLevel > 0 && (alarm != _prev_alarm || _tick > 7) ) {
+        _prev_alarm = alarm;
+		AUDIO->startSound(alarm);
+	}
 }
 
 void FlarmScreen::press() {
@@ -150,11 +164,11 @@ void FlarmScreen::draw()
 {
     ESP_LOGI(FNAME,"FlarmScreen draw");
     _time_out.pet();
-    tick++;
+    _tick++;
     MYUCG->setFont(ucg_font_fub11_tr);
     MYUCG->setPrintPos(100, 160);
     MYUCG->setColor(COLOR_WHITE);
-    MYUCG->print(tick);
+    MYUCG->print(_tick);
 }
 
 

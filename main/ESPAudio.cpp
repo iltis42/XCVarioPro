@@ -311,14 +311,10 @@ const SOUND TurnOut = { turn_tim.data(), { turn_seq.data(), stretch_seq.data(), 
 const SOUND TurnIn  = { turn_tim.data(), { turn_seq.data(), turnmore_seq.data(), nullptr, nullptr }, turn_vconf.data(), 0 };
 
 // Stall warning
-const std::array<DURATION, 30> stall_tim = {{ {150}, {65}, {110}, {50}, {134}, {30},  {150}, {65}, {110}, {50}, {134}, {30}, 
-    {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {1000}, {0} }};
-const std::array<TONE, 30> stall_seq1 = {{ {0}, {3150}, {446}, {354}, {330}, {0}, {0}, {3150}, {446}, {354}, {330}, {0}, 
-    {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {0}, {0} }};
-const std::array<TONE, 30> stall_seq2 = {{ {0}, {470}, {1318}, {728}, {662}, {0}, {0}, {470}, {1318}, {728}, {662}, {0},
-    {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {0}, {0} }};
-const std::array<TONE, 30> stall_seq3 = {{ {0}, {1290}, {0}, {1227}, {1255}, {0}, {0}, {1290}, {0}, {1227}, {1255}, {0},
-    {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {0}, {0} }};
+const std::array<DURATION, 18> stall_tim = {{ {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {60}, {1000}, {0} }};
+const std::array<TONE, 18> stall_seq1 = {{ {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {1600}, {913}, {0}, {0} }};
+const std::array<TONE, 18> stall_seq2 = {{ {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {300}, {145}, {0}, {0} }};
+const std::array<TONE, 18> stall_seq3 = {{ {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {1000}, {1604}, {0}, {0} }};
 const std::array<VOICECONF, 3> stell_vconf = {{ {0, 200}, {0, 40}, {1, 20} }};
 const SOUND StallWarn = { stall_tim.data(), { stall_seq1.data(), stall_seq2.data(), stall_seq3.data(), nullptr }, stell_vconf.data(), 0 };
 
@@ -332,14 +328,12 @@ const std::array<VOICECONF, 4> all_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {1, 
 const SOUND GloadWarn = { gload_tim.data(), { gload_seq1.data(), gload_seq2.data(), gload_seq3.data(), gload_seq4.data() }, all_vconf.data(), 0 };
 
 // Gear warning
-const std::array<DURATION, 9> gear_tim = {{ {60}, {60}, {120},   {80}, {120},  {120}, {140}, {800}, {0} }};
-const std::array<TONE, 9> gear_seq1 = {{ {118}, {224},  {115},  {0},  {104}, {96}, {96},  {0},   {0} }};
-const std::array<TONE, 9> gear_seq2 = {{ {354}, {343},  {446},  {0},  {201}, {290}, {259}, {0},  {0} }};
-const std::array<TONE, 9> gear_seq3 = {{ {470}, {570},  {880}, {0},  {798}, {774}, {0}, {0},  {0} }};
-const std::array<TONE, 9> gear_seq4 = {{ {3416}, {2734}, {0},   {0}, {0}, {0}, {0}, {0},  {0} }};
-const std::array<VOICECONF, 4> male_vconf = {{ {1, 150}, {0, 128}, {0, 128}, {1, 128} }};
-const SOUND GearWarn = { gear_tim.data(), { gear_seq1.data(), gear_seq2.data(), gear_seq3.data(), gear_seq4.data() }, male_vconf.data(), 1 };
-
+const std::array<DURATION, 12> gear_tim = {{ {150}, {65}, {110}, {50}, {134}, {30},  {150}, {65}, {110}, {50}, {134}, {800} }};
+const std::array<TONE, 12> gear_seq1 = {{ {0}, {3150}, {446}, {354}, {330}, {0}, {0}, {3150}, {446}, {354}, {330}, {0} }};
+const std::array<TONE, 12> gear_seq2 = {{ {0}, {470}, {1318}, {728}, {662}, {0}, {0}, {470}, {1318}, {728}, {662}, {0} }};
+const std::array<TONE, 12> gear_seq3 = {{ {0}, {1290}, {0}, {1227}, {1255}, {0}, {0}, {1290}, {0}, {1227}, {1255}, {0} }};
+const std::array<VOICECONF, 3> gear_vconf = {{ {0, 200}, {0, 50}, {1, 50} }};
+const SOUND GearWarn = { gear_tim.data(), { gear_seq1.data(), gear_seq2.data(), gear_seq3.data(), nullptr }, gear_vconf.data(), 0 };
 
 // Coded flarm alarm: Intro
 const std::array<DURATION, 11> flin_tim = {{ {33},  {33}, {33},  {33},   {33},   {33},  {33},  {33},     {70},  {30},   {0} }};
@@ -1054,7 +1048,7 @@ void Audio::dactask()
                 if ( sound_id < sound_list.size() ) {
                     sound = (SOUND *)sound_list[sound_id];
                     ESP_LOGI(FNAME, "Start sound %d (%x)", sound_id, event.param);
-                    if ( sound_id >= AUDIO_ALARM_FLARM ) {
+                    if ( sound_id == AUDIO_ALARM_FCODE ) {
                         FlarmCode = *Flarm[event.getSide()][event.getAltDiff()];
                         FlarmCode.repetitions = event.getLevel() - 1;
                         FlarmCode.timeseq = FlarmLev[event.getLevel() - 1]->data();
@@ -1083,13 +1077,7 @@ void Audio::dactask()
                         writeVolume(speaker_volume);
                         _alarm_mode = false;
                     }
-                    if ( sound_id == AUDIO_ALARM_FLARM ) {
-                        // queue the coded flarm sound
-                        sound = &FlarmCode;
-                    }
-                    else {
-                        sound = nullptr; // one-shot alarm
-                    }
+                    sound = nullptr; // one-shot alarm
                 }
                 else {
                     ESP_LOGI(FNAME, "Sound ended");

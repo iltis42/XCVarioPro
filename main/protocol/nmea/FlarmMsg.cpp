@@ -161,7 +161,6 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
         sprintf( Flarm::ID, "%06x", atoi(s + word->at(9)));
     }
     ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
-    Flarm::_tick=0;
 
     if ( Flarm::AlarmLevel > 0 ) {
         ESP_LOGI(FNAME,"FLARM ALARM LEVEL %d", Flarm::AlarmLevel);

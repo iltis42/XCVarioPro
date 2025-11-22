@@ -70,7 +70,7 @@ dl_action_t GpsMsg::parseGPRMC(NmeaPlugin *plg)
 
         CalkTaskJob job(CalkTaskJob::CALK_TASK_EVENT_NEW_GPSPOSE);
         xQueueSend(BackgroundTaskQueue, &job, 0);
-        if (!Flarm::time_sync && (valid_time_scan && valid_date_scan))
+        if (/*!Flarm::time_sync &&*/ (valid_time_scan && valid_date_scan))
         {
             ESP_LOGD(FNAME, "Start TimeSync");
             long int epoch_time = mktime(&t);
@@ -79,7 +79,7 @@ dl_action_t GpsMsg::parseGPRMC(NmeaPlugin *plg)
             timezone utc = {0, 0};
             const timezone *tz = &utc;
             settimeofday(tv, tz);
-            Flarm::time_sync = true;
+            // Flarm::time_sync = true; fixme
             ESP_LOGD(FNAME, "Finish Time Sync");
         }
     }

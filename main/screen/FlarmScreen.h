@@ -37,8 +37,9 @@ private:
     virtual ~FlarmScreen() = default;
     FlarmScreen(const FlarmScreen&) = delete;
     FlarmScreen& operator=(const FlarmScreen&) = delete;
-    int tick;
+    int _tick = 0;
     WatchDog_C _time_out;
+    uint16_t _prev_alarm = 0;
 };
 
 

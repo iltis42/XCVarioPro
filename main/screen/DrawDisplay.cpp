@@ -109,8 +109,6 @@ void UiEventLoop(void *arg)
                         // mbox finish, time to refresh the bottom line of the screen
                         Display->setBottomDirty();
                     }
-                } else if (detail == ScreenEvent::BOOT_SCREEN) {
-                    BootUpScreen::draw(); // time triggered boot screen update
                 } else if ( detail == ScreenEvent::FLARM_ALARM ) {
                     if ( ! FLARMSCREEN ) {
                         ESP_LOGI(FNAME,"Flarm::alarmLevel: %d, flarm_warning.get() %d", Flarm::alarmLevel(), flarm_warning.get() );
