@@ -38,6 +38,7 @@ private:
     FlarmScreen(const FlarmScreen&) = delete;
     FlarmScreen& operator=(const FlarmScreen&) = delete;
     int _tick = 0;
+    int _alarmtick = 0;
     WatchDog_C _time_out;
     uint16_t _prev_alarm = 0;
 };

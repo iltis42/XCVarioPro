@@ -344,16 +344,17 @@ const std::array<TONE, 11> flin_seq4    = {{ {0},   {0},  {0},   {0},    {0},   
 const SOUND FlarmIntro = { flin_tim.data(), { flin_seq1.data(), flin_seq2.data(), flin_seq3.data(), flin_seq4.data() }, all_vconf.data(), 0 };
 
 // Deeper
-const std::array<DURATION, 4> flev1_tim = {{ {500},  {1000}, {500}, {0} }};
-const std::array<DURATION, 4> flev2_tim = {{ {250},  {500}, {250}, {0} }};
-const std::array<DURATION, 4> flev3_tim = {{ {166},  {333}, {166}, {0} }};
+const std::array<DURATION, 4> flev1_tim = {{ {250},  {500}, {250}, {0} }};
+const std::array<DURATION, 4> flev2_tim = {{ {125},  {250}, {125}, {0} }};
+const std::array<DURATION, 4> flev3_tim = {{ {83},  {166}, {83}, {0} }};
 const std::array<TONE, 4> fldeep_seq1    = {{ {fE4}, {fE4},  {0}, {0} }}; // left
 const std::array<TONE, 4> fldeep_seq2    = {{ {0},   {fFs4}, {0}, {0} }}; // right
 const std::array<TONE, 4> fldeep_seq3    = {{ {fD5}, {fD5},  {0}, {0} }};
 const std::array<TONE, 4> fldeep_seq4    = {{ {fD4}, {fD4},  {0}, {0} }};
-const SOUND FlarmDeeperL = { nullptr, { fldeep_seq1.data(), fldeep_seq3.data(), nullptr, fldeep_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmDeeperM = { nullptr, { fldeep_seq3.data(), nullptr, nullptr, fldeep_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmDeeperR = { nullptr, { fldeep_seq3.data(), fldeep_seq2.data(), nullptr, fldeep_seq4.data() }, all_vconf.data(), 0 };
+const std::array<VOICECONF, 4> fcode_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {1, 200} }};
+const SOUND FlarmDeeperL = { nullptr, { fldeep_seq1.data(), fldeep_seq3.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmDeeperM = { nullptr, { fldeep_seq3.data(), fldeep_seq3.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmDeeperR = { nullptr, { fldeep_seq3.data(), fldeep_seq2.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
 //                           ^-> choose level                                                                                      ^-> level 2: 1; level 3: 2 repetitions
 
 // Same height
@@ -361,9 +362,9 @@ const std::array<TONE, 4> flsame_seq1    = {{ {fE5}, {fE5},  {0}, {0} }}; // lef
 const std::array<TONE, 4> flsame_seq2    = {{ {0},   {fFs5}, {0}, {0} }}; // right
 const std::array<TONE, 4> flsame_seq3    = {{ {fG4}, {fG4},  {0}, {0} }};
 const std::array<TONE, 4> flsame_seq4    = {{ {fD5}, {fD5},  {0}, {0} }};
-const SOUND FlarmSameL = { nullptr, { flsame_seq1.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmSameM = { nullptr, { flsame_seq3.data(), nullptr, nullptr, flsame_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmSameR = { nullptr, { flsame_seq2.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, all_vconf.data(), 0 };
+const SOUND FlarmSameL = { nullptr, { flsame_seq1.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmSameM = { nullptr, { flsame_seq3.data(), fldeep_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmSameR = { nullptr, { flsame_seq2.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
 
 // Heigher
 const std::array<TONE, 4> flhigh_seq1l   = {{ {fG5}, {fG5},  {0}, {0} }}; // left
@@ -371,16 +372,16 @@ const std::array<TONE, 4> flhigh_seq1r   = {{ {fFs5}, {fFs5},  {0}, {0} }}; // r
 const std::array<TONE, 4> flhigh_seq2    = {{ {fA5},   {fA5}, {0}, {0} }}; // left
 const std::array<TONE, 4> flhigh_seq3    = {{ {0},   {fA5}, {0}, {0} }}; // right
 const std::array<TONE, 4> flhigh_seq4    = {{ {fD6}, {fD6},  {0}, {0} }};
-const SOUND FlarmHighL = { nullptr, { flhigh_seq1l.data(), flhigh_seq2.data(), nullptr, flhigh_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmHighM = { nullptr, { flhigh_seq1r.data(), nullptr, nullptr, flhigh_seq4.data() }, all_vconf.data(), 0 };
-const SOUND FlarmHighR = { nullptr, { flhigh_seq1r.data(), flhigh_seq3.data(), nullptr, flhigh_seq4.data() }, all_vconf.data(), 0 };
+const SOUND FlarmHighL = { nullptr, { flhigh_seq1l.data(), flhigh_seq2.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmHighM = { nullptr, { flhigh_seq1r.data(), flhigh_seq1r.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmHighR = { nullptr, { flhigh_seq1r.data(), flhigh_seq3.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
 const std::array<DURATION, 4> *FlarmLev[3] = { &flev1_tim, &flev2_tim, &flev3_tim };
 const SOUND *Flarm[3][3] = {
     { &FlarmDeeperL, &FlarmSameL, &FlarmHighL },
     { &FlarmDeeperM, &FlarmSameM, &FlarmHighM },
     { &FlarmDeeperR, &FlarmSameR, &FlarmHighR }
 };
-static SOUND FlarmCode = {flev1_tim.data(), { flsame_seq3.data(), nullptr, nullptr, flsame_seq4.data() }, all_vconf.data(), 0 }; // set on the fly
+static SOUND FlarmCode; // set on the fly
 
 // Ding
 const std::array<DURATION, 11> ding_tim = {{  {10}, {10}, {10},    {160}, {160}, {160},     {40}, {40}, {40},        {600}, {0} }};

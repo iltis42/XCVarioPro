@@ -115,10 +115,11 @@ void FlarmScreen::display(int mode)
     else if ( Flarm::AlarmLevel >= 3 ) {
         MYUCG->setColor(COLOR_RED);
     }
-    // Draw target as a  disc, depict the distance through the size
+
+    // draw target as a  disc, depict the distance through the size
     int16_t size = (300 - Flarm::RelativeDistance) / 5;
-    if ( size < 15 ) {
-        size = 15;
+    if ( size < 20 ) {
+        size = 20;
     }
     MYUCG->drawDisc( p.x, p.y, size, UCG_DRAW_ALL);
     // Embedd a little glider symbol
@@ -145,16 +146,19 @@ void FlarmScreen::display(int mode)
         MYUCG->setColor(COLOR_BLACK);
         // target is behind -> draw a black X and a circle around the disc
         MYUCG->drawCircle( p.x, p.y, size, UCG_DRAW_ALL);
-        // Draw a diagonal X line
+        // draw a diagonal X line
         Point x1 = Point(size, size).rotate(roll);
         MYUCG->drawLine( p.x - x1.x, p.y - x1.y, p.x + x1.x, p.y + x1.y );
         MYUCG->drawLine( p.x - x1.y, p.y + x1.x, p.x + x1.y, p.y - x1.x );
     }
+
+    // start encoded audio alarm
     uint16_t alarm = Audio::encFlarmParam(AUDIO_ALARM_FCODE, Flarm::AlarmLevel, currSide, altDiff);
-    if( mode > 0 && Flarm::AlarmLevel > 0 && (alarm != _prev_alarm || _tick > 7) ) {
+    if (mode > 0 && Flarm::AlarmLevel > 0 && (alarm > _prev_alarm || (_tick-_alarmtick) > 5)) {
         _prev_alarm = alarm;
-		AUDIO->startSound(alarm);
-	}
+        _alarmtick = _tick;
+        AUDIO->startSound(alarm);
+    }
 }
 
 void FlarmScreen::press() {
