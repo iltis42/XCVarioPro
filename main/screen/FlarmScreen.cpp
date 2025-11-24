@@ -16,7 +16,6 @@
 #include "KalmanMPU6050.h"
 #include "Flarm.h"
 #include "math/Trigonometry.h"
-#include "math/Floats.h"
 #include "math/Quaternion.h"
 #include "vector_3d.h"
 #include "AdaptUGC.h"
@@ -64,16 +63,12 @@ void FlarmScreen::display(int mode)
     _tick++;
 
     ESP_LOGI(FNAME, "flarm_screen mode %d", mode);
-    // Draw horizon
+    // calc horizon line
     Quaternion attq = IMU::getAHRSQuaternion();
     Line l( attq, dwidth/2, dheight/2 );
     Point above[6], below[6];
     int na, nb;
     IpsDisplay::clipRectByLine(nullptr, l, above, &na, below, &nb);
-    MYUCG->setColor( COLOR_SKYBLUE );
-    IpsDisplay::drawPolygon(above, na);
-    MYUCG->setColor( COLOR_EARTH );
-    IpsDisplay::drawPolygon(below, nb);
 
     ESP_LOGI(FNAME,"Target in B%d°, dH%dm, dV%dm", Flarm::RelativeBearing, Flarm::RelativeDistance, Flarm::RelativeVertical );
     // calc from distance and bearing the vector to the target
@@ -94,6 +89,18 @@ void FlarmScreen::display(int mode)
     ESP_LOGI(FNAME,"BuddyVec %1.1f,%1.1f,%1.1f", buddyVec.x, buddyVec.y, buddyVec.z );
     Point p = IpsDisplay::projectToDisplayPlane(buddyVec, 100.f);
     ESP_LOGI(FNAME,"DisplPt %d,%d", p.x, p.y);
+    if ( p.x < -9000 || p.y < -9000 ) {
+        // cannot project point
+        ESP_LOGI(FNAME,"Cannot project point");
+        return;
+    }
+
+    // draw horizon
+    MYUCG->setColor( COLOR_SKYBLUE );
+    IpsDisplay::drawPolygon(above, na);
+    MYUCG->setColor( COLOR_EARTH );
+    IpsDisplay::drawPolygon(below, nb);
+
     // clip to display area
     p = IpsDisplay::clipToScreenCenter(p);
     ESP_LOGI(FNAME,"ClippPt %d,%d", p.x, p.y);
