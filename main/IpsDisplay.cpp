@@ -262,15 +262,15 @@ void IpsDisplay::drawPolygon(Point *pts, int n)
 // Project from glider reference into avionik display plane (Y-Z plane)
 Point IpsDisplay::projectToDisplayPlane(const vector_ijk &obj, float focus)
 {
-    // camera model: pinhole camera at origin, looking along X axis, display plane at X = focus
-    float pos_x = std::abs(obj.x);
+    // camera model: pinhole camera at origin, looking along X axis, display plane at focus distance
+    focus *= fast_signf(obj.x);
     // project to display plane
-    if ( pos_x < 1e-5f ) {
+    if ( std::abs(obj.x) < 1e-4f ) {
         // avoid division by zero
-        return Point( (obj.y >= 0.f) ? DISPLAY_W : 0, (obj.z >= 0.f) ? 0 : DISPLAY_H );
+        return Point( -10000, -10000 );
     }
-    float u = focus * (obj.y / pos_x);
-    float v = focus * (obj.z / pos_x);
+    float u = focus * (obj.y / obj.x);
+    float v = focus * (obj.z / obj.x);
 
     return Point(DISPLAY_W/2 - u, DISPLAY_H/2 - v);
 }
