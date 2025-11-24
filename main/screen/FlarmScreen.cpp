@@ -152,6 +152,8 @@ void FlarmScreen::display(int mode)
 
 void FlarmScreen::press() {
     ESP_LOGI(FNAME,"FlarmScreen press - exit");
+    // set the confirmed time to mute this alarm for 30 seconds
+    Flarm::setConfirmed();
     exit();
 }
 

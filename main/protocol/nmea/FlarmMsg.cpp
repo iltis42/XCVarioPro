@@ -156,13 +156,13 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
     Flarm::RelativeBearing  = atoi(s + word->at(5));
     Flarm::RelativeVertical = atoi(s + word->at(7));
     Flarm::RelativeDistance = atoi(s + word->at(8));
-    Flarm::ID[0] = '\0';
+    Flarm::IcaoId = 0;
     if ( word->size() >= 10 ) {
-        sprintf( Flarm::ID, "%06x", atoi(s + word->at(9)));
+        Flarm::IcaoId = atoi(s + word->at(9));
     }
     ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
 
-    if ( Flarm::AlarmLevel > 0 ) {
+    if ( Flarm::AlarmLevel > 0 && ! Flarm::isConfirmed() ) {
         ESP_LOGI(FNAME,"FLARM ALARM LEVEL %d", Flarm::AlarmLevel);
         // Send a flarm event to update display
         int evt = ScreenEvent(ScreenEvent::FLARM_ALARM).raw;
