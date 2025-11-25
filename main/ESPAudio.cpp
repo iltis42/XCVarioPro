@@ -199,7 +199,7 @@ constexpr int MAX_VOICES = 4;
 // it also does work with the default vario ESP_LOGI(FNAME, "tim012 %d, %sound that stays in ram
 struct SOUND {
     const DURATION* timeseq;    // time sequence for the tones in msec, terminated with a 0
-                          // nr defined here have to be found in the tone sequence
+                                // nr defined here have to be found in the tone sequence
     const TONE* toneseq[MAX_VOICES]; // nr of seq found here need to have a vconf
     const VOICECONF* vconf;
     int8_t repetitions; // -1 = infinite
@@ -345,16 +345,18 @@ const SOUND FlarmIntro = { flin_tim.data(), { flin_seq1.data(), flin_seq2.data()
 
 // Deeper
 const std::array<DURATION, 4> flev1_tim = {{ {250},  {500}, {250}, {0} }};
-const std::array<DURATION, 4> flev2_tim = {{ {125},  {250}, {125}, {0} }};
-const std::array<DURATION, 4> flev3_tim = {{ {83},  {166}, {83}, {0} }};
+// const std::array<DURATION, 4> flev2_tim = {{ {125},  {250}, {125}, {0} }};
+// const std::array<DURATION, 4> flev3_tim = {{ {83},  {166}, {83}, {0} }};
+const std::array<DURATION, 4> flev2_tim = {{ {83},  {166}, {83}, {0} }};
+const std::array<DURATION, 4> flev3_tim = {{ {42},  {83}, {42}, {0} }};
 const std::array<TONE, 4> fldeep_seq1    = {{ {fE4}, {fE4},  {0}, {0} }}; // left
 const std::array<TONE, 4> fldeep_seq2    = {{ {0},   {fFs4}, {0}, {0} }}; // right
 const std::array<TONE, 4> fldeep_seq3    = {{ {fD5}, {fD5},  {0}, {0} }};
 const std::array<TONE, 4> fldeep_seq4    = {{ {fD4}, {fD4},  {0}, {0} }};
-const std::array<VOICECONF, 4> fcode_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {1, 200} }};
-const SOUND FlarmDeeperL = { nullptr, { fldeep_seq1.data(), fldeep_seq3.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmDeeperM = { nullptr, { fldeep_seq3.data(), fldeep_seq3.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmDeeperR = { nullptr, { fldeep_seq3.data(), fldeep_seq2.data(), nullptr, fldeep_seq4.data() }, fcode_vconf.data(), 0 };
+const std::array<VOICECONF, 4> fcode_vconf = {{ {0, 128}, {0, 128}, {0, 70}, {1, 200} }};
+const SOUND FlarmDeeperL = { nullptr, { fldeep_seq1.data(), fldeep_seq3.data(), fldeep_seq4.data(), fldeep_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmDeeperM = { nullptr, { fldeep_seq3.data(), fldeep_seq3.data(), fldeep_seq4.data(), fldeep_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmDeeperR = { nullptr, { fldeep_seq3.data(), fldeep_seq2.data(), fldeep_seq4.data(), fldeep_seq4.data() }, fcode_vconf.data(), 0 };
 //                           ^-> choose level                                                                                      ^-> level 2: 1; level 3: 2 repetitions
 
 // Same height
@@ -362,9 +364,9 @@ const std::array<TONE, 4> flsame_seq1    = {{ {fE5}, {fE5},  {0}, {0} }}; // lef
 const std::array<TONE, 4> flsame_seq2    = {{ {0},   {fFs5}, {0}, {0} }}; // right
 const std::array<TONE, 4> flsame_seq3    = {{ {fG4}, {fG4},  {0}, {0} }};
 const std::array<TONE, 4> flsame_seq4    = {{ {fD5}, {fD5},  {0}, {0} }};
-const SOUND FlarmSameL = { nullptr, { flsame_seq1.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmSameM = { nullptr, { flsame_seq3.data(), fldeep_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmSameR = { nullptr, { flsame_seq2.data(), flsame_seq3.data(), nullptr, flsame_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmSameL = { nullptr, { flsame_seq1.data(), flsame_seq3.data(), flsame_seq4.data(), flsame_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmSameM = { nullptr, { flsame_seq3.data(), fldeep_seq3.data(), flsame_seq4.data(), flsame_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmSameR = { nullptr, { flsame_seq2.data(), flsame_seq3.data(), flsame_seq4.data(), flsame_seq4.data() }, fcode_vconf.data(), 0 };
 
 // Heigher
 const std::array<TONE, 4> flhigh_seq1l   = {{ {fG5}, {fG5},  {0}, {0} }}; // left
@@ -372,9 +374,9 @@ const std::array<TONE, 4> flhigh_seq1r   = {{ {fFs5}, {fFs5},  {0}, {0} }}; // r
 const std::array<TONE, 4> flhigh_seq2    = {{ {fA5},   {fA5}, {0}, {0} }}; // left
 const std::array<TONE, 4> flhigh_seq3    = {{ {0},   {fA5}, {0}, {0} }}; // right
 const std::array<TONE, 4> flhigh_seq4    = {{ {fD6}, {fD6},  {0}, {0} }};
-const SOUND FlarmHighL = { nullptr, { flhigh_seq1l.data(), flhigh_seq2.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmHighM = { nullptr, { flhigh_seq1r.data(), flhigh_seq1r.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
-const SOUND FlarmHighR = { nullptr, { flhigh_seq1r.data(), flhigh_seq3.data(), nullptr, flhigh_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmHighL = { nullptr, { flhigh_seq1l.data(), flhigh_seq2.data(),  flhigh_seq4.data(), flhigh_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmHighM = { nullptr, { flhigh_seq1r.data(), flhigh_seq1r.data(), flhigh_seq4.data(), flhigh_seq4.data() }, fcode_vconf.data(), 0 };
+const SOUND FlarmHighR = { nullptr, { flhigh_seq1r.data(), flhigh_seq3.data(),  flhigh_seq4.data(), flhigh_seq4.data() }, fcode_vconf.data(), 0 };
 const std::array<DURATION, 4> *FlarmLev[3] = { &flev1_tim, &flev2_tim, &flev3_tim };
 const SOUND *Flarm[3][3] = {
     { &FlarmDeeperL, &FlarmSameL, &FlarmHighL },
@@ -1051,7 +1053,7 @@ void Audio::dactask()
                     ESP_LOGI(FNAME, "Start sound %d (%x)", sound_id, event.param);
                     if ( sound_id == AUDIO_ALARM_FCODE ) {
                         FlarmCode = *Flarm[event.getSide()][event.getAltDiff()];
-                        FlarmCode.repetitions = event.getLevel() - 1;
+                        FlarmCode.repetitions = (event.getLevel() - 1) * 3 - 1;
                         FlarmCode.timeseq = FlarmLev[event.getLevel() - 1]->data();
                     }
                 }
