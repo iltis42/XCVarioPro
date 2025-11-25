@@ -41,7 +41,7 @@ struct Point {
     Point rotate(float alpha) const;
 };
 
-// Hesse form of a striaght line: Normal x Pxyz + d = 0
+// Hesse form of a 2d straight line: Normal x Pxy + d = 0
 struct Line {
     Line() = default;
     Line(Quaternion q, int16_t cx, int16_t cy);
