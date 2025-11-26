@@ -192,8 +192,8 @@ void Flap::removeLevel(int idx)
     prepLevels();
 }
 
-void Flap::configureADC(int port) {
-    ESP_LOGI(FNAME, "Flap::configureADC port: %d", port);
+void Flap::configureADC() {
+    ESP_LOGI(FNAME, "Flap::configureADC");
     if (sensorAdc) {
         delete sensorAdc;
         sensorAdc = nullptr;

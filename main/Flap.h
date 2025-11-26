@@ -78,7 +78,7 @@ public:
 
     // sensor access
     unsigned int getSensorRaw() const;
-    void configureADC(int port);
+    void configureADC();
     int getNrPositions() const { return flevel.size(); }
     static constexpr const int MAX_NR_POS = 7;
 

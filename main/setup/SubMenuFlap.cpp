@@ -46,11 +46,11 @@ const std::string_view flap_labels[55] = { "-9", "-8", "-7", "-6", "-5", "-4", "
 static int select_flap_sens_pin(SetupMenuSelect *p)
 {
     ESP_LOGI(FNAME, "select_flap_sens_pin");
+    FLAP->configureADC();
     if (p->getSelect() == FLAP_SENSOR_ENABLE)
     {
         p->clear();
         ESP_LOGI(FNAME, "select_flap_sens_pin, have flap");
-        FLAP->configureADC(FLAP_SENSOR_ENABLE);
         if (FLAP->haveSensor())
         {
             // ESP_LOGI(FNAME,"select_flap_sens_pin, have sensor");
@@ -72,7 +72,6 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
     else
     {
         ESP_LOGI(FNAME, "NO flap");
-        FLAP->configureADC(FLAP_SENSOR_DISABLE);
     }
     p->getParent()->setDirty();
     p->getParent()->getParent()->setDirty();
@@ -152,7 +151,7 @@ void flap_menu_create_flap_sensor(SetupMenu *wkm) // dynamic!
         wkm->setDynContent();
         SetupMenuSelect *wkes = new SetupMenuSelect("Flap Sensor", RST_NONE, select_flap_sens_pin, &flap_sensor);
         wkes->mkEnable();
-        wkes->addEntry("From Master/Second");
+        wkes->addEntry("From Master/Second", FLAP_SENSOR_CLIENT);
         wkes->setHelp("Presence of a Flap sensor, maybe connected to the master unit");
         wkm->addEntry(wkes);
 
