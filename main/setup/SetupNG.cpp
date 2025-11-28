@@ -381,9 +381,7 @@ SetupNG<int>			cruise_audio_mode("CAUDIO", 0 );
 SetupNG<int>			netto_mode("NETMOD", NETTO_RELATIVE, true, SYNC_NONE, PERSISTENT, change_cruise);  // regard polar sink
 SetupNG<float>			v_max("VMAX", 270, true, SYNC_FROM_MASTER, PERSISTENT, 0, QUANT_HSPEED, &polar_speed_limits);
 static const limits_t pos_g_limits = {1.0, 8.0, 0.1};
-SetupNG<float>			gload_pos_thresh("GLOADPT", 4, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &pos_g_limits);
-static const limits_t neg_g_limits = {-8.0, 1.0, 0.1};
-SetupNG<float>			gload_neg_thresh("GLOADNT", -3, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &neg_g_limits);
+static const limits_t neg_g_limits = {-8.0, -1.0, 0.1};
 SetupNG<float>			gload_pos_limit_low("GLOADPLL", 3, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &pos_g_limits);
 SetupNG<float>			gload_neg_limit_low("GLOADNLL", -2, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &neg_g_limits);
 SetupNG<float>			gload_pos_limit("GLOADPL", 5, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &pos_g_limits);

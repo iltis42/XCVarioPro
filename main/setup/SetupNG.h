@@ -509,9 +509,6 @@ extern SetupNG<int>			cruise_audio_mode;
 extern SetupNG<int>			netto_mode;
 extern SetupNG<float>		v_max;
 
-extern SetupNG<float>		gload_pos_thresh;
-
-extern SetupNG<float>		gload_neg_thresh;
 extern SetupNG<float>		gload_pos_limit_low;
 extern SetupNG<float>		gload_neg_limit_low;
 extern SetupNG<float>		gload_pos_limit;

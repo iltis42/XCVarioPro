@@ -966,24 +966,12 @@ static void screens_menu_create_vario(SetupMenu *top) {
 }
 
 void screens_menu_create_gload(SetupMenu *top) {
-	SetupMenuSelect *glmod = new SetupMenuSelect("Screen Mode", RST_NONE, upd_screens, &screen_gmeter);
-	glmod->setHelp(
-			"Switch off G-Force screen, switch it 'On', activate by threshold G-Force 'Dynamic', or choose it as 'Primary' screen");
-	glmod->addEntry(ENABLE_MODE[0].data());
-	glmod->addEntry(ENABLE_MODE[1].data());
-	glmod->addEntry(ENABLE_MODE[2].data());
-	glmod->addEntry(ENABLE_MODE[3].data());
-	top->addEntry(glmod);
-
-	SetupMenuValFloat *gtpos = new SetupMenuValFloat("Positive Threshold", "", nullptr, false, &gload_pos_thresh);
-	top->addEntry(gtpos);
-	gtpos->setPrecision(1);
-	gtpos->setHelp("Positive threshold to launch G-Load display");
-
-	SetupMenuValFloat *gtneg = new SetupMenuValFloat("Negative Threshold", "", nullptr, false, &gload_neg_thresh);
-	top->addEntry(gtneg);
-	gtneg->setPrecision(1);
-	gtneg->setHelp("Negative threshold to launch G-Load display");
+    SetupMenuSelect *glmod = new SetupMenuSelect("Screen Mode", RST_NONE, upd_screens, &screen_gmeter);
+    glmod->setHelp("Switch off G-Force screen, switch it 'On', or choose it as 'Primary' screen");
+    glmod->addEntry(ENABLE_MODE[0].data());
+    glmod->addEntry(ENABLE_MODE[1].data());
+    glmod->addEntry(ENABLE_MODE[3].data(), 3);
+    top->addEntry(glmod);
 
 	SetupMenuValFloat *glpos = new SetupMenuValFloat("Red positive Limit", "", nullptr, false, &gload_pos_limit);
 	top->addEntry(glpos);
