@@ -217,9 +217,11 @@ struct DMACMD {
     uint8_t idx;        // current index in the sound sequence
     uint8_t voicecount; // nr of voices used for this sequence
     int8_t  repcount;   // remaining repetitions
+    uint8_t state;      // internal state
     VOICECMD voice[MAX_VOICES];
 };
-static __attribute__((aligned(4))) DMACMD dma_cmd;
+static __attribute__((aligned(4))) DMACMD dma_cmd[2]; // double buffer for DMA command stream
+static DMACMD *current_dmacmd; // pointer to the current DMA command buffer
 
 // chromatic macros
 constexpr float toneFactor(int semitoneOffset) {
@@ -285,21 +287,6 @@ const std::array<TONE, 5> fail_seq1 = {{ {fF4}, {fE4},  {fDs4}, {fD4}, {0} }};
 const std::array<TONE, 5> fail_seq2 = {{ {fG4}, {fFs4}, {fF4},  {fE4}, {0} }};
 const std::array<VOICECONF, 2> two_vconf = {{ {0, 128}, {0, 128} }};
 const SOUND FailSound = { fail_tim.data(), { fail_seq1.data(), fail_seq2.data(), nullptr, nullptr }, two_vconf.data(), 0 };
-
-// old Flarm alarms
-// const std::array<DURATION, 3> flarm1_tim = {{ {100}, {55}, {0} }};
-// const std::array<TONE, 2> flarm1_seq = {{ {1100.0}, {0.} }};
-// const std::array<TONE, 2> flarm1_extra = {{ {1100.0*pow(2.0, 4./12.)}, {0.} }};
-// const std::array<VOICECONF, 2> flarm1_vconf = {{ {0, 128}, {1, 128} }};
-// const SOUND Flarm1 = { flarm1_tim.data(), { flarm1_seq.data(), flarm1_extra.data(), nullptr, nullptr }, flarm1_vconf.data(), 2 };
-// const std::array<DURATION, 3> flarm2_tim = {{ {70}, {52}, {0} }};
-// const std::array<TONE, 2> flarm2_seq = {{ {1100.0}, {0.} }};
-// const std::array<TONE, 2> flarm2_extra = {{ {1100.0*pow(2.0, 3./12.)}, {0.} }};
-// const SOUND Flarm2 = { flarm2_tim.data(), { flarm2_seq.data(), flarm2_extra.data(), nullptr, nullptr }, flarm1_vconf.data(), 4 };
-// const std::array<DURATION, 3> flarm3_tim = {{ {50}, {50}, {0} }};
-// const std::array<TONE, 2> flarm3_seq = {{ {1100.0}, {0.} }};
-// const std::array<TONE, 2> flarm3_extra = {{ {1100.0*pow(2.0, 2./12.)}, {0.} }};
-// const SOUND Flarm3 = { flarm3_tim.data(), { flarm3_seq.data(), flarm3_extra.data(), nullptr, nullptr }, flarm1_vconf.data(), 6 };
 
 // Center aid sounds
 const std::array<DURATION, 2> turn_tim = {{ {1000}, {0} }};
@@ -456,6 +443,7 @@ void VOICECMD::load(const VOICECONF *vc, const TONE *t) {
 void DMACMD::init() {
     idx = 0;
     repcount = 0;
+    state = 0;
     voicecount = 0;
     for ( int i=0; i<MAX_VOICES; i++ ) {
         voice[i].init(0);
@@ -482,10 +470,12 @@ void DMACMD::loadSound(const SOUND *s)
     timeseq = (const DURATION*)(s->timeseq);
     counter = timeseq[0].duration; // kick sound sequence
     voicecount = vc_tmp;
+    state = 1;
 }
 void DMACMD::resetSound() {
     idx = 0;
     repcount = -1;
+    state = 1;
     voice[0].load(vario_vconf.data(), silence_seq.data());
     for (int j = 1; j < MAX_VOICES; j++) {
         voice[j].reset();
@@ -537,10 +527,13 @@ static bool IRAM_ATTR dacdma_done(dac_continuous_handle_t h, const dac_event_dat
 {
     static int32_t reload_count = 0;
     uint16_t fade = 0;
-    DMACMD& cmd = *(DMACMD *)user_data;
+    DMACMD& cmd = **(DMACMD **)user_data;
     VOICECMD *vl = (VOICECMD *)cmd.voice;
     uint8_t *buf = (uint8_t *)e->buf;
     AudioEvent ev(VLOAD_DONE, 0);
+
+    // touch state
+    cmd.state = 2;
 
 #if defined(AUDIO_DEBUG)
     int64_t t_busy0 = esp_timer_get_time(); // benchmark
@@ -678,7 +671,9 @@ static bool IRAM_ATTR dacdma_done(dac_continuous_handle_t h, const dac_event_dat
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Audio::Audio()
 {
-    dma_cmd.init();
+    dma_cmd[0].init();
+    dma_cmd[1].init();
+    current_dmacmd = &dma_cmd[0];
     if ( ! AudioQueue ) {
         AudioQueue = xQueueCreate(10, sizeof(uint16_t));
     }
@@ -714,7 +709,7 @@ void Audio::applySetup()
         if ( isUp() ) {
             // stop any sound
             stopAudio();
-            dma_cmd.resetSound();
+            current_dmacmd->resetSound();
         }
     }
     else {
@@ -856,7 +851,7 @@ bool Audio::haveCAT5171() const
 }
 
 void Audio::dump() {
-    dma_cmd.dump();
+    current_dmacmd->dump();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -882,7 +877,7 @@ void Audio::dacInit()
         .on_convert_done = dacdma_done,
         .on_stop = nullptr
     };
-    err |= dac_continuous_register_event_callback(_dac_chan, &callbacks, &dma_cmd);
+    err |= dac_continuous_register_event_callback(_dac_chan, &callbacks, &current_dmacmd);
 
     err |= dac_continuous_enable(_dac_chan);
     ESP_LOGI(FNAME, "DAC initialized success, DAC DMA is ready");
@@ -903,7 +898,7 @@ bool Audio::startAudio(int16_t ch)
     // amplifier on GPIO19
     gpio_set_direction(GPIO_NUM_19, GPIO_MODE_OUTPUT ); // use pullup 1 == SOUND 0 == SILENCE
     mute();
-    dma_cmd.resetSound(); // silence
+    current_dmacmd->resetSound(); // silence
 
     if ( ! _dac_chan ) {
         _channel = ch;
@@ -1030,12 +1025,13 @@ void Audio::dactask()
 #if defined(AUDIO_DEBUG)
     int64_t t0 = esp_timer_get_time();
 #endif
-    SOUND *sound = nullptr; // preempting the vario sound
-    int sound_id = AUDIO_NO_SOUND;
     const TONE* next_tone[MAX_VOICES]; // added to the vario sound
     const DURATION* next_time = nullptr; // current sequence time line
     uint8_t curr_idx[MAX_VOICES] = {0};
     uint8_t repetitions[MAX_VOICES] = {0};
+    int curr_dmacmd_idx = 0;
+    current_dmacmd = &dma_cmd[0];
+    current_dmacmd->resetSound(); // silence
 
     _terminate = false;
     xQueueReset(AudioQueue);
@@ -1045,42 +1041,40 @@ void Audio::dactask()
         AudioEvent event;
         if (xQueueReceive(AudioQueue, &event, pdMS_TO_TICKS(2000)) == pdTRUE)
         {
+            // ESP_LOGI(FNAME, "AudioEvents queued %d", uxQueueMessagesWaiting(AudioQueue));
             // Process audio events
             if ( event.cmd == START_SOUND ) {
-                sound_id = event.getSoundId();
+                int sound_id = event.getSoundId();
                 if ( sound_id < sound_list.size() ) {
-                    sound = (SOUND *)sound_list[sound_id];
                     ESP_LOGI(FNAME, "Start sound %d (%x)", sound_id, event.param);
+                    if ( sound_id >= AUDIO_ALARMS ) { _alarm_mode = true; }
                     if ( sound_id == AUDIO_ALARM_FCODE ) {
                         FlarmCode = *Flarm[event.getSide()][event.getAltDiff()];
-                        FlarmCode.repetitions = (event.getLevel() - 1) * 3 - 1;
+                        FlarmCode.repetitions = std::max((event.getLevel() - 1) * 3 - 1, 0);
+                        ESP_LOGI(FNAME, "Sound repetitions %d", FlarmCode.repetitions);
                         FlarmCode.timeseq = FlarmLev[event.getLevel() - 1]->data();
                     }
-                }
-                if ( dma_cmd.repcount  < 0 ) {
-                    // stop endless sound
-                    ESP_LOGI(FNAME, "Trigger sound request");
-                    dma_cmd.repcount = 0;
+                    if ( current_dmacmd->repcount  < 0 ) {
+                        // stop endless sound
+                        ESP_LOGI(FNAME, "Preempt sound");
+                        current_dmacmd->repcount = 0;
+                    }
+                    // load sound into unused dma cmd buffer
+                    dma_cmd[!curr_dmacmd_idx].loadSound(sound_list[sound_id]);
                 }
             }
             else if ( event.cmd == REQUEST_SOUND ) {
-                if ( sound ) {
-                    ESP_LOGI(FNAME, "Preempt sound");
-                    dma_cmd.loadSound(sound);
-                    if ( sound_id >= AUDIO_ALARMS && ! _alarm_mode ) {
+                if ( dma_cmd[!curr_dmacmd_idx].state == 1 ) {
+                    ESP_LOGI(FNAME, "Sound pushed");
+                    curr_dmacmd_idx = !curr_dmacmd_idx;
+                    current_dmacmd = &dma_cmd[curr_dmacmd_idx];
+                    if ( _alarm_mode ) {
                         ESP_LOGI(FNAME, "Raise volume");
                         // raise volume +20%, but assure at least 60%
                         float alarm_vol = std::min(speaker_volume+alarm_volraise.get(), 100.f);
                         alarm_vol = std::max(alarm_vol, 60.f);
                         writeVolume(alarm_vol);
-                        _alarm_mode = true;
                     }
-                    else if ( sound_id < AUDIO_ALARMS && _alarm_mode ) {
-                        ESP_LOGI(FNAME, "Restore volume");
-                        writeVolume(speaker_volume);
-                        _alarm_mode = false;
-                    }
-                    sound = nullptr; // one-shot alarm
                 }
                 else {
                     ESP_LOGI(FNAME, "Sound ended");
@@ -1090,12 +1084,11 @@ void Audio::dactask()
                         _alarm_mode = false;
                     }
                     if (audio_mute_gen.get() == AUDIO_ON) {
-                        dma_cmd.loadSound(&VarioSound);
+                        current_dmacmd->loadSound(&VarioSound);
                     }
                     else {
-                        dma_cmd.resetSound();
+                        current_dmacmd->resetSound();
                     }
-                    // dma_cmd.resetSound();
                 }
             }
             else if ( event.cmd == ADD_SOUND ) {
@@ -1107,12 +1100,12 @@ void Audio::dactask()
                 for ( int i = from_voice; i < MAX_VOICES; i++ ) {
                     next_tone[i] = snd->toneseq[i-from_voice];
                     if ( next_tone[i] ) {
-                        dma_cmd.voice[i].load(&(snd->vconf[i-from_voice]), next_tone[i]);
-                        dma_cmd.voice[i].setCountFromSamples(next_time[0].duration);
+                        current_dmacmd->voice[i].load(&(snd->vconf[i-from_voice]), next_tone[i]);
+                        current_dmacmd->voice[i].setCountFromSamples(next_time[0].duration);
                         repetitions[i] = snd->repetitions;
                         curr_idx[i] = 0;
-                        ESP_LOGI(FNAME, "Add %d: step %u gain %u count %u", i, (unsigned)dma_cmd.voice[i].step, 
-                            (unsigned)dma_cmd.voice[i].gain_target, (unsigned)dma_cmd.voice[i].count );
+                        ESP_LOGI(FNAME, "Add %d: step %u gain %u count %u", i, (unsigned)current_dmacmd->voice[i].step, 
+                            (unsigned)current_dmacmd->voice[i].gain_target, (unsigned)current_dmacmd->voice[i].count );
                     }
                 }
             }
@@ -1132,12 +1125,12 @@ void Audio::dactask()
                     }
                 }
                 if ( next_tone[vid] ) {
-                    dma_cmd.voice[vid].fastLoad(curr_idx[vid]);
-                    dma_cmd.voice[vid].setCountFromSamples(next_time[curr_idx[vid]].duration);
+                    current_dmacmd->voice[vid].fastLoad(curr_idx[vid]);
+                    current_dmacmd->voice[vid].setCountFromSamples(next_time[curr_idx[vid]].duration);
                     // ESP_LOGI(FNAME, "Voice %d: step %u dur %u", vid, (unsigned)next_tone[vid][curr_idx[vid]].step, (unsigned)next_tone[vid][curr_idx[vid]].duration );
                 }
                 else {
-                    dma_cmd.voice[vid].reset();
+                    current_dmacmd->voice[vid].reset();
                 }
             }
             else if ( event.cmd == DO_VARIO && ! _alarm_mode) {
