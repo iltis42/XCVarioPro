@@ -238,6 +238,8 @@ void IMU::Process()
 		[[maybe_unused]] EulerAngles euler = euler_rad * rad2deg(1.f);
 		ESP_LOGI( FNAME,"Euler R:%.1f P:%.1f OR:%.1f IMUP:%.1f %.1f@GA(%.3f,%.3f,%.3f)", euler.Roll(), euler.Pitch(), rad2deg(roll), rad2deg(pitch), rad2deg(w), axis.x, axis.y, axis.z );
 	}
+	filterRoll_rad =  euler_rad.Roll();
+	filterPitch_rad =  euler_rad.Pitch();
 
 	// treat gimbal lock, limit to 88 deg
 	const float limit = deg2rad(88.);
@@ -272,8 +274,6 @@ void IMU::Process()
 	else{
 		filterYaw=fallbackToGyro();
 	}
-	filterRoll_rad =  euler_rad.Roll();
-	filterPitch_rad =  euler_rad.Pitch();
 
 	// ESP_LOGI( FNAME,"GV-Pitch=%.1f  GV-Roll=%.1f filterYaw: %.2f curh: %.2f GX:%.3f GY:%.3f GZ:%.3f AX:%.3f AY:%.3f AZ:%.3f  FP:%.1f FR:%.1f", euler.Pitch(), euler.Roll(), filterYaw, curh, gyro.a,gyro.b,gyro.c, accel.a, accel.b, accel.c, filterPitch_rad, filterRoll_rad  );
 
