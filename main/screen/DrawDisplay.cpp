@@ -30,13 +30,11 @@
 #include "Flarm.h"
 #include "sensor.h"
 #include "protocol/WatchDog.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 
 // The context to serialize all display access.
 QueueHandle_t uiEventQueue = nullptr;
-
-static unsigned long int flarm_alarm_holdtime = 0;
 
 
 void UiEventLoop(void *arg)
@@ -46,11 +44,8 @@ void UiEventLoop(void *arg)
     int16_t stall_warning_active = 0;
     int16_t gload_warning_active = 0;
     bool gear_warning_active = false;
-    bool flarm_warning_active = false;
 
     xQueueReset(uiEventQueue);
-
-    // esp_task_wdt_add(NULL); // incompatible with current setup implementation, e.g. all calib procedures would trigger the wd
 
     while (1)
     {
@@ -201,24 +196,6 @@ void UiEventLoop(void *arg)
                 }
             }
 
-            // Flarm Warning Screen
-            // if (!stall_warning_active && Flarm::alarmLevel() > flarm_warning.get()) { // 4 -> Disable
-            //     ESP_LOGI(FNAME,"Flarm::alarmLevel: %d, flarm_warning.get() %d", Flarm::alarmLevel(), flarm_warning.get() );
-            //     if (!flarm_warning_active) {
-            //         flarm_warning_active = true;
-            //         MenuRoot->push(getFlarmScreenInstance());
-            //         flarm_alarm_holdtime = millis() + flarm_alarm_time.get() * 1000;
-            //     }
-            // } else {
-            //     if (flarm_warning_active && (millis() > flarm_alarm_holdtime)) {
-            //         flarm_warning_active = false;
-            //         getFlarmScreenInstance()->exit();
-            //     }
-            // }
-            // if (flarm_warning_active) {
-            //     Flarm::drawFlarmWarning();
-            // }
-
             // G-Load alarm when limits reached
             if (screen_gmeter.get() != SCREEN_OFF) {
                 if (IMU::getGliderAccelZ() > gload_pos_limit.get() || IMU::getGliderAccelZ() < gload_neg_limit.get()) {
@@ -237,7 +214,6 @@ void UiEventLoop(void *arg)
 				theCenteraid->tick();
 			}
 		}
-		// esp_task_wdt_reset();
 		if( uxTaskGetStackHighWaterMark(NULL) < 512  ) {
 			ESP_LOGW(FNAME,"Warning UiEventLoop stack low: %d bytes", uxTaskGetStackHighWaterMark(NULL) );
 		}
