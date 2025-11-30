@@ -159,7 +159,8 @@ bool ABPMRR::doOffset( bool force ){
 		ESP_LOGI(FNAME,"offset from NVS: %0.1f", _offset );
 	}
 
-	uint16_t adcval,T;
+	uint16_t adcval = 0,
+			T;
 	fetch_pressure( adcval, T );
 
 	ESP_LOGI(FNAME,"offset from ADC %d", adcval );
