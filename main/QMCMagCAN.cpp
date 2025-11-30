@@ -13,7 +13,7 @@
 
 #include "QMCMagCAN.h"
 
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>

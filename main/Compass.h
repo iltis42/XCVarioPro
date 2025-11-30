@@ -24,7 +24,7 @@ Last update: 2021-03-07
 #include "protocol/ClockIntf.h"
 #include "Deviation.h"
 #include "MagnetSensor.h"
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 #include "average.h"
 
 class MagnetSensor;

@@ -22,7 +22,7 @@ Last update: 2021-03-28
 
 #include "MagnetSensor.h"
 
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 #include "I2Cbus.hpp"
 
 #include <esp_system.h>

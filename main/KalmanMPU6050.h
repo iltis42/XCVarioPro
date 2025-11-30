@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 #include "math/Quaternion.h"
 
 #include <esp_err.h>

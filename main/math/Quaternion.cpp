@@ -8,7 +8,7 @@
 
 #include "math/Quaternion.h"
 #include "math/Trigonometry.h"
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 #include "logdefnone.h"
 
 #include <esp_timer.h>

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "ClockIntf.h"
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 
 class DataLink;
 class Device;

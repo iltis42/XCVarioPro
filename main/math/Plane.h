@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 
 // Hesse form of a 3d plane: Normal x Pxyz + d = 0
 struct Plane

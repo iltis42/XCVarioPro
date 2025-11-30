@@ -26,7 +26,7 @@ Last update: 2021-03-28
 
 #include "MagnetSensor.h"
 
-#include "vector_3d.h"
+#include "math/vector_3d.h"
 
 class QMCMagCAN: public MagnetSensor, public CompassSink_I
 {
