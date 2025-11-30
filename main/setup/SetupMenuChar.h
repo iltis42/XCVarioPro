@@ -40,17 +40,14 @@ public:
     const char *value() const override;
 
     int valSize() { return _value.size(); };
+    void reset();
 
 private:
     CharFilter _chfilter;
     int16_t _m_len = 0; // max length of the char array
     bool _mode = false; // false: select char index, true: edit character
-    // mutable int _select = 0;
-    // int _select_save = 0;
     int16_t _char_index = 0; // position of character to be altered
     std::string _value; // current value as string
-    // std::vector<const char *> _values;
     int (*_action)(SetupMenuChar *p);
-    // char *_mychar = nullptr;
     bool _dirty = false;
 };

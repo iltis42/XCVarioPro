@@ -226,6 +226,39 @@ int SetupCommon::restoreConfigChanges( int len, char *data ){
 	return i;
 }
 
+bool SetupCommon::getOldFloat( const char *key, float &val )
+{
+	size_t size;
+	if ( NVS.getBlob(key, nullptr, &size) ) {
+		if ( size == sizeof(float) ) {
+			return NVS.getBlob( key, &val, &size );
+		}
+		else {
+			ESP_LOGE(FNAME, "Old key %s has wrong size %d", key, size );
+		}
+		return false;
+	}
+	else {
+		return false;
+	}
+}
+bool SetupCommon::getOldInt( const char * key, int &val )
+{
+	size_t size;
+	if ( NVS.getBlob(key, nullptr, &size) ) {
+		if ( size == sizeof(int) ) {
+			return NVS.getBlob( key, &val, &size );
+		}
+		else {
+			ESP_LOGE(FNAME, "Old key %s has wrong size %d", key, size );
+		}
+		return false;
+	}
+	else {
+		return false;
+	}
+}
+
 void SetupCommon::commitDirty(){
 	for(int i = 0; i < instances.size(); i++ ) {
 		if( instances[i]->getDirty() )

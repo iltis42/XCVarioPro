@@ -138,6 +138,7 @@ void SetupMenuChar::press()
 
 void SetupMenuChar::longPress(){
     ESP_LOGI(FNAME, "long press() ");
+    _mode = false;
 
     if (helptext) {
         SavedDelay(_dirty);
@@ -161,3 +162,9 @@ const char *SetupMenuChar::value() const
     return _value.c_str();
 }
 
+void SetupMenuChar::reset()
+{
+    _value.clear();
+    _char_index = 0;
+    _mode = false;
+}

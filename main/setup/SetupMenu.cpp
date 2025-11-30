@@ -25,6 +25,7 @@
 #include "Flap.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
+#include "setup/SetupMenuChar.h"
 #include "setup/SetupMenuDisplay.h"
 #include "setup/SetupAction.h"
 #include "setup/SetupNG.h"
@@ -210,33 +211,18 @@ static int update_alti_buzz(SetupMenuSelect *p) {
 	return 0;
 }
 
-static void setAHRSBuzz(SetupMenu *p)
-{
-	static char ahrs_buzzword_buf[5];
-	ahrs_buzzword_buf[0] = char(ahrs_licence_dig1.get()+'0');
-	ahrs_buzzword_buf[1] = char(ahrs_licence_dig2.get()+'0');
-	ahrs_buzzword_buf[2] = char(ahrs_licence_dig3.get()+'0');
-	ahrs_buzzword_buf[3] = char(ahrs_licence_dig4.get()+'0');
-	ahrs_buzzword_buf[4] = '\0';
-	p->setBuzzword(ahrs_buzzword_buf);
-}
-static int add_key(SetupMenuSelect *p) {
-	ESP_LOGI(FNAME,"add_key( %d ) ", p->getSelect() );
-	if ( ahrs_licence_dig1.get() == ('@'-'0') ) {
-		// hidden short-cut to delete the license key
-		ahrs_licence_dig1.set(0);
-		ahrs_licence_dig2.set(0);
-		ahrs_licence_dig3.set(0);
-		ahrs_licence_dig4.set(0);
-		p->setSelect(0);
-		p->setTerminateMenu();
-	}
-	else {
-		Cipher crypt;
-		gflags.ahrsKeyValid = crypt.checkKeyAHRS();
-	}
-	setAHRSBuzz(p->getParent());
-	return 0;
+static int add_key(SetupMenuChar *p) {
+    ESP_LOGI(FNAME, "add_key( %s ) ", p->value());
+    if (p->value()[0] == '@') {
+        // hidden short-cut to delete the license key
+        ahrs_licence.set("");
+        p->reset();
+    } else {
+        ahrs_licence.set(p->value());
+    }
+    Cipher crypt;
+    gflags.ahrsKeyValid = crypt.checkKeyAHRS();
+    return 0;
 }
 
 static int imu_gaa(SetupMenuValFloat *f) {
@@ -1232,25 +1218,6 @@ void system_menu_create_ahrs_calib(SetupMenu *top) {
 	top->addEntry(ahrs_ground_aa);
 }
 
-static const std::string_view lkeys[] { "0", "1", "2", "3", "4", "5", "6", "7",
-		"8", "9", ":", ";", "<", "=", ">", "?", "@", "A", "B", "C", "D", "E",
-		"F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-		"T", "U", "V", "W", "X", "Y", "Z", "" };
-
-void system_menu_create_hardware_ahrs_lc(SetupMenu *top) {
-	SetupMenuSelect *ahrslc1 = new SetupMenuSelect("First    Letter", RST_NONE, add_key, &ahrs_licence_dig1);
-	SetupMenuSelect *ahrslc2 = new SetupMenuSelect("Second Letter", RST_NONE, add_key, &ahrs_licence_dig2);
-	SetupMenuSelect *ahrslc3 = new SetupMenuSelect("Third   Letter", RST_NONE, add_key, &ahrs_licence_dig3);
-	SetupMenuSelect *ahrslc4 = new SetupMenuSelect("Last     Letter", RST_NONE, add_key, &ahrs_licence_dig4);
-	top->addEntry(ahrslc1);
-	top->addEntry(ahrslc2);
-	top->addEntry(ahrslc3);
-	top->addEntry(ahrslc4);
-	ahrslc1->addEntryList(lkeys);
-	ahrslc2->addEntryList(lkeys);
-	ahrslc3->addEntryList(lkeys);
-	ahrslc4->addEntryList(lkeys);
-}
 
 void system_menu_create_hardware_ahrs_parameter(SetupMenu *top) {
 	SetupMenuValFloat *ahrsgf = new SetupMenuValFloat("Gyro Max Trust", "x", nullptr, false, &ahrs_gyro_factor);
@@ -1304,9 +1271,8 @@ void system_menu_create_hardware_ahrs(SetupMenu *top) {
 			 "Bias & Reference of the AHRS Sensor: Place glider on horizontal underground, first the right wing down, then the left wing.");
 	top->addEntry(ahrscalib);
 
-	SetupMenu *ahrslc = new SetupMenu("License Key", system_menu_create_hardware_ahrs_lc);
-	ahrslc->setHelp("Enter valid AHRS License Key, then AHRS feature can be enabled under 'AHRS Option'");
-	setAHRSBuzz(ahrslc);
+	SetupMenuChar *ahrslc = new SetupMenuChar("License Key", "0A#", 4, RST_NONE, add_key, ahrs_licence.get().id);
+	ahrslc->setHelp("Enter valid AHRS License Key to enabled the 'AHRS Option'");
 	top->addEntry(ahrslc);
 
 	SetupMenu *ahrspa = new SetupMenu("Parameters", system_menu_create_hardware_ahrs_parameter);

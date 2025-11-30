@@ -59,6 +59,8 @@ public:
 	static int numEntries();
 	static void giveConfigChanges( httpd_req *req, bool log_only=false );
 	static int restoreConfigChanges( int len, char *data );
+	static bool getOldFloat( const char * key, float &val );
+	static bool getOldInt( const char * key, int &val );
 
 	// housekeeping supporters
 	static void setSyncProto(XCVSyncMsg *sp) { syncProto = sp; }

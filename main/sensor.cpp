@@ -1466,7 +1466,7 @@ extern "C" void  app_main(void)
 	DeviceManager::Instance(); // Create a blank DM, because on a cleard flash initSetup starts to access it.
 	ESP32NVS::CreateInstance(); // NVS is needed for the SetupCommon::initSetup() to work, and to query nvs var existance
 	// Check on the existance of some nvs variables
-	if ( ! ahrs_licence_dig1.exists() ) {
+	if ( ! ahrs_licence.exists() ) {
 		Cipher crypt;
 		crypt.initTest();
 	}

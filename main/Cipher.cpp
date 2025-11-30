@@ -97,24 +97,34 @@ Cipher::Cipher()
 	_id.assign(SetupCommon::getDefaultID(true)); // four diggits ID
 }
 
-void Cipher::initTest(){
-	std::string encid = Encrypt(CIPHER_KEY, _id );
-	ESP_LOGI(FNAME,"initTest Encrypted ID %s", encid.c_str() );
-	ahrs_licence_dig1.set( encid[0]-'0' );
-	ahrs_licence_dig2.set( encid[1]-'0' );
-	ahrs_licence_dig3.set( encid[2]-'0' );
-	ahrs_licence_dig4.set( encid[3]-'0' );
-	SetupCommon::commitDirty();
+void Cipher::initTest() {
+    // check on old nvs variable first
+    const char *ovar[4] = {"1_2", "2", "3", "4"};
+    std::string oldlbl = "AHRS_LIC_" + std::string(ovar[0]);
+    int dig;
+    if (SetupCommon::getOldInt(oldlbl.c_str(), dig)) {
+        ESP_LOGI(FNAME, "initTest Old var %s found, migrating..", ovar[0]);
+        std::string oldid(1, '0' + dig);
+        for (int i = 1; i < 4; i++) {
+            oldlbl = "AHRS_LIC_" + std::string(ovar[i]);
+            if (SetupCommon::getOldInt(oldlbl.c_str(), dig)) {
+                oldid.push_back('0' + dig);
+                ESP_LOGI(FNAME, "initTest Old var %s value %d", ovar[i], dig);
+            }
+        }
+        ESP_LOGI(FNAME, "initTest Old ID %s", oldid.c_str());
+        ahrs_licence.set(oldid.c_str());
+    } else {
+        std::string encid = Encrypt(CIPHER_KEY, _id);
+        ESP_LOGI(FNAME, "initTest Encrypted ID %s", encid.c_str());
+        ahrs_licence.set(encid.c_str());
+    }
+    SetupCommon::commitDirty();
 }
 
 bool Cipher::checkKeyAHRS()
 {
-	std::string key;
-	key += char(ahrs_licence_dig1.get()+'0');
-	key += char(ahrs_licence_dig2.get()+'0');
-	key += char(ahrs_licence_dig3.get()+'0');
-	key += char(ahrs_licence_dig4.get()+'0');
-	std::string decid = Decrypt(CIPHER_KEY, key );
-	ESP_LOGI(FNAME,"checkKeyAHRS() ID/KEY/DECID %s %s %s returns %d", _id.c_str(), key.c_str(), decid.c_str(), (_id == decid) );
+	std::string decid = Decrypt(CIPHER_KEY, ahrs_licence.get().id );
+	ESP_LOGI(FNAME,"checkKeyAHRS() ID/KEY/DECID %s %s %s returns %d", _id.c_str(), ahrs_licence.get().id, decid.c_str(), (_id == decid) );
 	return (_id == decid);
 }
