@@ -198,10 +198,11 @@ bool ABPMRR::doOffset( bool force ){
 				as_offset.set( _offset );
 				ESP_LOGI(FNAME,"Stored new offset in NVS");
 			}
-			else
+			else {
 				ESP_LOGI(FNAME,"New offset equal to value from NVS");
+			}
 		}
-		else{
+		else {
 			ESP_LOGW(FNAME,"Offset out of tolerance, ignore odd offset value");
 		}
 	}
