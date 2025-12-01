@@ -132,10 +132,6 @@ int IpsDisplay::tempalt = -2000;
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
 Point IpsDisplay::screen_edge[4];
 
-// constexpr float sincosScale = 180.f/My_PIf*2.f; // rad -> deg/2 a 0.5deg resolution discrete scale
-static int16_t old_vario_bar_val = 0;
-static int16_t old_sink_bar_val = 0;
-
 static bool bottom_dirty = false;
 static bool mode_dirty = false;
 
@@ -610,8 +606,6 @@ void IpsDisplay::redrawValues()
     mode_dirty = true;
 
 	if ( FLAPSgauge ) FLAPSgauge->forceRedraw();
-	old_vario_bar_val = 0;
-	old_sink_bar_val = 0;
     _ate = -1000;
 }
 
