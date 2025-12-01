@@ -12,10 +12,10 @@
 
 const std::string_view ENABLE_MODE[5] = { "Disable", "Enable", "Dynamic", "Primary", "Client" };
 
-SetupMenuSelect::SetupMenuSelect( const char* title, e_restart_mode_t restart, int (*action)(SetupMenuSelect *p),
+SetupMenuSelect::SetupMenuSelect( const char* title, e_restart_mode_t restart, int (*exit_action)(SetupMenuSelect *p),
 									SetupNG<int> *anvs, bool ext_handler, bool end_menu ) :
 	MenuEntry(title),
-	_action(action),
+	_exit_action(exit_action),
 	_nvs(anvs)
 {
 	// ESP_LOGI(FNAME,"SetupMenuSelect( %s ) action: %x", title, (int)action );
@@ -43,7 +43,7 @@ void SetupMenuSelect::enter()
 
 void SetupMenuSelect::display(int mode)
 {
-    ESP_LOGI(FNAME,"display title:%s action: %x", _title.c_str(), (int)(_action));
+    ESP_LOGI(FNAME,"display title:%s action: %x", _title.c_str(), (int)(_exit_action));
 	if ( _show_inline ) {
 		indentHighlight(_parent->getHighlight());
 	}
@@ -94,9 +94,9 @@ void SetupMenuSelect::press()
 			SavedDelay(_select_save != _select);
 		}
 	}
-	if( _action ){
+	if( _exit_action ){
 		ESP_LOGI(FNAME,"calling action in press %d", _select );
-		if ( (*_action)( this ) != 0 ) {
+		if ( (*_exit_action)( this ) != 0 ) {
 			return; // Menu got hijacked
 		}
 	}

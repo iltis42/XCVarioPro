@@ -22,7 +22,7 @@ class SetupMenuSelect : public MenuEntry
 
 public:
 	SetupMenuSelect() = delete;
-	explicit SetupMenuSelect( const char* title, e_restart_mode_t restart=RST_NONE, int (*action)(SetupMenuSelect *p) = nullptr,
+	explicit SetupMenuSelect( const char* title, e_restart_mode_t restart=RST_NONE, int (*exit_action)(SetupMenuSelect *p) = nullptr,
 		SetupNG<int> *anvs=nullptr, bool ext_handler=false, bool end_menu=false );
 	virtual ~SetupMenuSelect() = default;
 	void enter() override;
@@ -54,7 +54,7 @@ private:
 	int  _select_save = 0;
 	int  _char_index = 0;   // position of character to be altered
 	std::vector<ITEM_t> _values;
-	int (*_action)( SetupMenuSelect *p );
+	int (*_exit_action)( SetupMenuSelect *p );
 	SetupNG<int> *_nvs;
 	bool _show_inline;
 };
