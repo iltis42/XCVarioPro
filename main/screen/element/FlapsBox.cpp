@@ -14,6 +14,7 @@
 #include "ESPAudio.h"
 #include "setup/SetupNG.h"
 #include "logdefnone.h"
+#include "math/Floats.h"
 
 #include <cstdio>
 
@@ -29,9 +30,20 @@ constexpr const int     SOUND_LATENCY = 5; // frames
 int16_t FlapsBox::BOX_LENGTH = 100;
 float   FlapsBox::PIX_PER_KMH = 3.23f;
 
+FBoxStateHash::FBoxStateHash(float f, float minvd, float maxvd) :
+    wkidx10( fast_iroundf(f*10.) )
+{
+    top_pix = static_cast<int16_t>(minvd * FlapsBox::PIX_PER_KMH);
+    bottom_pix = static_cast<int16_t>(maxvd * FlapsBox::PIX_PER_KMH);
+    top_exseed = (bottom_pix < -FlapsBox::BOX_LENGTH/2) ? 1 : 0;
+    bottom_exseed = (top_pix > FlapsBox::BOX_LENGTH/2) ? 1 : 0;
+}
+
 bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
 {
+    // position of the wk labels
     if ( wkidx10 != other.wkidx10 ) return true;
+    // position of the speed band
     if ( ((top_pix > -FlapsBox::BOX_LENGTH/2
             && top_pix < FlapsBox::BOX_LENGTH/2)
         || (other.top_pix > -FlapsBox::BOX_LENGTH/2
@@ -42,8 +54,8 @@ bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
         || (other.bottom_pix > -FlapsBox::BOX_LENGTH/2
             && other.bottom_pix < FlapsBox::BOX_LENGTH/2))
         && bottom_pix != other.bottom_pix) return true;
-    if ( top_exseed != other.top_exseed ) return true;
-    if ( bottom_exseed != other.bottom_exseed ) return true;
+    // excess markers
+    if ( raw != other.raw ) return true;
     return false;
 }
 
@@ -99,18 +111,16 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
     // background speed band
     MYUCG->setClipRange(boxx, boxy, boxw, boxh);
     int16_t green_top =  _ref_y + cs.top_pix;
-    if ( cs.top_pix > -BOX_LENGTH/2 ) {
+    if ( cs.top_pix > -BOX_LENGTH/2 ) { // start with grey top
         MYUCG->setColor(COLOR_WGREY);
         MYUCG->drawBox(boxx, boxy, boxw, BOX_LENGTH/2 + cs.top_pix);
     }
-    if ( green_top < _ref_y + boxh ) {
+    if ( green_top < _ref_y + boxh ) { // continue with green 
         MYUCG->setColor(COLOR_DGREEN);
-        if ( cs.bottom_pix < BOX_LENGTH/2 ) {
-            MYUCG->drawBox(boxx, green_top, boxw, _ref_y - green_top + cs.bottom_pix);
+        MYUCG->drawBox(boxx, green_top, boxw, _ref_y - green_top + cs.bottom_pix);
+        if ( cs.bottom_pix < BOX_LENGTH/2 ) { // and finish with grey bottom
             MYUCG->setColor(COLOR_WGREY);
             MYUCG->drawBox(boxx, _ref_y + cs.bottom_pix, boxw, BOX_LENGTH/2 - cs.bottom_pix);
-        } else {
-            MYUCG->drawBox(boxx, green_top, boxw, boxh);
         }
     }
     MYUCG->undoClipRange();
@@ -157,7 +167,7 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
             MYUCG->undoClipRange();
         }
         else {
-            MYUCG->setClipRange(boxx, boxy, boxw, boxh);
+            MYUCG->setClipRange(boxx, boxy+1, boxw, boxh);
             // no clipping, just choose the right background
             if ((pixoff + _LFH/2) < cs.top_pix || (pixoff - _LFH/2) > cs.bottom_pix) {
                 MYUCG->setColor(1, COLOR_WGREY);
@@ -206,7 +216,7 @@ void FlapsBox::draw(float ias)
     // the three variables that define the box state
     FBoxStateHash current_state( _flaps_position, minv, maxv);
     if ( current_state != _state || _dirty ) {
-        ESP_LOGI(FNAME,"wkf:%.1f minv:%.1f maxv:%.1f", current_state.getWk(), minv, maxv);
+        ESP_LOGI(FNAME,"wkf:%.1f minv:%.1f maxv:%.1f ias:%.1f", current_state.getWk(), minv, maxv, ias);
         drawLabels(current_state);
     }
 

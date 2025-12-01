@@ -197,7 +197,7 @@ void Flap::progress() {
 
             if ((int)(flap_pos.get() * 10) != (int)(lever * 10)) {
                 flap_pos.set(lever); // update secondary vario
-                ESP_LOGI(FNAME, "wk sensor=%1.2f  raw=%d", lever, rawFiltered);
+                // ESP_LOGI(FNAME, "wk sensor=%1.2f  raw=%d", lever, rawFiltered);
             }
         }
     }
@@ -214,9 +214,9 @@ float Flap::getOptimum(float spd) const {
         g_force = 0.3; // Ignore meaningless values below 0.3g
     }
     float g_speed = spd / sqrt(g_force); // reduce current speed, instead of increase switch points
-    ESP_LOGI(FNAME, "g force: %.1f, g corrected speed: %3.1f", g_force, g_speed);
+    // ESP_LOGI(FNAME, "g force: %.1f, g corrected speed: %3.1f", g_force, g_speed);
 
-    int wki = 0; // find the wk index
+    int wki = 0; // find the wk index one index above the current speed
     for (auto &l : flevel) {
         if (g_speed > l.prep_speed) {
             break;
@@ -226,22 +226,21 @@ float Flap::getOptimum(float spd) const {
     if (wki >= flevel.size()) {
         wki = flevel.size() - 1;
     }
+    else if (wki > 0) {
+        wki--; // to get the speed index above
+    }
 
-    float minv = flevel[wki].prep_speed;
-    float fraction = (g_speed - minv) / flevel[wki].speed_delta;
-    if (fraction < -1.0) {
-        fraction = -1.0;
-    }
-    fraction = wki + fraction;
+    // correct above GENERAL_V_MIN, but not below (too far extrapolated)
+    float wkf = wki + (g_speed - flevel[wki].prep_speed) / flevel[wki].speed_delta;
     if (g_speed < GENERAL_V_MIN) {
-        wki = fraction = flap_takeoff.get();
-    } else if (fraction < 0.) {
-        wki = fraction = -0.1; // stop indicator a little beyond
-    } else if (fraction > flevel.size() - 1) {
-        wki = fraction = flevel.size() - 1;
+        wkf = flap_takeoff.get();
+    } else if (wkf < 0.) {
+        wkf = -0.1; // stop indicator a little beyond
+    } else if (wkf > flevel.size() - 1) {
+        wkf = flevel.size() - 1;
     }
-    ESP_LOGI(FNAME, "ias:%.1f min:%.1f delta:%.1f wki:%d wkf:%.1f", spd, minv, flevel[wki].speed_delta, wki, fraction);
-    return fraction;
+    ESP_LOGI(FNAME, "opt: g-ias:%.1f wki:%d wkf:%.1f", g_speed, wki, wkf);
+    return wkf;
 }
 
 static int getWkIndex(float wkf) {
@@ -258,7 +257,7 @@ float Flap::getSpeedBand(float wkf, float &maxv) const
     // pick min/max speeds for given flap position index
     int wki = getWkIndex(wkf);
     if ( wki < flevel.size() ) {
-        float minv = flevel[wki].prep_speed;
+        minv = flevel[wki].prep_speed;
         if( wki == 0 ) {
             maxv = v_max.get();
         }
