@@ -24,6 +24,7 @@ private:
         uint16_t lower:1;
         uint16_t digit:1;
         uint16_t special:1;
+        uint16_t signs:1;
         uint16_t whitespace:1;
     } _flags;
 };
@@ -43,6 +44,7 @@ public:
     void reset();
 
 private:
+    void trim();
     CharFilter _chfilter;
     int16_t _m_len = 0; // max length of the char array
     bool _mode = false; // false: select char index, true: edit character

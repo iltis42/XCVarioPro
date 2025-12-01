@@ -21,23 +21,26 @@ CharFilter::CharFilter( const char *chset )
     _flags.lower = strchr(chset, 'a') != NULL;
     _flags.digit = strchr(chset, '0') != NULL;
     _flags.special = strchr(chset, '#') != NULL;
+    _flags.signs = strchr(chset, '+') != NULL;
     _flags.whitespace = strchr(chset, ' ') != NULL;
-    ESP_LOGI(FNAME, "CharFilter %s: upper=%d lower=%d digit=%d special=%d whitespace=%d", chset,
-             _flags.upper, _flags.lower, _flags.digit, _flags.special, _flags.whitespace );
+    ESP_LOGI(FNAME, "CharFilter %s: upper=%d lower=%d digit=%d special=%d signs=%d whitespace=%d", chset,
+             _flags.upper, _flags.lower, _flags.digit, _flags.special, _flags.signs, _flags.whitespace );
 }
 bool CharFilter::isValidChar( char c )
 {
-    if( _flags.upper && c >= 'A' && c <= 'Z' )
-        return true;
-    if( _flags.lower && c >= 'a' && c <= 'z' )
-        return true;
-    if( _flags.digit && c >= '0' && c <= '9' )
-        return true;
+    if( _flags.upper && c >= 'A' && c <= 'Z' ) {
+        return true; }
+    if( _flags.lower && c >= 'a' && c <= 'z' ) {
+        return true; }
+    if( _flags.digit && c >= '0' && c <= '9' ) {
+        return true; }
     if( _flags.special && ( (c >= '!' && c <= '/') || (c >= ':' && c <= '@') ||
-                            (c >= '[' && c <= '`') || (c >= '{' && c <= '~') ) )
-        return true;
-    if( _flags.whitespace && c == ' ' )
-        return true;
+                            (c >= '[' && c <= '`') || (c >= '{' && c <= '~') ) ) {
+        return true; }
+    if ( _flags.signs && ( c == '+' || c == '-' ) ) {
+        return true; }
+    if( _flags.whitespace && c == ' ' ) {
+        return true; }
     ESP_LOGI(FNAME, "CharFilter: invalid char code %d", c );
     return false;
 }
@@ -73,6 +76,7 @@ SetupMenuChar::SetupMenuChar( const char* title, const char *chset, int mlen, e_
         _value.assign(aval);
     }
     bits._restart = restart;
+    setRotDynamic(1.); // always setp == 1 for char editing
 }
 
 void SetupMenuChar::display(int mode)
@@ -90,7 +94,7 @@ void SetupMenuChar::rot(int count)
         int prev_idx = _char_index;
         _char_index += count;
         if ( _char_index < 0 ) { _char_index = 0; }
-        else if ( _char_index > _value.size() && _value.size() < _m_len ) {
+        else if ( _char_index >= _value.size() && _char_index < _m_len ) {
             _value += ' ';
         }
         else if ( _char_index >= _m_len ) {
@@ -139,6 +143,7 @@ void SetupMenuChar::press()
 void SetupMenuChar::longPress(){
     ESP_LOGI(FNAME, "long press() ");
     _mode = false;
+    trim();
 
     if (_exit_action) {
         ESP_LOGI(FNAME, "calling exit action");
@@ -168,3 +173,19 @@ void SetupMenuChar::reset()
     _char_index = 0;
     _mode = false;
 }
+
+void SetupMenuChar::trim()
+{
+    // left trim
+    size_t first = _value.find_first_not_of(" \t\n\r");
+    if (first == std::string::npos) {
+        _value.clear();       // string is all whitespace
+        return;
+    }
+    _value.erase(0, first);
+
+    // right trim
+    size_t last = _value.find_last_not_of(" \t\n\r");
+    _value.erase(last + 1);
+}
+
