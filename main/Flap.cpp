@@ -224,17 +224,21 @@ float Flap::sensorToLeverPosition( int val ) const
     for (int i = 0; i < flevel.size(); i++)
     {
         if (_sens_ordered) {
+            // sensor readings going down with increasing flap index
             if (val > flevel[i].sensval) {
-                wk = i;
+                wk = i-1;
                 break;
             }
         }
         else {
             if (val < flevel[i].sensval) {
-                wk = i;
+                wk = i-1;
                 break;
             }
         }
+    }
+    if (wk < 0) {
+        wk = 0;
     }
     float wkf = wk + (float)(val - flevel[wk].sensval) / flevel[wk].sens_delta;
     ESP_LOGI(FNAME,"getLeverPos(%d): level %d, out: %1.2f wk: %d", val, flevel[wk].sensval, wkf, wk);
