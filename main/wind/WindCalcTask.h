@@ -9,7 +9,7 @@
 #pragma once
 
 #include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
+#include <freertos/queue.h>
 
 // when set the wind task wants to be feed with new data.
 extern QueueHandle_t BackgroundTaskQueue;

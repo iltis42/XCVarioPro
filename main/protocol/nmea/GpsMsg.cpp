@@ -10,6 +10,7 @@
 #include "Flarm.h"
 #include "wind/CircleWind.h"
 #include "wind/WindCalcTask.h"
+#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "logdefnone.h"
 
@@ -58,15 +59,17 @@ dl_action_t GpsMsg::parseGPRMC(NmeaPlugin *plg)
     ESP_LOGI(FNAME,"SC: %d/%d/%d %02d:%02d:%02d ", t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec );
 
     // ESP_LOGI(FNAME,"G: %s",_gprmc );
-    // ESP_LOGI(FNAME,"DT: %d/%02d/%02d %02d:%02d:%02d ", now.tm_year-100, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec );
-    // ESP_LOGI(FNAME,"parseGPRMC() GPS: %d, Speed: %3.1f knots, Track: %3.1f° warn:%c date:%s ", myGPS_OK, gndSpeedKnots, gndCourse, warn, date  );
+    ESP_LOGI(FNAME,"parseGPRMC() GPS: %d, Speed: %3.1f knots, Track: %3.1f° warn:%c", Flarm::myGPS_OK, Flarm::gndSpeedKnots, Flarm::gndCourse, warn  );
     // ESP_LOGI(FNAME,"GP%s, GPS_OK:%d warn:%c T:%s D:%s", gprmc+3, myGPS_OK, warn, time, date  );
+    // set the GND speed
+    float gndspeed = Units::knots2kmh(Flarm::gndSpeedKnots);
+    gnd_speed.set(gndspeed);
 
     Flarm::myGPS_OK = (warn == 'A');
     if (BackgroundTaskQueue && Flarm::myGPS_OK) {
 
         // ESP_LOGI(FNAME,"Track: %3.2f, GPRMC: %s", gndCourse, gprmc );
-        circleWind->setNewSample(Vector(Flarm::gndCourse, Units::knots2kmh(Flarm::gndSpeedKnots)));
+        circleWind->setNewSample(Vector(Flarm::gndCourse, gndspeed));
 
         CalkTaskJob job(CalkTaskJob::CALK_TASK_EVENT_NEW_GPSPOSE);
         xQueueSend(BackgroundTaskQueue, &job, 0);
