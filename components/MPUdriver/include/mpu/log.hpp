@@ -39,6 +39,16 @@
 #define MPU_ERR_CHECK(x) mpud::log::errorCheckLogger(x, __ASSERT_FUNC, __LINE__, #x)
 #else
 #define MPU_ERR_CHECK(x) (x)
+#undef MPU_LOGV
+#define MPU_LOGV(fmt, ...)
+#undef MPU_LOGD
+#define MPU_LOGD(fmt, ...)
+#undef MPU_LOGI
+#define MPU_LOGI(fmt, ...)
+#undef MPU_LOGW
+#define MPU_LOGW(fmt, ...)
+#undef MPU_LOGE
+#define MPU_LOGE(fmt, ...)
 #endif
 
 /*! MPU Driver namespace */

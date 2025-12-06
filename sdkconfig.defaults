@@ -385,6 +385,22 @@ CONFIG_UNITY_ENABLE_IDF_TEST_RUNNER=n
 #
 CONFIG_WIFI_PROV_BLE_BONDING=y
 
+#
+# I2Cbus
+#
+CONFIG_I2CBUS_LOG_ERRORS=y
+# CONFIG_I2CBUS_LOG_READWRITES is not set
+# end of I2Cbus
+
+#
+# MPU driver
+#
+# CONFIG_MPU_LOG_LEVEL_DEFAULT is not set
+CONFIG_MPU_LOG_LEVEL_NONE=y
+CONFIG_MPU_LOG_LEVEL=0
+# end of MPU driver
+# end of Component config
+
 # Deprecated options for backward compatibility
 # CONFIG_WIFI_PROV_KEEP_BLE_ON_AFTER_PROV is not set
 CONFIG_LOG_BOOTLOADER_LEVEL_WARN=y
