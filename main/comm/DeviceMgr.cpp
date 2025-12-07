@@ -8,11 +8,12 @@
 
 #include "DeviceMgr.h"
 
-#include "comm/Configuration.h"
-#include "comm/Messages.h"
-#include "comm/CanBus.h"
-#include "comm/WifiApSta.h"
-#include "comm/BTspp.h"
+#include "Configuration.h"
+#include "Messages.h"
+#include "CanBus.h"
+#include "WifiApSta.h"
+#include "BTspp.h"
+#include "OneWireBus.h"
 #include "BLESender.h"
 #include "SerialLine.h"
 #include "protocol/ProtocolItf.h"
@@ -164,6 +165,7 @@ std::vector<DeviceId> DeviceManager::allKnownDevs()
 
 constexpr std::pair<InterfaceId, std::string_view> INTFCS[] = {
     {CAN_BUS, "CAN bus"},
+    {OW_BUS, "OneWire bus"},
     {S1_RS232, "S1 serial"},
     {S2_RS232, "S2 serial"},
     {WIFI_APSTA, "Wifi"},
@@ -408,7 +410,13 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         // blesender.begin();
         // itf = BT_..;
     }
+    else if ( iid == OW_BUS ) {
+        if ( ! OneWIRE ) {
+            itf = OneWireBus::create();
+            itf->ConfigureIntf(0);
+            ESP_LOGI(FNAME, "OneWire conf");
         }
+        itf = OneWIRE;
     }
     // else // NO_PHY is just the hint to take the same interface
 
@@ -564,6 +572,9 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
                 ESP_LOGI(FNAME, "stopping S2");
                 S2->stop();
             }
+            else if ( itf == OneWIRE ) {
+                ESP_LOGI(FNAME, "stopping OneWire");
+                delete OneWIRE;
             }
         }
 
@@ -854,6 +865,8 @@ void DeviceManager::EnforceIntfConfig(InterfaceId iid, DeviceId did)
             CAN->ConfigureIntf(1);
         }
     }
+    // else if ( iid == OW_BUS ) {
+    // }
     else {
         ESP_LOGW(FNAME, "no interface config needed %d", iid);
     }

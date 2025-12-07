@@ -25,6 +25,7 @@ typedef enum {
     WIFI_APSTA,
     BT_SPP,
     BT_LE,
+    OW_BUS,
     XCVPROXY // todo not yet implemented
 } InterfaceId;
 
