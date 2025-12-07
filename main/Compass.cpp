@@ -43,7 +43,7 @@ Compass *Compass::createCompass(InterfaceId iid)
 		delete tmp;
 	}
 	ESP_LOGI( FNAME, "create the Magnetic sensor");
-	theCompass = new Compass( 0 );  // I2C addr 0 -> instantiate without I2C bus and local sensor
+	theCompass = new Compass( new QMCMagCAN() );
 	return theCompass;
 }
 
