@@ -168,7 +168,7 @@ void Compass:: progress(){
 		_heading_average = m_gyro_fused_heading;
 	}
 	else {
-		_heading_average += diff * (1/(20*compass_damping.get()));
+		_heading_average += diff * (1/(10*compass_damping.get()));
 	}
 	_heading_average = Vector::normalizeDeg( _heading_average );
 	// ESP_LOGI(FNAME,"average hd=%.1f mag:%.1f gfh:%.1f", _heading_average, m_magn_heading, m_gyro_fused_heading );
