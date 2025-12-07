@@ -106,11 +106,10 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|SECOND_ONLY, &master_devsetup}}, // CAN_BUS auto reg
     // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
     {DeviceId::XCVARIOFIRST_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
-    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, BT_SPP, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
-    // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, &second_devsetup}}, fixme, missing the BTspp client implementation
-    {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &second_devsetup}},
-    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, 0, IS_REAL, &magleg_devsetup}},
-    {DeviceId::MAGLEG_DEV, {"", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, nullptr}},
+    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
+    // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}}, fixme, missing the BTspp client implementation
+    {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
+    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, &magleg_devsetup}},
     {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto reg
     {DeviceId::NAVI_DEV,   {"Navi", {{WIFI_APSTA, S1_RS232, S2_RS232, BT_SPP, BT_LE, CAN_BUS}},
                                     {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
