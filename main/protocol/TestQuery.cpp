@@ -17,6 +17,8 @@
 
 #include <cstring>
 
+#ifdef Comm_Test
+
 TestQuery::TestQuery(DeviceId did, int mp, ProtocolState &sm, DataLink &dl)
   : ProtocolItf(did, mp, sm, dl),
     Clock_I(500) // generates a time-out callback ca. every fife seconds
@@ -129,3 +131,4 @@ bool TestQuery::tick()
     return false;
 }
 
+#endif
