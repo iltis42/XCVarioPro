@@ -188,34 +188,7 @@ size_t AdaptUGC::write(const uint8_t *buffer, size_t size){
 }
 
 size_t AdaptUGC::write(uint8_t c) {
-	size_t delta = 0;
-	switch (eglib_font_pos) {
-	case UCG_FONT_POS_BOTTOM: {
-		const struct font_t *font;
-		font = eglib->drawing.font;
-		int16_t ypos = eglib_print_ypos + font->descent; // descent is negativ value!
-		delta = eglib_DrawWChar(eglib, eglib_print_xpos, ypos, wchar_t (c));
-		break;
-	}
-	case UCG_FONT_POS_CENTER: {
-		const struct font_t *font;
-		font = eglib->drawing.font;
-		int16_t ypos = eglib_print_ypos+(font->ascent/2)+(font->descent);
-		delta = eglib_DrawWChar(eglib, eglib_print_xpos, ypos, wchar_t (c));
-		break;
-	}
-	case UCG_FONT_POS_TOP: {
-		const struct font_t *font;
-		font = eglib->drawing.font;
-		int16_t ypos = eglib_print_ypos+font->ascent;
-		delta = eglib_DrawWChar(eglib, eglib_print_xpos, ypos, wchar_t (c));
-		break;
-	}
-	default: case UCG_FONT_POS_BASE: {
-		delta = eglib_DrawWChar(eglib, eglib_print_xpos, eglib_print_ypos, wchar_t (c));
-		break;
-	}
-	}
+	size_t delta = eglib_DrawWChar(eglib, eglib_print_xpos, eglib_print_ypos, wchar_t (c));
 	advanceCursor( delta );
 	return 1;
 };

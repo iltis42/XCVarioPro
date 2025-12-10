@@ -13,7 +13,10 @@
 #define EGLIB_DRAW_LOWER_RIGHT  0x08
 #define EGLIB_DRAW_ALL (EGLIB_DRAW_UPPER_RIGHT|EGLIB_DRAW_UPPER_LEFT|EGLIB_DRAW_LOWER_RIGHT|EGLIB_DRAW_LOWER_LEFT)
 
-
+// font origin
+// bottom - draw as usual, y is bottom line and aligning with the left/bottom reference point of the glyphs
+// middle - center vertically on glyphs ascent, and ignore the descent portion below baseline
+// top    - draw with the top of the font at y, so y aligns with the top bounding box of the glyphs
 typedef enum _font_origin {  FONT_BOTTOM, FONT_MIDDLE, FONT_TOP } e_font_origin;
 
 typedef struct s_drawing{

@@ -1212,34 +1212,32 @@ struct font_t {
 void eglib_DrawGlyph(eglib_t *eglib, coordinate_t x, coordinate_t y, const struct glyph_t *glyph) {
 	if(glyph == NULL)
 		return;
-	uint8_t *buffer;
-	int ascent = eglib->drawing.font->ascent;
-	int descent = eglib->drawing.font->descent;
-	int ascheight = ascent - descent;
-	int alignment = ascent+descent;
+	// uint8_t *buffer;
+	int16_t ascent = eglib->drawing.font->ascent;
+	int16_t descent = eglib->drawing.font->descent;
+	int16_t ascheight = ascent - descent;
+	int16_t alignment = 0; // FONT_BOTTOM
 	// ESP_LOGI("eglib_DrawGlyph 1","x:%d, y:%d, gly width:%d adv:%d hei:%d asc:%d dec:%d", x,y, glyph->width, glyph->advance, eglib->drawing.font->pixel_size, ascent, descent );
 
-	if( eglib->drawing.font_origin == FONT_BOTTOM )
-		alignment = 0;
-	else if( eglib->drawing.font_origin == FONT_MIDDLE )
-		alignment -= alignment/2;
+  if( eglib->drawing.font_origin == FONT_MIDDLE )
+		alignment = ascent/2 - descent;
 	else if( eglib->drawing.font_origin == FONT_TOP )
-		alignment -= alignment;
+		alignment = ascheight;
 
-	int width = glyph->advance;
-	int height = eglib->drawing.font->pixel_size > ascheight ? eglib->drawing.font->pixel_size : ascheight;
+	int16_t width = glyph->advance;
+	int16_t height = eglib->drawing.font->pixel_size > ascheight ? eglib->drawing.font->pixel_size : ascheight;
 
-	int top = glyph->top;
-	int head = ascent - top;
+	int16_t top = glyph->top;
+	int16_t head = ascent - top;
 	uint32_t pos3 = 0;
 
-	int startx = MAX;
-	int starty = MAX;
-	int lenx = 0;
-	int leny = 0;
+	int16_t startx = MAX;
+	int16_t starty = MAX;
+	int16_t lenx = 0;
+	int16_t leny = 0;
 
-	buffer = malloc( height*width*3 );
-	int y1 = 0;
+  static uint8_t buffer[4000]; // max. ever needed is 27 * 48 * 3
+	int16_t y1 = 0;
 	if( eglib->drawing.filled_mode == false ){
 		y1 =  height/8;   // WA as fonts bounding boxes to high over the top
 	}
@@ -1248,7 +1246,7 @@ void eglib_DrawGlyph(eglib_t *eglib, coordinate_t x, coordinate_t y, const struc
 		//char line[width+1];
 		for(coordinate_t u=0 ; u < width; u++) {
 			coordinate_t v = v1 - head;  // read glyph from right row
-			if( eglib_inClipArea( eglib, u+x+1, v1-height+y ) ){
+			if( eglib_inClipArea( eglib, u+x+1, v1-height+y+alignment ) ){
 				if( startx > u )  // the following code captures the minimum bounding box from what is rendered
 					startx = u;
 				if( starty > v1 )
@@ -1275,14 +1273,13 @@ void eglib_DrawGlyph(eglib_t *eglib, coordinate_t x, coordinate_t y, const struc
 	lenx += 1;
 	leny += 1;
 
-	if( startx >= MAX || starty >= MAX ){ // glyph is off clip area
-		free( buffer );
-		return;
-	}
+	// if( startx >= MAX || starty >= MAX ){ // glyph is off clip area
+	// 	return;
+	// }
 	// ESP_LOGI("eglib_DrawGlyph 2","Window starts x:%d y:%d len x:%d y:%d", startx, starty, lenx, leny );
 	// ESP_LOGI("eglib_DrawGlyph 3","x:%d, y:%d, sx:%d sy:%d, wid:%d hei:%d", x,y, x+startx, y+alignment+starty -(height-leny), lenx, leny );
 	eglib->display.driver->send_buffer( eglib, buffer, x+startx, y+alignment+starty -(height-leny), lenx, leny );
-	free( buffer );
+  // eglib_DrawLine(eglib, x, y, x+10, y);
 }
 
 

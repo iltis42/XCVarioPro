@@ -26,10 +26,6 @@ typedef struct _ucg_color_t
 #define UCG_PRINT_DIR_TD 0x01
 #define UCG_PRINT_DIR_RL 0x02
 #define UCG_PRINT_DIR_BU 0x03
-#define UCG_FONT_POS_BASE 0x01
-#define UCG_FONT_POS_BOTTOM 0x02
-#define UCG_FONT_POS_CENTER 0x03
-#define UCG_FONT_POS_TOP 0x04
 
 typedef enum _e_font_mode { UCG_FONT_MODE_TRANSPARENT, UCG_FONT_MODE_SOLID } e_font_mode;
 
@@ -125,24 +121,25 @@ public:
 	size_t write(uint8_t c);
 	size_t write(const uint8_t *buffer, size_t size);
 	size_t printf(const char * format, ...)  __attribute__ ((format (printf, 2, 3)));
-	size_t print(const char *str) { return write((const uint8_t *)str, strlen(str)); }
-	size_t print(char c) { return write(c); }
+	inline size_t print(const char *str) { return write((const uint8_t *)str, strlen(str)); }
+	inline size_t print(char c) { return write(c); }
 	size_t print(long, int base=10);
-	size_t print(int i, int base=10) { return print(long(i), base); }
+	inline size_t print(int i, int base=10) { return print(long(i), base); }
 	inline void setPrintPos(int16_t x, int16_t y) { eglib_print_xpos = x; eglib_print_ypos = y; };
 	inline void setPrintDir(uint8_t d) { eglib_print_dir = d; }
 	inline int16_t getStrWidth( const char * s ) { return ( eglib_GetTextWidth(eglib, s) ); };
 	// Font related
 	void setFont(const uint8_t *f, bool filled=false );
 	void setFontMode( uint8_t is_transparent ) {};  // no concept for transparent fonts in eglib, as it appears
-	inline void setFontPosBottom() {  eglib_setFontOrigin( eglib, FONT_BOTTOM ); };
-	inline void setFontPosCenter() {   eglib_setFontOrigin( eglib, FONT_MIDDLE ); };
-	inline int16_t getFontAscent() { const struct font_t *font; font = eglib->drawing.font;  return font->ascent;  };
-	inline int16_t getFontDescent() { const struct font_t *font; font = eglib->drawing.font; return font->descent; };
+	inline void setFontPosBottom() { eglib_setFontOrigin( eglib, FONT_BOTTOM ); };
+	inline void setFontPosCenter() { eglib_setFontOrigin( eglib, FONT_MIDDLE ); };
+	inline int16_t getFontAscent() { return eglib->drawing.font->ascent; };
+	inline int16_t getFontDescent() { return eglib->drawing.font->descent; };
+
 
 	// scrolling, clipping, clear
 	inline void clearScreen(){ eglib_ClearScreen( eglib ); };
-	inline void scrollLines(int16_t lines) {  eglib_scrollScreen( eglib, lines ); };                               // display driver function  todo
+	inline void scrollLines(int16_t lines) {  eglib_scrollScreen( eglib, lines ); };                    // display driver function  todo
 	inline void scrollSetMargins( int16_t top, int16_t bottom ) { eglib_setScrollMargins( eglib, top, bottom ); }; // display driver function
 	inline void setClipRange( int16_t x, int16_t y, int16_t w, int16_t h ) { eglib_setClipRange(eglib, x, y, w, h );};
 
@@ -151,7 +148,6 @@ private:
 	size_t printNumber(unsigned long n, uint8_t base);
 
 	int16_t eglib_print_xpos = 0, eglib_print_ypos = 0;
-	int8_t eglib_font_pos = UCG_FONT_POS_BOTTOM;
 	uint8_t eglib_print_dir = UCG_PRINT_DIR_LR;
 	eglib_t * eglib;
 	bool twistRB;
