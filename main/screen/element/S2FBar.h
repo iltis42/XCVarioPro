@@ -35,5 +35,4 @@ private: // attributes
     int16_t _width_h;
     int16_t _gap_h;
     int16_t _step;
-    int16_t _LFH_h;
 };

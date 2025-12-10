@@ -373,7 +373,7 @@ void PolarGauge::drawOneLabel(float val, int16_t labl) const
     }
     // ESP_LOGI( FNAME,"drawOneLabel val:%.2f label:%d  toside:%.2f inc:%.2f", val, labl, to_side, incr );
     int x = CosCentered(val + to_side, pos + (2 * incr));
-    int y = SinCentered(val + to_side, pos + (2 * incr)) + 6;
+    int y = SinCentered(val + to_side, pos + (2 * incr));
 
     MYUCG->setColor(COLOR_LBBLUE);
     MYUCG->setPrintPos(x, y);

@@ -25,8 +25,8 @@ LargeFigure::LargeFigure(int16_t x, int16_t y) :
     ScreenElement(x, y)
 {
     MYUCG->setFont(ucg_font_fub35_hn, false);
-    _yoff = MYUCG->getFontAscent()/2 - MYUCG->getFontDescent() - 2;
-    _ref_y += _yoff;
+    // _yoff = MYUCG->getFontAscent()/2 - MYUCG->getFontDescent() - 2;
+    _ref_y -= 4;
 }
 
 void LargeFigure::draw(float val) {
@@ -35,7 +35,7 @@ void LargeFigure::draw(float val) {
         // only print if there is a change in rounded numeric string
         char s[32];
         MYUCG->setFont(ucg_font_fub35_hn, false);
-        // MYUCG->setFontPosCenter(); // corrects wrongly for (asc-desc)/2 -> we want asc/2 + desc
+        MYUCG->setFontPosCenter();
         if ( std::abs(ival) < 100 ) {
             sprintf(s, "%2.1f", float(abs(ival) / 10.));
         }
@@ -51,5 +51,6 @@ void LargeFigure::draw(float val) {
         MYUCG->setPrintPos(_ref_x - tmp, _ref_y);
         MYUCG->print(s);
         _value = ival;
+        MYUCG->setFontPosBottom();
     }
 }

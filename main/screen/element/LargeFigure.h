@@ -15,9 +15,8 @@ class LargeFigure : public ScreenElement
 {
 public:
     LargeFigure(int16_t x, int16_t y);
-    void setPos(int16_t x, int16_t y) { _ref_x = x; _ref_y = y+_yoff; }
+    void setPos(int16_t x, int16_t y) { _ref_x = x; _ref_y = y-4; }
     void draw(float a);
 private:
     int16_t _value = 0;
-    int16_t _yoff;
 };

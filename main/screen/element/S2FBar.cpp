@@ -25,8 +25,6 @@ S2FBar::S2FBar(int16_t cx, int16_t cy, int16_t width, int16_t gap) :
 {
     stepFromWidth(width);
     MYUCG->setFont(ucg_font_fub11_hn);
-    _LFH_h = (MYUCG->getFontAscent() - MYUCG->getFontDescent() + 2) / 2;
-
 }
 
 // v : IAS in configured unit
@@ -44,8 +42,10 @@ void S2FBar::drawSpeed(float v)
     char s[32];
     sprintf(s, " %3d ", airspeed);
     int16_t toleft = (_gap_h < 8) ? 2 * _width_h : 0;
-    MYUCG->setPrintPos(_ref_x + toleft - MYUCG->getStrWidth(s) / 2, _ref_y + _LFH_h);
+    MYUCG->setFontPosCenter();
+    MYUCG->setPrintPos(_ref_x + toleft - MYUCG->getStrWidth(s) / 2, _ref_y);
     MYUCG->print(s);
+    MYUCG->setFontPosBottom();
 }
 
 void S2FBar::drawArrow(int16_t x, int16_t y, int16_t level, bool del)
