@@ -93,14 +93,15 @@ int display_deviations_action(SetupMenuDisplay *p, int mode) {
     MYUCG->setFontPosCenter();
     MYUCG->setColor(COLOR_HEADER_LIGHT);
     MYUCG->drawHLine(15, Y - (int)avg, 5); // average
-    MYUCG->setPrintPos(23, Y - (int)avg + 7);
+    MYUCG->setPrintPos(23, Y - (int)avg);
     MYUCG->printf("%d", (int)(avg + 0.5));
     MYUCG->setFont(ucg_font_fub11_hr, true);
-    MYUCG->setPrintPos(23, Y - 50 + 7); // Scale Labels
+    MYUCG->setPrintPos(23, Y - 50); // Scale Labels
     MYUCG->printf("%2d", (int)rint(max));
-    MYUCG->setPrintPos(23, Y + 50 + 7);
+    MYUCG->setPrintPos(23, Y + 50);
     MYUCG->printf("%2d", -(int)rint(max));
-    MYUCG->setPrintPos(40, 317);
+    
+    MYUCG->setFontPosBottom();
     MYUCG->setColor(COLOR_WHITE);
     MYUCG->setPrintPos(40, 317);
     MYUCG->print("Press button to exit");
