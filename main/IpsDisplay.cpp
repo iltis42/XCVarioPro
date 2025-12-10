@@ -17,6 +17,7 @@
 #include "screen/element/Altimeter.h"
 #include "screen/element/CruiseStatus.h"
 #include "screen/element/FlapsBox.h"
+#include "screen/MessageBox.h"
 
 #include "math/Trigonometry.h"
 #include "math/Floats.h"
@@ -125,16 +126,22 @@ AdaptUGC *IpsDisplay::ucg = 0;
 static int _ate = -1000;
 int IpsDisplay::s2falt=-1;
 int IpsDisplay::s2fdalt=0;
-bool IpsDisplay::wireless_alive = false;
 int IpsDisplay::tempalt = -2000;
 
 temp_status_t IpsDisplay::siliconTempStatusOld = MPU_T_UNKNOWN;
 Point IpsDisplay::screen_edge[4];
 
-static bool bottom_dirty = false;
-static bool mode_dirty = false;
+static union {
+    struct {
+        uint8_t wireless_alive     : 1;
+        uint8_t bottom_dirty       : 1;
+        uint8_t mode_dirty         : 1;
+        uint8_t flarm_connected    : 1;
+        uint8_t flaps_mbox_shown   : 1;
+    };
+    uint8_t packed;
+} flags = {};
 
-bool flarm_connected=false;
 
 ////////////////////////////
 // Geometry helpers
@@ -588,7 +595,7 @@ void IpsDisplay::redrawValues()
 	tempalt = -2000;
 	s2falt = -1;
 	s2fdalt = -1;
-	wireless_alive = false;
+	flags.wireless_alive = false;
     if (MCgauge) {
         MCgauge->forceRedraw();
     }
@@ -601,8 +608,8 @@ void IpsDisplay::redrawValues()
     }
     if (S2FBARgauge) {
         S2FBARgauge->forceRedraw();
+        flags.mode_dirty = true;
     }
-    mode_dirty = true;
 
 	if ( FLAPSgauge ) FLAPSgauge->forceRedraw();
     _ate = -1000;
@@ -614,7 +621,7 @@ void IpsDisplay::drawBT() {
 		bta = BTspp->isConnected();
 	else if( DEVMAN->isIntf(BT_LE) )
 		bta=BLESender::queueFull() ? false : true;
-	if( bta != wireless_alive || flarm_alive.get() > ALIVE_NONE ) {
+	if( bta != flags.wireless_alive || flarm_alive.get() > ALIVE_NONE ) {
 		int16_t btx=DISPLAY_W-18;
 		int16_t bty=(BTH/2) + 6;
 		if( ! bta )
@@ -633,8 +640,8 @@ void IpsDisplay::drawBT() {
 		ucg->drawLine( btx, bty, btx-BTSIZE, bty-BTSIZE );
 		ucg->drawLine( btx, bty, btx-BTSIZE, bty+BTSIZE );
 
-		wireless_alive = bta;
-		flarm_connected = flarm_alive.get();
+		flags.wireless_alive = bta;
+		flags.flarm_connected = flarm_alive.get();
 	}
 	if( SetupCommon::isWired() ) {
 		drawCable(DISPLAY_W-20, BTH + 22);
@@ -674,7 +681,7 @@ void IpsDisplay::drawWifi( int x, int y ) {
 		return;
 	}
 	bool wla = WIFI->isAlive();
-	if( wla != wireless_alive || flarm_alive.get() > ALIVE_NONE ){
+	if( wla != flags.wireless_alive || flarm_alive.get() > ALIVE_NONE ){
 		ESP_LOGI(FNAME,"IpsDisplay::drawWifi %d %d %d", x,y,wla);
 		if( ! wla ) {
 			ucg->setColor(COLOR_MGREY);
@@ -689,8 +696,8 @@ void IpsDisplay::drawWifi( int x, int y ) {
 			ucg->setColor( COLOR_GREEN );
 		}
 		ucg->drawDisc( x, y, 3, UCG_DRAW_ALL );
-		flarm_connected = flarm_alive.get();
-		wireless_alive = wla;
+		flags.flarm_connected = flarm_alive.get();
+		flags.wireless_alive = wla;
 	}
 	if( SetupCommon::isWired() ) {
 		drawCable(DISPLAY_W-20, y+18);
@@ -752,11 +759,11 @@ void IpsDisplay::drawTemperature( int x, int y, float t ) {
 
 void IpsDisplay::setBottomDirty()
 {
-    bottom_dirty = true;
+    flags.bottom_dirty = true;
 }
 void IpsDisplay::setCruiseChanged()
 {
-    mode_dirty = true;
+    flags.mode_dirty = true;
 }
 
 
@@ -808,7 +815,7 @@ void IpsDisplay::initLoadDisplay(){
 	old_gmax = 100;
 	old_gmin = -100;
 	old_ias_max = -1;
-	bottom_dirty = false;
+	flags.bottom_dirty = false;
 	ESP_LOGI(FNAME,"initLoadDisplay end");
 }
 
@@ -866,8 +873,8 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 	if( !(tick%10)){
 		drawLoadDisplayTexts();
 	}
-	if ( bottom_dirty ) {
-		bottom_dirty = false;
+	if ( flags.bottom_dirty ) {
+		flags.bottom_dirty = false;
 		initLoadDisplay();
 	}
 }
@@ -1001,16 +1008,21 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
     // WK-Indicator
     if (FLAPSgauge && !(tick % 3)) {
         FLAPSgauge->draw(ias.get());
+        // Check on flap speeds defined
+        if ( FLAP->getNrPositions() == 0 && ! flags.flaps_mbox_shown) {
+            MBOX->pushMessage(2, "Pls. set flap speeds" );
+            flags.flaps_mbox_shown = true;
+        }
     }
 
     // Cruise mode or circling
-    if( mode_dirty ) {
+    if( flags.mode_dirty ) {
         VCSTATgauge->draw();
         WNDgauge->clearGauge();
         if (!vario_centeraid.get() || VCMode.getCMode()) {
             WNDgauge->drawRose();
         }
-        mode_dirty = false;
+        flags.mode_dirty = false;
     }
 
     // Medium Climb Indicator
@@ -1021,9 +1033,9 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
         MAINgauge->drawAVG();
     }
 
-    if (bottom_dirty) {
+    if (flags.bottom_dirty) {
         ESP_LOGI(FNAME, "redraw scale bottom");
-        bottom_dirty = false;
+        flags.bottom_dirty = false;
         MAINgauge->drawScaleBottom();
         MAINgauge->forceAllRedraw();
         if (MCgauge)
