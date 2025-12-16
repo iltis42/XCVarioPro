@@ -1,11 +1,12 @@
 # XCVario Pro
-An ESP32 based lean variometer system with open data interface featuring OpenVario, Cambridge, Borgelt, Naviter and XCVario format, running on dedicated XCVario hardware.
+
+An ESP32-based, lean variometer system with an open data interface supporting OpenVario, Cambridge, Borgelt, Naviter, and XCVario formats, running on dedicated XCVario hardware.
 
 ![Vario](https://github.com/hjr/XCVarioPro/blob/master/XcvPro.png)
 
-The project is rooted in the open source and open hardware flight computer scene using the ESP32 SOC supporting modern digital sensors such as BMP280, SPL06-007, DS1820b, TE4525, ABPMRR, MP5004DP, CAN, AHRS MPU6050, and QMC5883L magnet sensor.
+The project is rooted in the open-source and open-hardware flight computer community and is based on the ESP32 SoC, supporting modern digital sensors such as BMP280, SPL06-007, DS1820B, TE4525, ABPMRR, MP5004DP, CAN, AHRS MPU6050, and the QMC5883L magnetometer.
 
-The variometer has a sunlight readable 1000 nits 2.4 inch IPS technology LCD display features a low power consumation of less that 1.2W, that equals to 100mA at 12.5V operating voltage. The size is 64(H)x64(W)x35(D) mm, for a standard 57mm(2") instrument gauge. It weighs only about 170 gramm.
+The variometer features a sunlight-readable 2.4-inch IPS LCD display with a brightness of 1000 nits and a low power consumption of less than 1.2 W, corresponding to approximately 100 mA at an operating voltage of 12.5 V. The device measures 64 (H) × 64 (W) × 35 (D) mm, fitting a standard 57 mm (2″) instrument gauge, and weighs approximately 170 grams.
 
 ## Vision
 While the amazing availability of high-fidelity sensors combined with today’s highly miniaturized computational power provides the perfect ingredients for a project like this, it quickly becomes clear that the overall quality of the resulting system design is tightly linked to the quality of the software it is built on. Recognizing this, it also becomes evident that further improvements in quality and usability of a variometer like this are hardly achievable with a “pick-it-for-free” mentality. Significant effort is required, and that effort needs to be funded — which in turn becomes a major challenge for the project.
@@ -51,36 +52,35 @@ The original ambition of providing a high-quality variometer sensor that turns a
 * Optional Flarm traffic NMEA data stream
 * Optional external instant wind sensors (Anemoi)
 
-The ESP32 module contains a Bluetooth and Wifi  module plus serial interfaces, so we are able to transmit wireless or wired data to any navigation device running XCSoar, LK8000, Naviter and more in various formats as there is the native XCVario, Borgelt, Cambridge and Openvario format,so devices can operate as full glide computer with TE-vario, barometric altitude, speed and more.
+The ESP32 module contains a Bluetooth and Wi-Fi  module plus serial interfaces, so we are able to transmit wireless or wired data to any navigation device running XCSoar, LK8000, Naviter and more in various formats as there is the native XCVario, Borgelt, Cambridge and Openvario format,so devices can operate as full glide computer with TE-vario, barometric altitude, speed and more.
 
-##The manual
+## The manual
 
 [Online Handbook in various languages](https://xcvario.com/docs-category/vario)
 
-## A (soft-) feature list
-* Variometer display with adjustable range (1 m/s - 30 m/s), and damping ( 1s - 10s )
-* QNH, Ballast, Bugs and McCready adjustment and many other options configurable
-* Vario sound generator with adjustable Volume and Deadband plus setup option for tone style profiles
-* Sound-Sequencer with a variety of sound-bites as sonification to most of the visual variometer information
-* Integrated loudspeaker, 2 Watt audio power
-* S2F (Speed2Fly) indicator with configurable MC, ballast and bugs based on glider polar
-* Around 130 predefined polars are included ( list in https://github.com/hjr/XCVarioPro/blob/master/components/glider/PolarTable.txt )
+## A (soft-)feature list
+* Variometer display with adjustable range (1 m/s – 30 m/s) and damping (1 s – 10 s)
+* QNH, ballast, bugs, and McCready adjustment, plus many other configurable options
+* Vario sound generator with adjustable volume and deadband, plus setup options for tone style profiles
+* Sound sequencer with a variety of sound bites for sonification of most visual variometer information
+* Integrated loudspeaker with 2-watt audio power
+* S2F (Speed-to-Fly) indicator with configurable MC, ballast, and bugs based on glider polars
+* Around 150 predefined polars included (list: https://github.com/hjr/XCVarioPro/blob/master/components/glider/PolarTable.txt)
 * IAS or TAS airspeed indication
 * OAT (Outside Air Temperature) sensor
-* Flap assitent with or w/o flap position sensor
+* Flap assistant with or without flap position sensor
 * Battery voltage and status indicator
-* Thermal assistent indicator for efficient thermal centering
+* Thermal assistant indicator for efficient thermal centering
 * Wind rose indicator with optional second, instant wind pointer
-* Bluetooth, Wifi and two serial interfaces to external devices (XCSoar, LK8000, FLARM, Anemoi, other sensors ...)
-* Complete support of a secondary variometer (two seater) with automatic routing of all connected devices
-* High precision barometric altimeter 1 hPa (8 meter) absolute accuracy, and 0.1 meter resolution
-* Sunlight readable high contrast 1000 nits 2.4 inch IPS Technology Display
-* External switch for S2F/Vario mode
-* Setup menu to customize vario features
+* Bluetooth, Wi-Fi, and two serial interfaces for external devices (XCSoar, LK8000, FLARM, Anemoi, other sensors …)
+* Complete support for a secondary variometer (two-seater) with automatic routing to all connected devices
+* High-precision barometric altimeter with 1 hPa (≈ 8 m) absolute accuracy and 0.1 m resolution
+* Sunlight-readable, high-contrast 2.4-inch IPS display with 1000 nits brightness
+* External switch for S2F / Vario mode
+* Setup menu for customization of variometer features
 * Connectivity for the FLARM View display
-* Output of NMEA data in OpenVario, Borgelt, Cambridge, Naviter or XCVario format
-* OTA (Over The Air) software update via WiFi and web browser
-* Attitude and Heading Reference System (AHRS) available since 2021 hardware revision
-* Wind calculation in circling and in straight flight (needs a connected GPS source)
-* Electronic TE compensation circumventing long TE tubing and TE probe insufficiencies
-
+* Output of NMEA data in OpenVario, Borgelt, Cambridge, Naviter, or XCVario format
+* OTA (Over-the-Air) software updates via Wi-Fi and web browser
+* Attitude and Heading Reference System (AHRS) available since the 2021 hardware revision
+* Wind calculation in circling and straight flight (requires a connected GPS source)
+* Electronic TE compensation, eliminating long TE tubing and TE probe limitations
