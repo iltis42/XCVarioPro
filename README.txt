@@ -1,25 +1,25 @@
-Building the XCVario Software:
+Building the XCVario Pro Software:
 
 XCVario is build using esp-idf (https://github.com/espressif/esp-idf), to be setup as described here:
 https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#get-started-get-esp-idf
 As OS to crossbuild XCVario software, linux e.g. latest ubuntu is strongly recommended.
 
 Another option is to fork XCVario in your own area, and use a github runner to build the project remotely on github.
-As an example check this repository Actions workflows, where binary is build by the following this yml:
+As an example check this repository actions workflows, where binary is build by the following this yml:
 https://github.com/iltis42/XCVario/blob/master/.github/workflows/cmake.yml
 
 Here the instructions to build the binary locally:
 
 1)  Clone, checkout branch: release/v4.3 install and activate esp-idf and get cmake (obviously cmake is missing from install.sh)
-mkdir -p ~/esp; cd ~/esp; git clone -b release/v4.3 --recursive https://github.com/espressif/esp-idf.git;
+mkdir -p ~/esp; cd ~/esp; git clone -b release/v5.4 --recursive https://github.com/espressif/esp-idf.git;
 cd ~/esp/esp-idf; 
-git checkout release/v4.3; 
+git checkout release/v5.4;
 ./install.sh; . ./export.sh;
 pip install cmake;
 git submodule update --init --recursive;
 
-This will get the stable branch release/v4.3 of esp-idf plus corresponding compiler, etc.
-For the docker official releases, branch label is release-v4.3, see also workflow yaml.
+This will get the stable branch release/v5.4 of esp-idf plus corresponding compiler, etc.
+For the docker official releases, branch label is release-v5.4, see also workflow yaml.
 
 2) Build hello world application.
 A good idea is to work through the get-started manual from esp-idf, select the versions as shown,
@@ -40,7 +40,7 @@ Executing "cmake -G 'Unix Makefiles' -DPYTHON_DEPS_CHECKED=1 -DESP_PLATFORM=1 -D
 :
 [100%] Built target app
 Project build complete. To flash, run this command:
-/home/gittest2/.espressif/python_env/idf4.3_py2.7_env/bin/python ../../../components/esptool_py/esptool/esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/hello-world.bin
+/home/gittest2/.espressif/python_env/idf5.4_py3.12_env/bin/python ../../../components/esptool_py/esptool/esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/hello-world.bin
 or run 'idf.py -p (PORT) flash'
 
 $ idf.py -p /dev/ttyUSB0 flash
@@ -92,10 +92,3 @@ C) Flashing via OTA
 Start OTA Software download Wifi AP at XCVario and
 upload through this webpage binary image: ~/esp/esp-idf/examples/get-started/XCVario/build/sensor.bin
 
-D) As an alternative to above steps you may execute the following in a single line. Attention/Warning: this will remove any existing espressif installation and all changes which you might have done to your local clone of xcvario, installs and configures espressif, git pulls XCVario and compiles an image: (time to exceute app 10 min)
-
-cd ~;rm -rf esp;rm -rf .espressif/;mkdir -p ~/esp; cd ~/esp; git clone -b release/v4.3 --recursive https://github.com/espressif/esp-idf.git;cd ~/esp/esp-idf;git checkout release/v4.3;./install.sh; . ./export.sh;pip install cmake;/home/xcsdev/.espressif/python_env/idf4.3_py3.8_env/bin/python -m pip install --upgrade pip;cd ~/esp/esp-idf/examples/get-started/; git clone --recursive https://github.com/iltis42/XCVario.git;cd ~/esp/esp-idf/examples/get-started/XCVario;get_idf;git pull;idf.py build 
-
-Therafter it is sufficent to execute the following to update the image:
-
-cd ~/esp/esp-idf/examples/get-started/XCVario;get_idf;git pull;idf.py build 
