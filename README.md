@@ -7,7 +7,6 @@ The project is rooted in the open source and open hardware flight computer scene
 
 The variometer has a sunlight readable 1000 nits 2.4 inch IPS technology LCD display features a low power consumation of less that 1.2W, that equals to 100mA at 12.5V operating voltage. The size is 64(H)x64(W)x35(D) mm, for a standard 57mm(2") instrument gauge. It weighs only about 170 gramm.
 
-
 ##Vision
 
 While the amazing availability of high-fidelity sensors combined with today’s highly miniaturized computational power provides the perfect ingredients for a project like this, it quickly becomes clear that the overall quality of the resulting system design is tightly linked to the quality of the software it is built on. Recognizing this, it also becomes evident that further improvements in quality and usability of a variometer like this are hardly achievable with a “pick-it-for-free” mentality. Significant effort is required, and that effort needs to be funded — which in turn becomes a major challenge for the project.
@@ -39,10 +38,7 @@ The original ambition of providing a high-quality variometer sensor that turns a
 * [Vario System Setup](https://www.youtube.com/watch?v=BCR16WUTwJY)
 * [Setup XCSoar to connect with Vario](https://www.youtube.com/watch?v=LDgnvLoTekU&t=95s)
 
-
-
 ##Supported sensors
-
 * TE variometer (TE)
 * Airspeed (PI)
 * Barometric altitude (BA)
@@ -59,10 +55,10 @@ The original ambition of providing a high-quality variometer sensor that turns a
 The ESP32 module contains a Bluetooth and Wifi  module plus serial interfaces, so we are able to transmit wireless or wired data to any navigation device running XCSoar, LK8000, Naviter and more in various formats as there is the native XCVario, Borgelt, Cambridge and Openvario format,so devices can operate as full glide computer with TE-vario, barometric altitude, speed and more.
 
 ##The manual
+
 [Online Handbook in various languages](https://xcvario.com/docs-category/vario)
 
 ##A (soft-) feature list
-
 - Variometer display with adjustable range (1 m/s - 30 m/s), and damping ( 1s - 10s )
 - QNH, Ballast, Bugs and McCready adjustment and many other options configurable
 - Vario sound generator with adjustable Volume and Deadband plus setup option for tone style profiles
