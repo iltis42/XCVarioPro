@@ -1,7 +1,7 @@
 # XCVario Pro
 An ESP32 based lean variometer system with open data interface featuring OpenVario, Cambridge, Borgelt, Naviter and XCVario format, running on dedicated XCVario hardware.
 
-![Vario]( https://github.com/XCVarioPro/blob/master/XcvPro.png )
+![Vario](https://github.com/hjr/XCVarioPro/blob/master/XcvPro.png)
 
 The project is rooted in the open source and open hardware flight computer scene using the ESP32 SOC supporting modern digital sensors such as BMP280, SPL06-007, DS1820b, TE4525, ABPMRR, MP5004DP, CAN, AHRS MPU6050, and QMC5883L magnet sensor.
 
