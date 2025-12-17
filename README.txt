@@ -90,5 +90,5 @@ idf.py -p /dev/ttyUSB0 monitor
 
 C) Flashing via OTA
 Start OTA Software download Wifi AP at XCVario and
-upload through this webpage binary image: ~/esp/esp-idf/examples/get-started/XCVario/build/sensor.bin
+upload through this webpage binary image: ~/esp/esp-idf/examples/get-started/XCVario/build/xcvario_pro.bin
 
