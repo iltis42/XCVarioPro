@@ -22,8 +22,9 @@ inline constexpr int fast_iroundf_positive(float a) {
     return (int)(a + 0.5f);
 }
 
-// flooring
+// flooring, ceiling
 float fast_floorf(float x);
+float fast_ceilf(float x);
 
 // float sign
 float fast_signf(float val);
