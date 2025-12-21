@@ -11,7 +11,7 @@
 #include "MCPH21.h"
 #include "BMPVario.h"
 #include "comm/BTspp.h"
-#include "comm/BTle.h"
+#include "comm/BTnus.h"
 #include "setup/SetupNG.h"
 #include "setup/CruiseMode.h"
 #include "ESPAudio.h"

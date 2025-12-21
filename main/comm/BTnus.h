@@ -14,11 +14,11 @@
 
 class BlueTooth;
 
-class BLESender final : public InterfaceCtrl
+class BTnus final : public InterfaceCtrl
 {
 public:
-    BLESender();
-    virtual ~BLESender();
+    BTnus();
+    virtual ~BTnus();
     bool start();
     void stop();
     inline bool selfTest() const { return isRunning(); }
@@ -47,4 +47,4 @@ private:
     bool _server_running = false;
 };
 
-extern BLESender *BLUEnus;
+extern BTnus *BLUEnus;

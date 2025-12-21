@@ -33,7 +33,7 @@
 #include "wind/CircleWind.h"
 #include "comm/WifiApSta.h"
 #include "comm/BTspp.h"
-#include "comm/BTle.h"
+#include "comm/BTnus.h"
 #include "comm/CanBus.h"
 #include "protocol/AliveMonitor.h"
 #include "setup/SetupNG.h"

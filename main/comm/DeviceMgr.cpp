@@ -13,7 +13,7 @@
 #include "CanBus.h"
 #include "WifiApSta.h"
 #include "BTspp.h"
-#include "BTle.h"
+#include "BTnus.h"
 #include "OneWireBus.h"
 #include "SerialLine.h"
 #include "protocol/ProtocolItf.h"
@@ -415,7 +415,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     else if ( iid == BT_LE) {
         if ( ! BLUEnus ) {
             ESP_LOGI(FNAME, "Create BT LE interface");
-            BLUEnus = new BLESender();
+            BLUEnus = new BTnus();
         }
         if ( BLUEnus && ! BLUEnus->isRunning() ) {
             BLUEnus->start();

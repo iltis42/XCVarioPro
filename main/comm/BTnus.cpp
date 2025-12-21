@@ -6,13 +6,13 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-#include "BTle.h"
+#include "BTnus.h"
 
 #include "BlueTooth.h"
 #include "DataLink.h"
 #include "setup/SetupCommon.h"
 #include "math/Floats.h"
-#include "logdefnone.h"
+#include "logdef.h"
 
 #include <esp_bt.h>
 #include <esp_gatts_api.h>
@@ -29,7 +29,7 @@
 #define NUS_RX_UUID        0x6E400002  // Client → ESP (WRITE)
 #define NUS_TX_UUID        0x6E400003  // ESP → Client (NOTIFY)
 
-BLESender *BLUEnus = nullptr;
+BTnus *BLUEnus = nullptr;
 static esp_gatt_if_t my_gatts_if = ESP_GATT_IF_NONE;
 static uint8_t nus_rx_buf[256];
 
@@ -81,7 +81,7 @@ public:
         }
         case ESP_GATTS_READ_EVT:
         {
-            ESP_LOGI(FNAME, "Characteristic read, handle: %d", param->read.handle);
+            ESP_LOGI(FNAME, "Char read, handle: %d", param->read.handle);
             // Optionally, modify the value here before sending it to the client.
             esp_gatt_rsp_t rsp = {};
             rsp.attr_value.handle = param->read.handle;
@@ -90,7 +90,7 @@ public:
             break;
         }
         case ESP_GATTS_WRITE_EVT:
-            ESP_LOGI(FNAME, "Characteristic write, handle: %d", param->write.handle);
+            ESP_LOGI(FNAME, "Char write, handle: %d", param->write.handle);
             if (param->write.is_prep)
             {
                 // Handle prepare write (for large data writes)
@@ -354,30 +354,30 @@ public:
     }
 };
 
-BLESender::BLESender() :
+BTnus::BTnus() :
     InterfaceCtrl(true),
     core(BlueTooth::instance())
 {
-    ESP_LOGI(FNAME, "BLESender constructor");
+    ESP_LOGI(FNAME, "BTnus constructor");
     core.acquire();
 }
-BLESender::~BLESender()
+BTnus::~BTnus()
 {
     stop();
     core.release();
 }
 
-// bool BLESender::selfTest(){
+// bool BTnus::selfTest(){
 // 	ESP_LOGI(FNAME,"SerialBLE::selfTest");
 // 	return true;
 // }
 
-// void BLESender::ConfigureIntf(int cfg)
+// void BTnus::ConfigureIntf(int cfg)
 // {
 //     // maybe fine like this
 // }
 
-int BLESender::Send(const char *msg, int &len, int port)
+int BTnus::Send(const char *msg, int &len, int port)
 {
     int ret = 0;
     if (my_conn_id==0xFFFF || !tx_char_handle || my_gatts_if==ESP_GATT_IF_NONE) {
@@ -395,7 +395,7 @@ int BLESender::Send(const char *msg, int &len, int port)
     return ret;
 }
 
-bool BLESender::start()
+bool BTnus::start()
 {
 	ESP_LOGI(FNAME, "BTle start()");
 
@@ -426,7 +426,7 @@ bool BLESender::start()
     return true;
 }
 
-void BLESender::stop()
+void BTnus::stop()
 {
     ESP_LOGI(FNAME, "BTle stop()");
     esp_ble_gap_stop_advertising();
