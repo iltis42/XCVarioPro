@@ -48,9 +48,9 @@ static TaskHandle_t SendTask = nullptr;
 // Target lists
 // target entries with zero termination, as ro flash data
 static const RoutingTarget flarm_routes[] = {
-    {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {XCVARIOSECOND_DEV, CAN_BUS, 0},
-    {XCVARIOFIRST_DEV, CAN_BUS, 0}, {XCVARIOSECOND_DEV, WIFI_APSTA, 8884}, {XCVARIOFIRST_DEV, WIFI_APSTA, 8884},
-    {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {} };
+    {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
+    {XCVARIOSECOND_DEV, CAN_BUS, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0}, {XCVARIOSECOND_DEV, WIFI_APSTA, 8884}, {XCVARIOFIRST_DEV, WIFI_APSTA, 8884},
+    {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
 static const RoutingTarget flarm_proxy_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
     {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
@@ -654,7 +654,7 @@ bool DeviceManager::isAvail(InterfaceId iid) const
 RoutingList DeviceManager::getRouting(RoutingTarget source)
 {
     // find routing entry, respect NO_PHY wildcards
-    const RoutingTarget *route_list = findRoute(source);
+    const RoutingTarget *route_list = findRoute(source); // all routes for the given source
     ESP_LOGD(FNAME, "Search route: %x(%d:%d:%d)", (unsigned)source.raw, source.getDeviceId(), source.getItfTarget().iid, source.getItfTarget().port);
     if ( route_list )
     {
@@ -664,10 +664,11 @@ RoutingList DeviceManager::getRouting(RoutingTarget source)
         for (const RoutingTarget* entry = route_list; entry->raw != 0; ++entry)
         {
             ESP_LOGD(FNAME, "Try match: d%d/i%d/o%d", entry->did, entry->getItfId(), entry->getPort());
-            // is dev configured, are itf and port identical
+            // find a configured dev as on the route
             DevMap::iterator devit = _device_map.find(entry->did);
             if ( devit != _device_map.end() ) {
-                // check itf and  port
+
+                // check if itf and  port align
                 Device *dev = devit->second;
                 ESP_LOGD(FNAME, "Found dev %d on itf: %d", devit->first, dev->_itf->getId());
                 if ( dev->_itf->getId() == entry->getItfId() ) {
