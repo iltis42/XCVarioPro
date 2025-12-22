@@ -891,8 +891,7 @@ float getHeading() { // fixme move to compass
 }
 
 // fixme arg not needed on stack
-void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
-		float volt, float s2fd_ms, float s2f_ms){
+void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, float s2fd_ms, float s2f_ms){
 	// ESP_LOGI(FNAME,"drawDisplay polar_sink: %f AVario: %f m/s", polar_sink_ms, ate_ms );
 	if( !(screens_init & INIT_DISPLAY_RETRO) ){
 		initDisplay();
@@ -948,7 +947,7 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 
     // Altitude
     if (ALTgauge) {
-        ALTgauge->draw(altitude_m);
+        ALTgauge->draw(altitude.get());
     }
 
     // Wind & center aid
@@ -993,7 +992,7 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 
     // Battery
     if (!(tick % 15)) {
-        BATgauge->draw(volt);
+        BATgauge->draw(battery_voltage.get());
     }
 
     // Temperature Value

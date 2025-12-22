@@ -214,6 +214,7 @@ SetupNG<float>  		gnd_speed( "GNDV", -1.0, true, SYNC_NONE, VOLATILE );
 SetupNG<float>  		te_vario( "TEVA", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		te_netto( "TENET", 0.0, true, SYNC_NONE, VOLATILE );
 SetupNG<float>  		slip_angle( "SLANGLE", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		battery_voltage( "BATV", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
 
 SetupNG<int>  			xcv_alive( "AL_XCV", ALIVE_NONE, false, SYNC_NONE, VOLATILE );
 SetupNG<int>  			mags_alive( "AL_MAGS", ALIVE_NONE, false, SYNC_NONE, VOLATILE );

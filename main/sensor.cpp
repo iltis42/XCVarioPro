@@ -139,7 +139,6 @@ static unsigned long _millis = 0;
 unsigned long _gps_millis = 0;
 
 
-float batteryVoltage = 0.;
 float dynamicP; // Pitot
 
 // global color variables for adaptable display variant
@@ -706,7 +705,7 @@ void readTemp(void *pvParameters)
     esp_task_wdt_add(NULL);
     while (1) {
         TickType_t xLastWakeTime = xTaskGetTickCount();
-        batteryVoltage = BatVoltage->get();
+        battery_voltage.set(BatVoltage->get());
         // ESP_LOGI(FNAME,"Battery=%f V", battery );
         // if( !SetupCommon::isClient() ) {  // client Vario will get Temperature info from main Vario
         // if( !t_devices ) {

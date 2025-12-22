@@ -344,6 +344,7 @@ extern SetupNG<float>  		gnd_speed;
 extern SetupNG<float>  		te_vario;
 extern SetupNG<float>  		te_netto;
 extern SetupNG<float>  		slip_angle;
+extern SetupNG<float>  		battery_voltage;
 
 extern SetupNG<int>  		xcv_alive;
 extern SetupNG<int>  		mags_alive;
