@@ -34,9 +34,29 @@ static esp_gatt_if_t my_gatts_if = ESP_GATT_IF_NONE;
 static uint8_t nus_rx_buf[256];
 
 static const uint8_t nus_service_uuid128[ESP_UUID_LEN_128] = {
-    0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,
-    0x93,0xF3,0xA3,0xB5,0x01,0x00,0x40,0x6E
+    0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,  0x93,0xF3,0xA3,0xB5,0x01,0x00,0x40,0x6E
 };
+static const uint8_t nus_rx_uuid128[ESP_UUID_LEN_128] = {
+    0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,  0x93,0xF3,0xA3,0xB5,0x02,0x00,0x40,0x6E
+};
+static const uint8_t nus_tx_uuid128[ESP_UUID_LEN_128] = {
+    0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,  0x93,0xF3,0xA3,0xB5,0x03,0x00,0x40,0x6E
+};
+static const uint8_t issc_service_uuid128[ESP_UUID_LEN_128] = {
+    0x55,0xe4,0x05,0xd2,0xaf,0x9f,0xa9,0x8f,  0xe5,0x4a,0x7d,0xfe,0x43,0x53,0x53,0x49
+};
+static const uint8_t issc_rx_uuid128[ESP_UUID_LEN_128] = {
+    0xb3,0x9b,0x72,0x34,0xbe,0xec,0xd4,0xa8,  0xf4,0x43,0x41,0x88,0x43,0x53,0x53,0x49
+};
+static const uint8_t issc_tx_uuid128[ESP_UUID_LEN_128] = {
+    0x16,0x96,0x24,0x47,0xc6,0x23,0x61,0xba,  0xd9,0x4b,0x1e,0x53,0x53,0x35,0x39,0x49
+};
+static uint8_t* ble_service_uuid128 = (uint8_t*)nus_service_uuid128;
+static uint8_t* ble_rx_uuid128 = (uint8_t*)nus_rx_uuid128;
+static uint8_t* ble_tx_uuid128 = (uint8_t*)nus_tx_uuid128;
+
+static const std::string_view service_name[] = { "BT nrf", "BT issc" };
+
 static const esp_ble_adv_params_t adv_params = {
     .adv_int_min = 0x20,
     .adv_int_max = 0x40,
@@ -113,7 +133,16 @@ public:
                     else if (cccd_value == 0x0000)
                     {
                         ESP_LOGI(FNAME, "Notifications/indications disabled");
+                        BLUEnus->nus_notify_enabled = false;
                     }
+
+                    // Respond explicitly
+                    esp_gatt_rsp_t rsp = {};
+                    rsp.attr_value.handle = param->write.handle;
+                    rsp.attr_value.len = 2;
+                    rsp.attr_value.value[0] = cccd_value & 0xFF;
+                    rsp.attr_value.value[1] = cccd_value >> 8;
+                    esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp);
                 }
                 else
                 {
@@ -122,7 +151,7 @@ public:
                     char *rxBuf = (char *)param->write.value;
                     if (count > 0)
                     {
-                        rxBuf[count] = '\0';
+                        // rxBuf[count] = '\0';
                         DataLink *dltarget = nullptr;
                         {
                             std::lock_guard<SemaphoreMutex> lock(BLUEnus->_dlink_mutex);
@@ -161,7 +190,7 @@ public:
             }
             else
             {
-                ESP_LOGI(FNAME, "Send OK, pacing: %d", congestion);
+                ESP_LOGD(FNAME, "Send OK, pacing: %d", congestion);
                 if (congestion)
                     congestion--;
             }
@@ -182,7 +211,7 @@ public:
                 },
                 .is_primary = true,
             };
-            memcpy(service_id.id.uuid.uuid.uuid128, nus_service_uuid128, ESP_UUID_LEN_128);
+            memcpy(service_id.id.uuid.uuid.uuid128, ble_service_uuid128, ESP_UUID_LEN_128);
             esp_ble_gatts_create_service(gatts_if, &service_id, 16); // Create service with max 16 handles
             break;
         }
@@ -200,19 +229,18 @@ public:
                 .len = ESP_UUID_LEN_128,
                 .uuid = {},
             };
-            memcpy(char_uuid.uuid.uuid128, nus_service_uuid128, ESP_UUID_LEN_128);
-            char_uuid.uuid.uuid128[12] = 0x02; // RX Characteristic UUID
-            esp_attr_value_t nus_attr = {
+            memcpy(char_uuid.uuid.uuid128, ble_rx_uuid128, ESP_UUID_LEN_128);
+            esp_attr_value_t ble_attr = {
                 .attr_max_len = sizeof(nus_rx_buf),
                 .attr_len     = 0,
-                .attr_value   = nus_rx_buf,
+                .attr_value   = ble_rx_uuid128,
             };
             esp_ble_gatts_add_char(BLUEnus->service_handle, &char_uuid,
                                    ESP_GATT_PERM_WRITE,
                                    ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
-                                   &nus_attr, NULL);
+                                   &ble_attr, NULL);
 
-            char_uuid.uuid.uuid128[12] = 0x03; // TX Characteristic UUID
+            memcpy(char_uuid.uuid.uuid128, ble_tx_uuid128, ESP_UUID_LEN_128);
             esp_ble_gatts_add_char(BLUEnus->service_handle, &char_uuid,
                                    0,
                                    ESP_GATT_CHAR_PROP_BIT_NOTIFY,
@@ -238,18 +266,14 @@ public:
         case ESP_GATTS_ADD_CHAR_EVT:
         {
             const esp_bt_uuid_t *uuid = &param->add_char.char_uuid;
-            uint8_t myuuid[ESP_UUID_LEN_128];
-            memcpy(myuuid, nus_service_uuid128, ESP_UUID_LEN_128);
-            myuuid[12] = 0x02; // RX Characteristic UUID
-            if (uuid->len == ESP_UUID_LEN_128 && memcmp(uuid->uuid.uuid128, myuuid, ESP_UUID_LEN_128) == 0)
+            if (uuid->len == ESP_UUID_LEN_128 && memcmp(uuid->uuid.uuid128, ble_rx_uuid128, ESP_UUID_LEN_128) == 0)
             {
                 BLUEnus->rx_char_handle = param->add_char.attr_handle;
                 ESP_LOGI(FNAME, "NUS RX characteristic added, handle=%d status=%d", BLUEnus->rx_char_handle, param->add_char.status);
             }
             else
             {
-                myuuid[12] = 0x03; // TX Characteristic UUID
-                if (uuid->len == ESP_UUID_LEN_128 && memcmp(uuid->uuid.uuid128, myuuid, ESP_UUID_LEN_128) == 0)
+                if (uuid->len == ESP_UUID_LEN_128 && memcmp(uuid->uuid.uuid128, ble_tx_uuid128, ESP_UUID_LEN_128) == 0)
                 {
                     BLUEnus->tx_char_handle = param->add_char.attr_handle;
                     ESP_LOGI(FNAME, "NUS TX characteristic added, handle=%d status=%d", BLUEnus->tx_char_handle, param->add_char.status);
@@ -372,20 +396,43 @@ BTnus::~BTnus()
 // 	return true;
 // }
 
-// void BTnus::ConfigureIntf(int cfg)
-// {
-//     // maybe fine like this
-// }
+const char *BTnus::getStringId() const
+{
+    return  (ble_service_uuid128 == (uint8_t*)nus_service_uuid128) ? service_name[0].data() : service_name[1].data();
+}
+
+
+void BTnus::ConfigureIntf(int cfg)
+{
+    if ( ! _server_running ) {
+        ESP_LOGI(FNAME, "BTle ConfigureIntf: %d", cfg);
+        // if ( cfg == SEEYOU_P ) {
+        //     // Configure for SeeYou
+        //     ble_service_uuid128 = (uint8_t*)issc_service_uuid128;
+        //     ble_rx_uuid128 = (uint8_t*)issc_rx_uuid128;
+        //     ble_tx_uuid128 = (uint8_t*)issc_tx_uuid128;
+        // }
+        // else {
+        //     ble_service_uuid128 = (uint8_t*)nus_service_uuid128;
+        //     ble_rx_uuid128 = (uint8_t*)nus_rx_uuid128;
+        //     ble_tx_uuid128 = (uint8_t*)nus_tx_uuid128;
+        // }
+        start();
+    }
+    else {
+        ESP_LOGI(FNAME, "BTle already running");
+    }
+}
 
 int BTnus::Send(const char *msg, int &len, int port)
 {
     int ret = 0;
     if (my_conn_id==0xFFFF || !tx_char_handle || my_gatts_if==ESP_GATT_IF_NONE) {
-        ESP_LOGI(FNAME,"SendTry BTnus, id %d, tx %d, gatt %d", my_conn_id, tx_char_handle, my_gatts_if);
+        ESP_LOGD(FNAME,"SendTry BTnus, id %d, tx %d, gatt %d", my_conn_id, tx_char_handle, my_gatts_if);
         return 0; // not connected; pretend everything is fine
     }
     if (nus_notify_enabled) {
-        ESP_LOGI(FNAME,"Send BTnus, len %d", len);
+        ESP_LOGD(FNAME,"Send BTnus: %s", msg);
         if ( len >  peer_mtu - 3 ) {
             len = peer_mtu - 3; // adjust to MTU
             ret = fast_ceilf(peer_mtu / 700.f) * 15; // estimate time for larger packets (700 byte chunks, 15ms each)
@@ -422,6 +469,9 @@ bool BTnus::start()
         .flag = ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT,
     };
     esp_ble_gap_config_adv_data(&adv_data);
+
+    esp_log_level_set("BT_GATT", ESP_LOG_DEBUG);
+    esp_log_level_set("GATTS", ESP_LOG_DEBUG);
 
     return true;
 }

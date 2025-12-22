@@ -418,7 +418,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
             BLUEnus = new BTnus();
         }
         if ( BLUEnus && ! BLUEnus->isRunning() ) {
-            BLUEnus->start();
+            BLUEnus->ConfigureIntf(proto);
         }
         itf = BLUEnus;
     }
@@ -573,12 +573,14 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
             }
             else if ( itf == BLUEspp ) {
                 ESP_LOGI(FNAME, "stopping BTspp");
-                BLUEspp->stop();
+                delete BLUEspp;
+                BLUEspp = nullptr;
                 ret = true; // restart needed
             }
             else if ( itf == BLUEnus ) {
                 ESP_LOGI(FNAME, "stopping BTle");
-                BLUEnus->stop();
+                delete BLUEnus;
+                BLUEnus = nullptr;
                 ret = true; // restart needed
             }
             else if ( itf == S1 ) {
