@@ -193,27 +193,27 @@ SetupNG<float>			gross_weight( "GROSS_WGT", 350, true, SYNC_NONE, VOLATILE ); //
 SetupNG<float>  		bugs( "BUGS", 0.0, true, SYNC_BIDIR, VOLATILE, modifyPolar, QUANT_NONE, LIMITS(0.0, 50, 1));
 
 SetupNG<int>  			cruise_mode( "CRUISE", 0, false, SYNC_BIDIR, VOLATILE, change_cruise ); // use the CruiseMode wrapper to access and modify
-SetupNG<float>  		OAT( "OAT", -1000., true, SYNC_BIDIR, VOLATILE );   // outside temperature
-SetupNG<float>  		swind_dir( "SWDD", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
-SetupNG<float>  		swind_speed( "SWDS", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
-SetupNG<float>  		swind_sideslip_lim( "SWSL", 2.0, true, SYNC_FROM_MASTER, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 45.0, 0.1));
-SetupNG<float>  		cwind_dir( "CWDD", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetCWindAge );
-SetupNG<float>  		cwind_speed( "CWDS", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetCWindAge );
+SetupNG<float>  		OAT( "OAT", -1000., false, SYNC_BIDIR, VOLATILE );   // outside air temperature
+SetupNG<float>  		swind_dir( "SWDD", 0.0, false, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
+SetupNG<float>  		swind_speed( "SWDS", 0.0, false, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
+SetupNG<float>  		swind_sideslip_lim( "SWSL", 2.0, false, SYNC_FROM_MASTER, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 45.0, 0.1));
+SetupNG<float>  		cwind_dir( "CWDD", 0.0, false, SYNC_FROM_MASTER, VOLATILE, resetCWindAge );
+SetupNG<float>  		cwind_speed( "CWDS", 0.0, false, SYNC_FROM_MASTER, VOLATILE, resetCWindAge );
 SetupNG<int>  			extwind_sptc_dir( "EWDD", 0.0, false, SYNC_BIDIR, VOLATILE ); // synoptic and
 SetupNG<int>  			extwind_sptc_speed( "EWDS", 0.0, false, SYNC_BIDIR, VOLATILE );
 SetupNG<int>  			extwind_inst_dir( "EIWDD", 0.0, false, SYNC_BIDIR, VOLATILE ); // instant external wind
 SetupNG<int>  			extwind_inst_speed( "EIWDS", 0.0, false, SYNC_BIDIR, VOLATILE );
 SetupNG<int>  			extwind_status( "EWST", -1, false, SYNC_BIDIR, VOLATILE );
-SetupNG<float>  		mag_hdm( "HDM", -1.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		mag_hdt( "HDT", -1.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		average_climb( "AVCL", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		flap_pos( "FLPS", 0.0, true, SYNC_BIDIR, VOLATILE );
-SetupNG<float>  		altitude( "ALTI", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		ias( "IASV", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		gnd_speed( "GNDV", -1.0, true, SYNC_NONE, VOLATILE );
-SetupNG<float>  		te_vario( "TEVA", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<float>  		te_netto( "TENET", 0.0, true, SYNC_NONE, VOLATILE );
-SetupNG<float>  		slip_angle( "SLANGLE", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		mag_hdm( "HDM", -1.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		mag_hdt( "HDT", -1.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		average_climb( "AVCL", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		flap_pos( "FLPS", 0.0, false, SYNC_BIDIR, VOLATILE );
+SetupNG<float>  		altitude( "ALTI", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		ias( "IASV", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		gnd_speed( "GNDV", -1.0, false, SYNC_NONE, VOLATILE );
+SetupNG<float>  		te_vario( "TEVA", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		te_netto( "TENET", 0.0, false, SYNC_NONE, VOLATILE );
+SetupNG<float>  		slip_angle( "SLANGLE", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		battery_voltage( "BATV", 0.0, false, SYNC_FROM_MASTER, VOLATILE );
 
 SetupNG<int>  			xcv_alive( "AL_XCV", ALIVE_NONE, false, SYNC_NONE, VOLATILE );
