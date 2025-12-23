@@ -24,6 +24,7 @@
 #include "comm/SerialLine.h"
 #include "protocol/NMEA.h"
 #include "protocol/AliveMonitor.h"
+#include "protocol/nmea/SeeYouMsg.h"
 #include "screen/element/Battery.h"
 #include "screen/element/Altimeter.h"
 #include "screen/element/PolarGauge.h"
@@ -61,9 +62,21 @@ bool SetupNG<int>::isValid() const {
 	return true;
 }
 
+void change_mc()
+{
+    Speed2Fly.change_mc();
+    ProtocolItf *prtcl = DEVMAN->getProtocol(NAVI_DEV, SEEYOU_P);
+    if (prtcl)
+    {
+        (static_cast<NmeaPrtcl *>(prtcl))->sendSeeYouVal(MC.get(), SeeYouMsg::MC_VAL);
+    }
+}
 
-void change_mc() {
-	Speed2Fly.change_mc();
+static void changeQnh() {
+    ProtocolItf *prtcl = DEVMAN->getProtocol(NAVI_DEV, SEEYOU_P);
+    if ( prtcl ) {
+        (static_cast<NmeaPrtcl*>(prtcl))->sendSeeYouVal(QNH.get(), SeeYouMsg::QNH_VAL);
+    }
 }
 
 void change_ballast() {
@@ -91,6 +104,9 @@ void change_bal_water(){
 	if ( prtcl ) {
 		(static_cast<NmeaPrtcl*>(prtcl))->sendXCVWaterWeight(ballast_kg.get());
 	}
+    else if ( (prtcl = DEVMAN->getProtocol(NAVI_DEV, SEEYOU_P)) ) {
+        (static_cast<NmeaPrtcl *>(prtcl))->sendSeeYouVal(ballast_kg.get(), SeeYouMsg::BAL_VAL);
+    }
 	change_ballast();
 }
 
@@ -101,6 +117,14 @@ void polar_update(){
 
 void modifyPolar() {
 	Speed2Fly.modifyPolar();
+}
+
+static void modifyBugs() {
+    modifyPolar();
+    ProtocolItf *prtcl = DEVMAN->getProtocol(NAVI_DEV, SEEYOU_P);
+    if ( prtcl ) {
+        (static_cast<NmeaPrtcl*>(prtcl))->sendSeeYouVal(bugs.get(), SeeYouMsg::BUGS_VAL);
+    }
 }
 
 void change_cruise() {
@@ -166,7 +190,7 @@ static void ch_airborne_state(){
 //////////////////////////
 // configuration variables
 SetupNG<float>          MC(  "MacCready", 0.5, true, SYNC_BIDIR, PERSISTENT, change_mc, QUANT_VSPEED, LIMITS(0.0, 9.9, 0.1) );
-SetupNG<float>  		QNH( "QNH", 1013.25, true, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_QNH, LIMITS(900, 1100.0, 0.250) );
+SetupNG<float>  		QNH( "QNH", 1013.25, true, SYNC_BIDIR, PERSISTENT, changeQnh, QUANT_QNH, LIMITS(900, 1100.0, 0.250) );
 SetupNG<float> 			polar_wingload( "POLAR_WINGLOAD", 34.40, true, SYNC_BIDIR, PERSISTENT, change_ballast, QUANT_NONE, LIMITS(10.0, 100.0, 0.1) );
 const limits_t polar_speed_limits = {0.0, 450.0, 1};
 SetupNG<float> 			polar_speed1( "POLAR_SPEED1",   80, true, SYNC_BIDIR, PERSISTENT, modifyPolar, QUANT_HSPEED, &polar_speed_limits);
@@ -190,7 +214,7 @@ SetupNG<float>  		ballast_kg( "BAL_KG" , 0.0, true, SYNC_BIDIR, PERSISTENT, chan
 SetupNG<float>			empty_weight( "EMPTY_WGT", 361.2, true, SYNC_BIDIR, PERSISTENT, change_empty_weight, QUANT_MASS, LIMITS(0, 1000, 1));
 SetupNG<float>			crew_weight( "CREW_WGT", 80, true, SYNC_BIDIR, PERSISTENT, change_crew_weight, QUANT_MASS, LIMITS(0, 300, 1));
 SetupNG<float>			gross_weight( "GROSS_WGT", 350, true, SYNC_NONE, VOLATILE ); // derived from above
-SetupNG<float>  		bugs( "BUGS", 0.0, true, SYNC_BIDIR, VOLATILE, modifyPolar, QUANT_NONE, LIMITS(0.0, 50, 1));
+SetupNG<float>  		bugs( "BUGS", 0.0, true, SYNC_BIDIR, VOLATILE, modifyBugs, QUANT_NONE, LIMITS(0.0, 50, 1));
 
 SetupNG<int>  			cruise_mode( "CRUISE", 0, false, SYNC_BIDIR, VOLATILE, change_cruise ); // use the CruiseMode wrapper to access and modify
 SetupNG<float>  		OAT( "OAT", -1000., false, SYNC_BIDIR, VOLATILE );   // outside air temperature

@@ -13,6 +13,7 @@
 class SeeYouMsg final : public NmeaPlugin
 {
 public:
+    using VAL_ITEM_IDX = enum {MC_VAL, BAL_VAL, BUGS_VAL, QNH_VAL, ELEVATION_VAL};
     SeeYouMsg(NmeaPrtcl &nr) : NmeaPlugin(nr, SEEYOU_P, false) {};
     virtual ~SeeYouMsg() = default;
     const ParserEntry* getPT() const override { return _pt; }

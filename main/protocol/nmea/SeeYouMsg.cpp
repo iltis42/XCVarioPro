@@ -90,6 +90,12 @@ void send_attr(NmeaPrtcl &nmea, int attridx, float val)
     DEV::Send(msg);
 }
 
+void NmeaPrtcl::sendSeeYouVal(float val, int idx)
+{
+    send_attr(*this, idx, val);
+}
+
+
 /*
     Fast sentence has following format:
     $PLXVF, <TIME>, <IMUaccelX>, <IMUaccelY>, <IMUaccelZ>, <VARIO>, <IAS>, <ALT>, <S2FMode>*CS\r\n
@@ -112,7 +118,7 @@ void NmeaPrtcl::sendSeeYouF(float accx, float accy, float accz, float vario, flo
     char tmp[50];
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    std::sprintf(tmp, "%d.%03d", (int)(tv.tv_sec % (60 * 60 * 24)), (int)(tv.tv_usec / 1000));
+    std::sprintf(tmp, "%d.%03d", (int)(tv.tv_sec - 315964800), (int)(tv.tv_usec / 1000));
     msg->buffer += tmp;
     std::sprintf(tmp, ",%.1f", accx);
     msg->buffer += tmp;

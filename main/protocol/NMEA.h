@@ -130,6 +130,7 @@ public:
     void sendCambridge(float te, float tas, float mc, int bugs, float alt);
     void sendSeeYouF(float accx, float accy, float accz, float vario, float ias, float alt, bool cruise);
     void sendSeeYouS(float oat, bool cruise, float volt, float alt);
+    void sendSeeYouVal(float val, int idx);
     void sendXCVCrewWeight(float w);
     void sendXCVEmptyWeight(float w);
     void sendXCVWaterWeight(float v);
