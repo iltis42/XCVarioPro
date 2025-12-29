@@ -23,6 +23,7 @@
 #include "setup/DataMonitor.h"
 #include "setup/SetupNG.h"
 #include "Compass.h"
+#include "sensor/temp/OwSens.h"
 
 #include "sensor.h"
 #include "logdefnone.h"
@@ -449,23 +450,37 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         is_new = true;
         // Retrieve, or create a new data link
         DataLink *dl = itf->newDataLink(listen_port);
-        dev->_link = dl;
-        if ( dl ) dl->incrDeviceCount();
+        dev->_link = itf->newDataLink(listen_port);
         dev->_itf = itf;
+        if ( dev->_link ) {
+            dev->_link->incrDeviceCount();
 
-        // for some devices we need to create some gears to process the data stream
-        if ( did == MAGLEG_DEV || did == MAGSENS_DEV ) {
-            Compass::createCompass(itf->getId());
+            // for some devices we need to create some gears to process the data stream
+            if ( did == MAGLEG_DEV || did == MAGSENS_DEV ) {
+                Compass::createCompass(itf->getId());
+            }
+            // todo creat flarm processor
+            // if ( did == FLARM_DEV ) {
+            //     Flarm::createFlarmProcessor(itf->getId());
+            // }
         }
-        // todo creat flarm processor
-        // if ( did == FLARM_DEV ) {
-        //     Flarm::createFlarmProcessor(itf->getId());
-        // }
+        else {
+            // a sensor w/o a data link?
+            if ( iid == OW_BUS && OneWIRE ) {
+                dev->_sensor = OneWIRE->probeAndSetup(did);
+            }
+            if ( ! dev->_sensor ) {
+                ESP_LOGW(FNAME, "Could not create sensor for device %d on itf %d", did, iid);
+                delete dev;
+                return nullptr;
+            }
+                
+        }
     }
 
     EnumList pl;
     if ( dev->_link ) {
-        // adding ptozocols does need the data link layer
+        // adding protocols does need the data link layer
         pl = dev->_link->addProtocol(proto, did, send_port); // Add proto, if not yet there
         dev->_protos.insert(pl.begin(), pl.end());
     }

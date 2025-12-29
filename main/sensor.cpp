@@ -12,6 +12,7 @@
 #include "BMPVario.h"
 #include "comm/BTspp.h"
 #include "comm/BTnus.h"
+#include "comm/OneWireBus.h"
 #include "setup/SetupNG.h"
 #include "setup/CruiseMode.h"
 #include "ESPAudio.h"
@@ -52,6 +53,7 @@
 #include "SPL06-007.h"
 #include "wind/WindCalcTask.h"
 #include "comm/SerialLine.h"
+#include "comm/OneWireBus.h"
 #include "comm/CanBus.h"
 #include "comm/DeviceMgr.h"
 // #include "protocol/TestQuery.h"
@@ -78,10 +80,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include <onewire_bus.h>
-#include <onewire_crc.h>
-#define EXAMPLE_ONEWIRE_BUS_GPIO    GPIO_NUM_23
-#define EXAMPLE_ONEWIRE_MAX_DS18B20 2
+
 
 /*
 BMP:
@@ -588,7 +587,7 @@ void readSensors(void *pvParameters){
 			ESP_LOGW(FNAME,"Warning sensor task stack low: %d bytes", uxTaskGetStackHighWaterMark( bpid ) );
 		}
 
-		// Need to be done for client and main vario (Oops)
+		// fixme Need to be done for client and main vario (Oops)
 		polar_sink = Speed2Fly.sink( ias.get() );
 		te_netto.set(te_vario.get() - polar_sink);
 		as2f = Speed2Fly.speed( te_netto.get(), !VCMode.getCMode() );
@@ -598,159 +597,24 @@ void readSensors(void *pvParameters){
 		s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta)* (1/(s2f_delay.get()*10));
 		// ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, netto, as2f, s2f_delta );
 
+        // battery voltage update
+        if ( count%10 == 0 ) {
+            battery_voltage.set(BatVoltage->get());
+            if (theCompass) {
+               theCompass->ageIncr();
+            }
+        }
+
+        if ( OneWIRE ) {
+            // read one wire sensors
+            OneWIRE->groupUpdate(Clock::getMillis());
+        }
 
 		AUDIO->updateTone();
 		const int screenEvent = ScreenEvent(ScreenEvent::MAIN_SCREEN).raw;
 		xQueueSend(uiEventQueue, &screenEvent, 0);
 
-		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
-	}
-}
-
-static int ttick = 0;
-static float temp_prev = -3000;
-float ds18b20_read_temp(onewire_bus_handle_t bus)
-{
-    uint8_t scratch[9];
-
-    // 1. Reset & presence detect
-    if (onewire_bus_reset(bus) != ESP_OK)
-        return NAN;  // sensor missing
-
-    // 2. Start conversion
-    uint8_t cmd_conv[] = {0xCC, 0x44};
-    onewire_bus_write_bytes(bus, cmd_conv, sizeof(cmd_conv));
-    vTaskDelay(pdMS_TO_TICKS(750));  // max 12-bit timing
-
-    // 3. Reset again & presence detect
-    if (onewire_bus_reset(bus) != ESP_OK)
-        return NAN;
-
-    // 4. Read scratchpad
-    uint8_t cmd_read[] = {0xCC, 0xBE};
-    onewire_bus_write_bytes(bus, cmd_read, sizeof(cmd_read));
-    onewire_bus_read_bytes(bus, scratch, sizeof(scratch));
-
-    // 5. Validate CRC
-    if (scratch[8] != onewire_crc8(0, scratch, 8))
-        return NAN;
-
-    // 6. Decode temp
-    int16_t raw = (scratch[1] << 8) | scratch[0];
-    return raw / 16.0f;
-}
-
-void readTemp(void *pvParameters)
-{
-    // install new 1-wire bus
-    onewire_bus_handle_t bus;
-    onewire_bus_config_t bus_config = {
-        .bus_gpio_num = EXAMPLE_ONEWIRE_BUS_GPIO,
-        .flags = {
-            .en_pull_up = true, // enable the internal pull-up resistor in case the external device didn't have one
-        }
-    };
-    onewire_bus_rmt_config_t rmt_config = {
-        .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
-    };
-    ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
-    ESP_LOGI(FNAME, "1-Wire bus installed on GPIO%d", EXAMPLE_ONEWIRE_BUS_GPIO);
-
-    // int ds18b20_device_num = 0;
-    // ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
-    // onewire_device_iter_handle_t iter = NULL;
-    // onewire_device_t next_onewire_device;
-    // esp_err_t search_result = ESP_OK;
-
-    // // create 1-wire device iterator, which is used for device search
-    // ESP_ERROR_CHECK(onewire_new_device_iter(bus, &iter));
-    // ESP_LOGI(FNAME, "Device iterator created, start searching...");
-    // do {
-    //     search_result = onewire_device_iter_get_next(iter, &next_onewire_device);
-    //     if (search_result == ESP_OK) { // found a new device, let's check if we can upgrade it to a DS18B20
-    //         ds18b20_config_t ds_cfg = {};
-    //         if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &ds18b20s[ds18b20_device_num]) == ESP_OK) {
-    //             ESP_LOGI(FNAME, "Found a DS18B20[%d], address: %016llX", ds18b20_device_num, next_onewire_device.address);
-    //             ds18b20_device_num++;
-    //             if (ds18b20_device_num >= EXAMPLE_ONEWIRE_MAX_DS18B20) {
-    //                 ESP_LOGI(FNAME, "Max DS18B20 number reached, stop searching...");
-    //                 break;
-    //             }
-    //         } else {
-    //             ESP_LOGI(FNAME, "Found an unknown device, address: %016llX", next_onewire_device.address);
-    //         }
-    //     }
-    // } while (search_result != ESP_ERR_NOT_FOUND);
-    // ESP_ERROR_CHECK(onewire_del_device_iter(iter));
-    // ESP_LOGI(FNAME, "Searching done, %d DS18B20 device(s) found", ds18b20_device_num);
-
-    // // set resolution for all DS18B20s
-    // for (int i = 0; i < ds18b20_device_num; i++) {
-    //     // set resolution
-    //     ESP_ERROR_CHECK(ds18b20_set_resolution(ds18b20s[i], DS18B20_RESOLUTION_12B));
-    // }
-
-    // get temperature from sensors one by one
-    // float temperature;
-    // while (1) {
-    //     vTaskDelay(pdMS_TO_TICKS(500));
-
-    //     // for (int i = 0; i < ds18b20_device_num; i ++) {
-    //     //     ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(ds18b20s[i]));
-    //     //     ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
-    //     //     ESP_LOGI(FNAME, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
-    //     // }
-    //     temperature = ds18b20_read_temp(bus);
-    //     ESP_LOGI(FNAME, "temperature read from DS18B20: %.2fC", temperature);
-    // }
-
-    float temperature = 0.;
-    esp_task_wdt_add(NULL);
-    while (1) {
-        TickType_t xLastWakeTime = xTaskGetTickCount();
-        battery_voltage.set(BatVoltage->get());
-        // ESP_LOGI(FNAME,"Battery=%f V", battery );
-        // if( !SetupCommon::isClient() ) {  // client Vario will get Temperature info from main Vario
-        // if( !t_devices ) {
-        // 	t_devices = ds18b20.search(t_addr, 1);
-        // 	// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
-        // }
-        // if( t_devices && !gflags.inSetup ){
-        // ESP_LOGI(FNAME,"Temp devices %d", t_devices);
-        float temp = ds18b20_read_temp(bus);
-        // uint8_t err = ds18b20.getTemp(t_addr[0], temp );
-        // ds18b20.request();
-        if (!std::isnan(temp)) {
-            // ESP_LOGI(FNAME,"Raw Temp %f", temperature);
-            if (gflags.validTemperature == false) {
-                ESP_LOGI(FNAME, "Temperatur Sensor connected");
-                gflags.validTemperature = true;
-            }
-            // ESP_LOGI(FNAME,"temperature=%2.1f", temperature );
-            temperature += (temp - temperature) * 0.3; // A bit low pass as strategy against toggling
-            if (abs(temperature - temp_prev) > 0.1) {
-                float tr = std::round(temperature * 10) / 10;
-                OAT.set(tr);
-                ESP_LOGI(FNAME, "NEW temperature=%2.1f, prev T=%2.1f", tr, temp_prev);
-                temp_prev = temperature;
-            }
-        } else {
-            if (gflags.validTemperature == true) {
-                ESP_LOGI(FNAME, "Temperatur Sensor disconnected");
-                gflags.validTemperature = false;
-            }
-        }
-        // }
-        // ESP_LOGV(FNAME,"T=%f", temperature );
-        if ((OAT.get() > -55.0) && (OAT.get() < 85.0)) {
-            gflags.validTemperature = true;
-        }
-        if (theCompass) {
-            theCompass->ageIncr();
-        }
-        esp_task_wdt_reset();
-
-        if ((ttick++ % 50) == 0)
+        if ((count%50) == 0)
         {
             ESP_LOGI(FNAME, "Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
             if (uxTaskGetStackHighWaterMark(tpid) < 256)
@@ -772,15 +636,11 @@ void readTemp(void *pvParameters)
             // vTaskGetRunTimeStats(buf);
             // std::printf("Task runtime stats:\n%s\n", buf);
         }
-        if ((ttick % 5) == 0)
-        {
-            SetupCommon::commitDirty();
-            // DeviceManager* dm = DeviceManager::Instance();
-            // static_cast<TestQuery*>(dm->getProtocol( TEST_DEV2, TEST_P ))->sendTestQuery();  // all 5 seconds on burst
-        }
-        vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
-    }
+
+		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
+	}
 }
+
 
 static esp_err_t _coredump_to_server_begin_cb(void * priv)
 {
@@ -1025,6 +885,9 @@ void system_startup(void *args){
         DEVMAN->addDevice(CANREGISTRAR_DEV, REGISTRATION_P, CAN_REG_PORT, CAN_REG_PORT, CAN_BUS);
     }
 
+    // Always check on one wire devices
+    DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS);
+    
     ESP_LOGI(FNAME,"Wirelss-ID: %s", SetupCommon::getID());
 	std::string wireless_id;
 	if( DEVMAN->isIntf(BT_SPP) || DEVMAN->isIntf(BT_LE)) {
@@ -1519,7 +1382,6 @@ void system_startup(void *args){
 	else {
 		xTaskCreate(&readSensors, "readSensors", 5120, NULL, 12, &bpid);
 	}
-	xTaskCreate(&readTemp, "readTemp", 3000, NULL, 5, &tpid); // increase stack by 500 byte
 
 	VCMode.updateCache(); // correct initialization
     AUDIO->initVarioVoice();

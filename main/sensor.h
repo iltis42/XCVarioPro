@@ -104,7 +104,7 @@ extern float mpu_target_temp;
 extern mpud::MPU MPU;
 
 // Arduino.h remains
-inline unsigned long millis()
+inline unsigned long millis() // fixme
 {
     return (unsigned long) (esp_timer_get_time() / 1000ULL);
 }

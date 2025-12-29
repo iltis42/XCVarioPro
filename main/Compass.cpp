@@ -25,7 +25,7 @@ Author: Axel Pauli, deviation and refactoring by Eckhard Völlm Dec 2021
 #include "setup/SetupNG.h"
 #include "ESPRotary.h"
 #include "sensor.h"
-#include "logdefnone.h"
+#include "logdef.h"
 
 #include <esp_system.h>
 
