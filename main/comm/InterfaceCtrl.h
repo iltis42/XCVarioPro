@@ -89,7 +89,7 @@ public:
 protected:
     std::map<int, DataLink*> _dlink;
     mutable SemaphoreMutex _dlink_mutex;
-    bool _functional = false; // to be flipped from self tests
+    uint8_t _functional :1 = false; // to be flipped from self tests
 
 private:
     void DeleteAllDataLinksLocked();

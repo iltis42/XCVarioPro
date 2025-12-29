@@ -23,6 +23,7 @@ class DataLink;
 class InterfaceCtrl;
 class ProtocolItf;
 class DeviceManager;
+class SensorBase;
 
 // global variable
 extern DeviceManager* DEVMAN;
@@ -51,6 +52,7 @@ struct Device
     DataLink           *_link = nullptr; // can have only one link layer, but it might be shared with other devs
     EnumList            _protos = {}; // list of protocols belonging to this device, needed to remove a device properly
     InterfaceCtrl      *_itf = nullptr;
+    SensorBase         *_sensor = nullptr; // optional sensor attached to this device
 };
 
 

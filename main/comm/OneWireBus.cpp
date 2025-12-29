@@ -8,12 +8,18 @@
 
 #include "OneWireBus.h"
 
+#include "sensor/temp/ds18b20.h"
+#include "comm/Devices.h"
 #include "logdef.h"
 
 #include <onewire_bus.h>
 #include <onewire_bus_interface.h>
-
+#include <onewire_cmd.h>
+#include <onewire_device.h>
+#include <onewire_crc.h>
 #include <driver/gpio.h>
+
+#include <vector>
 
 OneWireBus *OneWIRE = nullptr;
 
@@ -42,7 +48,7 @@ OneWireBus::~OneWireBus()
 
 void OneWireBus::ConfigureIntf(int cfg)
 {
-        // install new 1-wire bus
+    // install 1-wire bus
     onewire_bus_handle_t bus;
     onewire_bus_config_t bus_config = {
         .bus_gpio_num = _ONEWIRE_BUS_GPIO,
@@ -53,9 +59,176 @@ void OneWireBus::ConfigureIntf(int cfg)
     onewire_bus_rmt_config_t rmt_config = {
         .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
     };
-    ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
-    ESP_LOGI(FNAME, "1-Wire bus installed on GPIO%d", _ONEWIRE_BUS_GPIO);
+    if ( onewire_new_bus_rmt(&bus_config, &rmt_config, &bus) == ESP_OK ) {
+        ESP_LOGI(FNAME, "1-Wire bus installed on GPIO%d", _ONEWIRE_BUS_GPIO);
+        _onewire = bus;
+        _functional = true;
+    }
+    else {
+        ESP_LOGE(FNAME, "1-Wire bus installation failed on GPIO%d", _ONEWIRE_BUS_GPIO);
+    }
+}
 
-    _onewire = bus;
-    OneWIRE = this;
+OwSens* OneWireBus::probeAndSetup(uint8_t did) {
+
+    // Search for devices
+    onewire_device_iter_handle_t iter = nullptr;
+    onewire_device_t next_device;
+    std::vector<onewire_device_t> devices;
+
+    // Convert did to expected family code
+    uint8_t expected_family = did;  // For now, we assume did directly corresponds
+    switch (did) {
+        case TEMPSENS_DEV:
+            expected_family = 0x28;
+            break;
+        // Add more mappings here if needed
+        default:
+            ESP_LOGW(FNAME, "Unknown device ID %d for OneWire probe", did);
+            return nullptr;
+    }
+    OwSens* found_sensor = nullptr;
+
+    esp_err_t err = onewire_new_device_iter(_onewire, &iter);
+    if (err != ESP_OK) return nullptr;
+
+    while (onewire_device_iter_get_next(iter, &next_device) == ESP_OK) {
+        devices.push_back(next_device);
+    }
+    onewire_del_device_iter(iter);
+
+    if (devices.empty()) {
+        ESP_LOGW(FNAME, "No OneWire devices found on GPIO %d", _ONEWIRE_BUS_GPIO);
+        return nullptr;
+    }
+
+    ESP_LOGI(FNAME, "Found %d OneWire device(s) on GPIO %d", devices.size(), _ONEWIRE_BUS_GPIO);
+
+    // Process each device by family code
+    for (const auto& dev : devices) {
+        uint8_t family = dev.address & 0xFF;  // LSB is family code
+
+        ESP_LOGI(FNAME, "Device ROM: %016llX, Family: 0x%02X", dev.address, family);
+
+        if ( family == expected_family ) {
+            if ( getSensorByAddress(dev.address) ) {
+                // Already registered
+                ESP_LOGI(FNAME, "Device %016llX already registered", dev.address);
+                continue;
+            }
+
+            switch (family) {
+                case 0x28:  // DS18B20 (also covers DS18S20 variants in some libs)
+                // case 0x10:  // DS18S20
+                // case 0x22:  // DS1822
+                    {
+                        auto* sensor = new DS18B20(dev.address);
+                        sensor->setup();
+                        _all_sensor.push_back(sensor);
+                        found_sensor = sensor;
+                        ESP_LOGI(FNAME, "Registered DS18B20-like temperature sensor");
+                    }
+                    break;
+
+                // Add more cases here for other devices, e.g.:
+                // case 0x01: // DS2401 Silicon Serial Number (ID chip)
+                // case 0x2D: // DS2431 1Kb EEPROM
+                // etc.
+
+                default:
+                    ESP_LOGW(FNAME, "Unsupported OneWire family 0x%02X – ignored", family);
+                    break;
+            }
+        }
+    }
+
+    // Optional: set resolution for all DS18B20 (if using espressif/ds18b20 component)
+    // for (auto s : temp_sensors_) ds18b20_set_resolution(...);
+
+    return found_sensor;
+}
+
+void OneWireBus::busReset()
+{
+    onewire_bus_reset(_onewire);
+}
+
+esp_err_t OneWireBus::sendCommand(onewire_device_address_t addr, uint8_t cmd)
+{
+    // send command
+    uint8_t tx_buffer[10] = {0};
+    tx_buffer[0] = ONEWIRE_CMD_MATCH_ROM;
+    memcpy(&tx_buffer[1], &addr, sizeof(addr));
+    tx_buffer[sizeof(addr) + 1] = cmd;
+
+    return onewire_bus_write_bytes(_onewire, tx_buffer, sizeof(tx_buffer));
+}
+
+esp_err_t OneWireBus::writeBytes(const uint8_t *buf, uint8_t size)
+{
+    return onewire_bus_write_bytes(_onewire, buf, size);
+}
+
+esp_err_t OneWireBus::readBytes(uint8_t *buf, size_t size)
+{
+    return onewire_bus_read_bytes(_onewire, buf, size);
+}
+
+uint8_t OneWireBus::crc8(const uint8_t *data, size_t len)
+{
+    return onewire_crc8(0, data, len);
+}
+
+/**
+ * @brief Group update for all temperature sensors (non-blocking).
+ * Call every 100ms) from main sensor task.
+ */
+bool OneWireBus::groupUpdate(uint32_t now_ms)
+{
+    const uint32_t UPDATE_INTERVAL_MS = 1000;  // Desired update interval
+    const uint32_t MAX_CONVERSION_TIME_MS = 750;  // Max time for 12-bit conversion
+
+    // Read all sensors individually
+    for (auto* sensor : _all_sensor) {
+        if ( ! sensor->isConverting() ) {
+            if (now_ms - sensor->getLastUpdateTimeMs() < UPDATE_INTERVAL_MS) {
+                continue;
+            }
+
+            // Start conversion
+            if (! sensor->primeRead(now_ms)) {
+                ESP_LOGE(FNAME, "Failed to trigger conversion");
+            }
+
+            continue;
+        }
+
+        if (now_ms - sensor->getConvertStartMs() < MAX_CONVERSION_TIME_MS) {
+            continue;
+        }
+        
+        uint32_t adjusted_ts_ms = sensor->getConvertStartMs() + MAX_CONVERSION_TIME_MS;
+
+        float val = sensor->doRead();
+        sensor->pushToHistory(val, now_ms);
+
+        ESP_LOGI(FNAME, "OW sensor %016llX: %umsec %.2f", sensor->getAddress(), (unsigned)now_ms, val);
+    }
+
+    return true;
+}
+
+
+//
+// private helper
+//
+
+OwSens *OneWireBus::getSensorByAddress(onewire_device_address_t addr)
+{
+    for ( auto s : _all_sensor ) {
+        if ( s->getAddress() == addr ) {
+            return s;
+        }
+    }
+    return nullptr;
 }
