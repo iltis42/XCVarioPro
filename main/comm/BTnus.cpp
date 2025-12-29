@@ -25,13 +25,13 @@
 
 
 // Nordic UART Service
-#define NUS_SERVICE_UUID   0x6E400001
-#define NUS_RX_UUID        0x6E400002  // Client → ESP (WRITE)
-#define NUS_TX_UUID        0x6E400003  // ESP → Client (NOTIFY)
+// #define NUS_SERVICE_UUID   0x6E400001
+// #define NUS_RX_UUID        0x6E400002  // Client → ESP (WRITE)
+// #define NUS_TX_UUID        0x6E400003  // ESP → Client (NOTIFY)
 
 BTnus *BLUEnus = nullptr;
 static esp_gatt_if_t my_gatts_if = ESP_GATT_IF_NONE;
-static uint8_t nus_rx_buf[256];
+// static uint8_t nus_rx_buf[256];
 
 static const uint8_t nus_service_uuid128[ESP_UUID_LEN_128] = {
     0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,  0x93,0xF3,0xA3,0xB5,0x01,0x00,0x40,0x6E
@@ -230,15 +230,15 @@ public:
                 .uuid = {},
             };
             memcpy(char_uuid.uuid.uuid128, ble_rx_uuid128, ESP_UUID_LEN_128);
-            esp_attr_value_t ble_attr = {
-                .attr_max_len = sizeof(nus_rx_buf),
-                .attr_len     = 0,
-                .attr_value   = ble_rx_uuid128,
-            };
+            // esp_attr_value_t ble_attr = {
+            //     .attr_max_len = sizeof(nus_rx_buf),
+            //     .attr_len     = 0,
+            //     .attr_value   = ble_rx_uuid128,
+            // };
             esp_ble_gatts_add_char(BLUEnus->service_handle, &char_uuid,
                                    ESP_GATT_PERM_WRITE,
                                    ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
-                                   &ble_attr, NULL);
+                                   NULL, NULL);
 
             memcpy(char_uuid.uuid.uuid128, ble_tx_uuid128, ESP_UUID_LEN_128);
             esp_ble_gatts_add_char(BLUEnus->service_handle, &char_uuid,
@@ -311,19 +311,12 @@ public:
     {
         switch (event)
         {
-        // case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-        // case ESP_GAP_BLE_ADV_REPORT_EVT:
-        // {
-        // 	// When a device is found during a scan
-        // 	ESP_LOGI(FNAME, "Advertise report received");
-
-        // 	// You can filter devices by address or advertisement data here
-        // 	ESP_LOGI(FNAME, "Device found: %s", param->adv_report.bda);
-
-        // 	// Example: Stop scanning after finding a device
-        // 	esp_ble_gap_stop_scanning();
-        // 	break;
-        // }
+        case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
+        {
+            // Advertising data was successfully set
+            ESP_LOGI(FNAME, "Advertising data set successfully");
+            break;
+        }
         case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
         {
             // Scanning parameters were successfully set
@@ -343,18 +336,6 @@ public:
             }
             break;
         }
-        // case ESP_GAP_BLE_CONNECT_EVT:
-        // {
-        // 	// When a connection is established with a client
-        // 	ESP_LOGI(FNAME, "Device connected, conn_id: %d", param->connect.conn_id);
-        // 	break;
-        // }
-        // case ESP_GAP_BLE_DISCONNECT_EVT:
-        // {
-        // 	// When a client disconnects from the server
-        // 	ESP_LOGI(FNAME, "Device disconnected, conn_id: %d", param->disconnect.conn_id);
-        // 	break;
-        // }
         case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
         {
             // Connection parameters have been updated
