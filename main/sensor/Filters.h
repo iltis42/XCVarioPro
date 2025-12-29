@@ -8,21 +8,23 @@
 
 #pragma once
 
-#include "sensor/temp/OwSens.h"
+// A simple filter design not knowing the signal history
 
-struct onewire_bus_t;
-
-class DS18B20 final : public OwSens {
+class BaseFilterItf
+{
 public:
-    DS18B20(onewire_device_address_t addr);
-    virtual ~DS18B20() = default;
-    const char* name() const override { return "DS18B20"; }
-    bool probe() override { return false; };
-    bool setup() override;
-    float doRead();
+    virtual ~BaseFilterItf() = default;
+    virtual float filter(float input) = 0;
+};
 
-    // OW
-    uint8_t family() override { return 0x28; }
-    bool primeRead(uint32_t now_ms) override;
-
+// A simple low-pass filter
+class LowPassFilter : public BaseFilterItf
+{
+public:
+    explicit LowPassFilter(float alpha) : _alpha(alpha), _last_output(0.0f) {}
+    void reset(float init_val);
+    float filter(float input) override;
+private:
+    float _alpha;
+    float _last_output;
 };

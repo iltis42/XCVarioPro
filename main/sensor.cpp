@@ -424,7 +424,7 @@ void readSensors(void *pvParameters){
 		TickType_t xLastWakeTime = xTaskGetTickCount();
 		count++;   // 10x per second
 
-        float T=OAT.get();
+        float T=OAT.get(); // fixme
 		if( !gflags.validTemperature ) {
 			T= 15 - ( (altitude.get()/100) * 0.65 );
 			// ESP_LOGW(FNAME,"T invalid, using 15 deg");

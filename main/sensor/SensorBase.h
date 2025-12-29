@@ -8,11 +8,12 @@
 
 #pragma once
 
+#include "setup/SetupNG.h"
+#include "Filters.h"
+
+#include <type_traits>
 #include <cstdint>
 #include <cstring>  // for memcpy
-
-
-constexpr int SENSOR_HISTORY_DURATION_MS = 5000;  // milliseconds
 
 //
 // Memory-optimized fixed-size history buffer for sensors.
@@ -22,9 +23,12 @@ constexpr int SENSOR_HISTORY_DURATION_MS = 5000;  // milliseconds
 // Only the timestamp of the latest reading is stored explicitly.
 // Previous timestamps are reconstructed backwards using the fixed interval.
 // 
-// - Timestamps in uint32_t milliseconds since boot.
+// - Timestamps in uint32_t milliseconds since boot (>1000h before roll-over).
 // - Capacity is computed to cover N seconds at the sensor's update rate.
 // 
+
+constexpr int SENSOR_HISTORY_DURATION_MS = 5000;  // milliseconds
+
 
 template <typename T>
 class FixedSensorHistory {
@@ -41,12 +45,11 @@ public:
     ~FixedSensorHistory() {
         if ( _heap_alloced ) free(_buffer);
     }
-
     void push(const T& value) {
         int nxt = (_head + 1) % _capacity;
         _buffer[nxt] = value;
         _head = nxt;
-        if (_head == 0) _full = true;
+        if (_head == 0) { _full = true; }
     }
     size_t size() const {
         return _full ? _capacity : _head;
@@ -78,12 +81,17 @@ private:
 //
 class SensorBase {
 public:
-    SensorBase() = default;
+    SensorBase(uint32_t ums) : _update_interval_ms(ums), _latency_ms(0), _last_update_time_ms(0) {}
     virtual ~SensorBase();
 
     virtual const char* name() const = 0;
     virtual bool probe() = 0;
     virtual bool setup() = 0;
+
+protected:
+    uint32_t _update_interval_ms;  ///< Expected update interval
+    uint32_t _latency_ms;          ///< Sensor conversion/acquisition latency
+    uint32_t _last_update_time_ms; ///< Raw update time (before latency compensation)
 };
 
 template <typename T>
@@ -91,19 +99,28 @@ class SensorTP : public SensorBase {
 public:
     SensorTP() = delete;
     SensorTP(void *buf, uint32_t ums) :
-        _history((T*)buf, HistoryCapacity(ums)),
-        _update_interval_ms(ums),
-        _latency_ms(0),
-        _last_update_time_ms(0)
+        SensorBase(ums),
+        _history((T*)buf, HistoryCapacity(ums))
     {
     }
-    virtual ~SensorTP() = default;
+    virtual ~SensorTP() {
+        if ( _filter ) {
+            delete _filter;
+        }
+    }
+    void setNVSVar( SetupNG<float> *nvsvar ) {
+        _nvsvar = nvsvar;
+    }
+    void setFilter( BaseFilterItf* filter ) {
+        if ( _filter ) {
+            delete _filter;
+        }
+        _filter = filter;
+    }
 
     virtual T doRead() = 0;
-
     // optional: diagnostic info
-    virtual bool healthy() const { return true; }
-
+    // virtual bool healthy() const { return true; }
 
     // Call this periodically from main loop or task.
     bool update(uint32_t now_ms) {
@@ -112,16 +129,24 @@ public:
         }
 
         T value = doRead();
-        _last_update_time_ms = now_ms - _latency_ms; // allways > 0 :)
-
-        _history.push(value);
+        pushToHistory(value, now_ms);
         return true;
     }
 
     // The sensor bypass to fill the history directly (e.g. from group read)
     void pushToHistory(const T& value, uint32_t now_ms) {
-        _last_update_time_ms = now_ms - _latency_ms;
+        _last_update_time_ms = now_ms - _latency_ms; // allways > 0 :)
         _history.push(value);
+        if constexpr (std::is_same_v<T, float>) { // only for float types
+            if (_nvsvar) {
+                if ( _filter ) {
+                    float filtered = _filter->filter(value);
+                    _nvsvar->set(filtered, true, false);
+                } else {
+                    _nvsvar->set(value, true, false);
+                }
+            }
+        }
     }
 
     /**
@@ -190,9 +215,7 @@ protected:
     static constexpr size_t HistoryCapacity(uint32_t ums) { return (SENSOR_HISTORY_DURATION_MS + ums - 1) / ums; }
 
     FixedSensorHistory<T> _history;
-
-    uint32_t _update_interval_ms;  ///< Expected update interval
-    uint32_t _latency_ms;          ///< Sensor conversion/acquisition latency
-    uint32_t _last_update_time_ms; ///< Raw update time (before latency compensation)
+    SetupNG<float> *_nvsvar = nullptr; ///< Optional link to NVS variable for sync etc.
+    BaseFilterItf*  _filter = nullptr; ///< Optional filter plugin
 };
 

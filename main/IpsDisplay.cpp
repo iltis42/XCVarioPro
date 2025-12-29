@@ -723,7 +723,7 @@ void IpsDisplay::drawConnection( int16_t x, int16_t y )
 void IpsDisplay::drawTemperature( int x, int y, float t ) {
 	ucg->setFont(ucg_font_fub14_hn, false);
 	char s[32];
-	if( t > -1000. && gflags.validTemperature == true) {
+	if( t > -1000. ) {
 		float temp_unit = Units::TemperatureUnit( t );
 		sprintf(s, "%.1f ", std::roundf(temp_unit*10.f)/10.f );
 	}
