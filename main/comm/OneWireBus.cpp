@@ -179,10 +179,8 @@ uint8_t OneWireBus::crc8(const uint8_t *data, size_t len)
     return onewire_crc8(0, data, len);
 }
 
-/**
- * @brief Group update for all temperature sensors (non-blocking).
- * Call every 100ms) from main sensor task.
- */
+// @brief Group update for all temperature sensors (non-blocking).
+// Call every 100ms) from main sensor task.
 bool OneWireBus::groupUpdate(uint32_t now_ms)
 {
     const uint32_t UPDATE_INTERVAL_MS = 1000;  // Desired update interval
@@ -207,12 +205,10 @@ bool OneWireBus::groupUpdate(uint32_t now_ms)
             continue;
         }
         
-        uint32_t adjusted_ts_ms = sensor->getConvertStartMs() + MAX_CONVERSION_TIME_MS;
-
         float val = sensor->doRead();
-        sensor->pushToHistory(val, now_ms);
+        sensor->pushToHistory(val, sensor->getConvertStartMs());
 
-        ESP_LOGI(FNAME, "OW sensor %016llX: %umsec %.2f", sensor->getAddress(), (unsigned)now_ms, val);
+        ESP_LOGI(FNAME, "OW sensor %016llX: %umsec %.2f", sensor->getAddress(), (unsigned)sensor->getConvertStartMs(), val);
     }
 
     return true;
