@@ -20,7 +20,7 @@ extern "C" {
  * @param[in] input_size Size of input buffer, in bytes
  * @return CRC8 result of the input buffer
  */
-uint8_t onewire_crc8(uint8_t init_crc, uint8_t *input, size_t input_size);
+uint8_t onewire_crc8(uint8_t init_crc, const uint8_t *input, size_t input_size);
 
 #ifdef __cplusplus
 }

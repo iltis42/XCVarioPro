@@ -29,7 +29,7 @@ static const uint8_t dalas_crc8_table[] = {
     116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53
 };
 
-uint8_t onewire_crc8(uint8_t init_crc, uint8_t *input, size_t input_size)
+uint8_t onewire_crc8(uint8_t init_crc, const uint8_t *input, size_t input_size)
 {
     uint8_t crc = init_crc;
     for (size_t i = 0; i < input_size; i ++) {
@@ -40,7 +40,7 @@ uint8_t onewire_crc8(uint8_t init_crc, uint8_t *input, size_t input_size)
 
 #else // FAST_CRC
 
-uint8_t onewire_crc8(uint8_t init_crc, uint8_t *input, size_t input_size)
+uint8_t onewire_crc8(uint8_t init_crc, const uint8_t *input, size_t input_size)
 {
     uint8_t crc = init_crc;
     for (size_t i = 0; i < input_size; i++) {
