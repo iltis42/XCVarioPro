@@ -322,7 +322,6 @@ SetupNG<int>  			serial2_tx_enable( "SER2_TX_ENA", 1 );
 SetupNG<int>  			software_update( "SOFTWARE_UPDATE", 0 );
 SetupNG<int>  			battery_display( "BAT_DISPLAY", Battery::BAT_PERCENTAGE );
 SetupNG<int>  			airspeed_mode( "AIRSPEED_MODE", MODE_IAS );
-SetupNG<int>  			nmea_protocol( "NMEA_PROTOCOL", XCVARIO_P );
 SetupNG<int>		    log_level( "LOG_LEVEL", 3 );
 SetupNG<float>		    te_comp_adjust ( "TECOMP_ADJ", 0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(-100, 100, 0.1));
 SetupNG<int>		    te_comp_enable( "TECOMP_ENA", TE_TEK_PROBE );

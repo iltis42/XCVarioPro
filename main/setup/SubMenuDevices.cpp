@@ -29,6 +29,7 @@
 
 static DeviceId new_device;
 static InterfaceId new_interface;
+static ProtocolType new_flavor = XCVARIO_P;
 static std::string device_details;
 
 //
@@ -348,7 +349,7 @@ static int select_device_action(SetupMenuSelect *p)
             flavor->addEntry(DeviceManager::getPrtclName(p).data(), p);
         }
         flavor->unlock();
-        flavor->setSelect(getFlvEnumFromProto((ProtocolType)nmea_protocol.get()));
+        flavor->setSelect(getFlvEnumFromProto(new_flavor));
         top->setHighlight(1);
     }
     else {
@@ -373,7 +374,7 @@ static int select_device_action(SetupMenuSelect *p)
 static int select_flavor_action(SetupMenuSelect *p)
 {
     SetupMenu *top = p->getParent();
-    nmea_protocol.set(p->getValue());
+    new_flavor = (ProtocolType)p->getValue();
     top->setHighlight(3);
     return 0;
 }
@@ -399,19 +400,25 @@ static void create_dev(DeviceId did, InterfaceId iid)
     const DeviceAttributes &da = DeviceManager::getDevAttr(did, iid);
     ESP_LOGI(FNAME,"dev attr name %s", da.name.data());
     ESP_LOGI(FNAME,"dev attr nr of protos %d nr of itfs %d", da.prcols.getExtra(), da.itfs.getExtra());
-    Device *dev = nullptr;
-    for (int i=0; i<da.prcols.getExtra(); ++i) {
-        ProtocolType pid = da.prcols.proto(i);
-        if ( new_device == NAVI_DEV ) {
-            // this does only work for one protocol list (!)
-            pid = (ProtocolType)nmea_protocol.get(); // navi flavor, override protocol table
-        }
-        if ( pid != NO_ONE ) {
-            ESP_LOGI(FNAME,"add protocol %d for device id %d", pid, new_device);
-            dev = DEVMAN->addDevice(new_device, pid, da.port, da.port, new_interface, true);
-            CANPeerCaps::updateMyCapabilities(new_device, true);
+
+    if ( da.prcols.getExtra() > 0 ) {
+        for (int i=0; i<da.prcols.getExtra(); ++i) {
+            ProtocolType pid = da.prcols.proto(i);
+            if ( did == NAVI_DEV ) {
+                // this does only work for one protocol (!)
+                pid = new_flavor; // navi flavor, override protocol table
+            }
+            if ( pid != NO_ONE ) {
+                ESP_LOGI(FNAME,"add protocol %d for device id %d", pid, did);
+                DEVMAN->addDevice(did, pid, da.port, da.port, iid, true);
+            }
         }
     }
+    else {
+        // no protocol, just add device (eg OW temp sensor)
+        DEVMAN->addDevice(did, NO_ONE, da.port, da.port, iid, true);
+    }
+    CANPeerCaps::updateMyCapabilities(did, true);
 }
 static int create_device_action(SetupMenuSelect *p)
 {
@@ -424,7 +431,6 @@ static int create_device_action(SetupMenuSelect *p)
         create_dev(new_device, new_interface);
         // make sure there is a flarm host for any navi 
         if ( new_device == NAVI_DEV ) {
-            new_device = FLARM_HOST_DEV;
             create_dev(FLARM_HOST_DEV, new_interface);
         }
         p->getParent()->getParent()->setDirty();

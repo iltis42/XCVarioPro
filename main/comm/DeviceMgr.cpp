@@ -100,39 +100,40 @@ static const RoutingTarget* findRoute(const RoutingTarget& source) {
 //   + optional pointer to a SetupNG<> configuration entry for this device
 //
 constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
-    {DeviceId::ANEMOI_DEV, {"Anemoi", {{S1_RS232, S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_REAL, &anemoi_devsetup}},
-    {DeviceId::ANEMOI_DEV, {"", {{S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_REAL, nullptr}},
-    {DeviceId::CANREGISTRAR_DEV, {"Auto-connect", {{CAN_BUS}}, {{REGISTRATION_P}, 1}, CAN_REG_PORT, IS_REAL, nullptr}},
-    {DeviceId::FLARM_DEV,  {"Flarm", {{S1_RS232, S2_RS232}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, IS_REAL, &flarm_devsetup}},
+    {DeviceId::ANEMOI_DEV, {"Anemoi", {{S1_RS232, S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_SEL, &anemoi_devsetup}},
+    {DeviceId::ANEMOI_DEV, {"", {{S2_RS232}}, {{ANEMOI_P}, 1}, 0, 0, nullptr}},
+    {DeviceId::CANREGISTRAR_DEV, {"Auto-connect", {{CAN_BUS}}, {{REGISTRATION_P}, 1}, CAN_REG_PORT, 0, nullptr}},
+    {DeviceId::FLARM_DEV,  {"Flarm", {{S1_RS232, S2_RS232}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, IS_SEL, &flarm_devsetup}},
     // {DeviceId::FLARM_DEV,  {"", {{XCVPROXY}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::JUMBO_DEV,  {"jumbo putzi", {{CAN_BUS}}, {{JUMBOCMD_P}, 1} , 0, 0, nullptr}}, // auto reg
-    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|SECOND_ONLY, &master_devsetup}}, // CAN_BUS auto reg
+    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_SEL|SECOND_ONLY, &master_devsetup}}, // CAN_BUS auto reg
     // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
     {DeviceId::XCVARIOFIRST_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
-    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
+    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_SEL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
     // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}}, fixme, missing the BLUEspp client implementation
     {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
-    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, &magleg_devsetup}},
-    {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto reg
+    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_SEL, &magleg_devsetup}},
+    {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_SEL, nullptr}}, // auto reg
     {DeviceId::NAVI_DEV,   {"Navi", {{WIFI_APSTA, S1_RS232, S2_RS232, BT_SPP, BT_LE, CAN_BUS}},
                                     {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, SEEYOU_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    8880, IS_REAL, &navi_devsetup}},
+                                    8880, IS_SEL, &navi_devsetup}},
     {DeviceId::NAVI_DEV,   {"", {{S2_RS232}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    0, IS_REAL, nullptr}},
+                                    0, 0, nullptr}},
     {DeviceId::NAVI_DEV,   {"", {{BT_SPP}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    0, IS_REAL, nullptr}},
+                                    0, 0, nullptr}},
     {DeviceId::NAVI_DEV,   {"", {{BT_LE}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, SEEYOU_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    0, IS_REAL, nullptr}},
-    {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP, BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host_setup}},
+                                    0, 0, nullptr}},
+    {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP, BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, IS_SEL, &flarm_host_setup}},
     {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
-    {DeviceId::FLARM_HOST2_DEV, {"Flarm Download", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host2_setup}},
+    {DeviceId::FLARM_HOST2_DEV, {"Flarm Download", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, IS_SEL, &flarm_host2_setup}},
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
-    {DeviceId::RADIO_REMOTE_DEV, {"Radio remote", {{WIFI_APSTA}}, {{KRT2_REMOTE_P}, 1}, 8882, 0, &radio_host_setup}},
-    {DeviceId::RADIO_KRT2_DEV, {"KRT 2", {{S2_RS232, CAN_BUS}}, {{KRT2_REMOTE_P}, 1}, 0, IS_REAL, &krt_devsetup}},
-    {DeviceId::RADIO_ATR833_DEV, {"ATR833", {{S2_RS232, CAN_BUS}}, {{ATR833_REMOTE_P}, 1}, 0, IS_REAL, &atr_devsetup}}
+    {DeviceId::RADIO_REMOTE_DEV, {"Radio remote", {{WIFI_APSTA}}, {{KRT2_REMOTE_P}, 1}, 8882, IS_SEL, &radio_host_setup}},
+    {DeviceId::RADIO_KRT2_DEV, {"KRT 2", {{S2_RS232, CAN_BUS}}, {{KRT2_REMOTE_P}, 1}, 0, IS_SEL, &krt_devsetup}},
+    {DeviceId::RADIO_ATR833_DEV, {"ATR833", {{S2_RS232, CAN_BUS}}, {{ATR833_REMOTE_P}, 1}, 0, IS_SEL, &atr_devsetup}},
+    {DeviceId::TEMPSENS_DEV, {"Temp. Sensor", {{OW_BUS}}, {{NO_ONE}, 0}, 0, IS_SEL, nullptr}},
 };
 
 // Lookup functions

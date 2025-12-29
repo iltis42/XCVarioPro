@@ -250,7 +250,7 @@ static void toyFeed() // Called at 2Hz from clientLoop or sensorloop
             ToyNmeaPrtcl->sendXcvRPYL(IMU::getRoll(), IMU::getPitch(), IMU::getYaw(), IMU::getGliderAccelZ());
             ToyNmeaPrtcl->sendXcvAPENV1(ias.get(), altitude.get(), te_vario.get());
         }
-        switch (nmea_protocol.get())
+        switch (ToyNmeaPrtcl->getProtocolId())
         {
         case BORGELT_P:
             ToyNmeaPrtcl->sendBorgelt(te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), gflags.validTemperature);
@@ -271,7 +271,7 @@ static void toyFeed() // Called at 2Hz from clientLoop or sensorloop
             if ( count%5 == 0 ) ToyNmeaPrtcl->sendSeeYouS(OAT.get(), VCMode.getCMode(), battery_voltage.get(), altitude.get());
             break;
         default:
-            ESP_LOGE(FNAME, "Protocol %d not supported error", nmea_protocol.get());
+            ESP_LOGE(FNAME, "Protocol %d not supported error", ToyNmeaPrtcl->getProtocolId());
         }
 		count++;
     }

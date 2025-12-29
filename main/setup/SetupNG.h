@@ -428,7 +428,6 @@ extern SetupNG<int>  		serial2_tx_enable;
 extern SetupNG<int>  		software_update;
 extern SetupNG<int>  		battery_display;
 extern SetupNG<int>  		airspeed_mode;
-extern SetupNG<int>  		nmea_protocol;
 extern SetupNG<int>		    log_level;
 extern SetupNG<float>		te_comp_adjust;
 extern SetupNG<int>		    te_comp_enable;

@@ -219,7 +219,7 @@ struct DeviceNVS
 
 
 // some common flag constants
-constexpr int IS_REAL       = 0x01;
+constexpr int IS_SEL        = 0x01;
 constexpr int MULTI_CONF    = 0x02;
 constexpr int HAS_PROFILE   = 0x04;
 constexpr int IS_VARIANT    = 0x08; // Same device id, just another option to connect
@@ -241,11 +241,11 @@ struct DeviceAttributes
 
     union {
         struct {
-            unsigned isReal      : 1; // a device with a physical realastate and meant to be selectable
-            unsigned multipleConf: 1; // can be configured in multiple steps (e.g. Navi)
-            unsigned profileConf : 1; // protocols are organized through a profile, instead of a list
-            unsigned aVariant    : 1; // just a variant of the connection details, not a new device entry
-            unsigned roleDepndent: 2; // 0=independant, 1=master only, 2=second only
+            uint8_t selectable   :1; // a device meant to be selectable
+            uint8_t multipleConf :1; // can be configured in multiple steps (e.g. Navi)
+            uint8_t profileConf  :1; // protocols are organized through a profile, instead of a list
+            uint8_t aVariant     :1; // just a variant of the connection details, not a new device entry
+            uint8_t roleDepndent :2; // 0=independant, 1=master only, 2=second only
         };
         uint8_t flags;
     };
@@ -254,11 +254,11 @@ struct DeviceAttributes
     constexpr DeviceAttributes(std::string_view n, PackedInt5Array i, PackedInt5Array p, int o, int f, NvsPtr setup ) 
         : name(n), itfs(i), prcols(p), port(o), flags(f), nvsetup(setup) {}
 
-    bool isSelectable() const { return nvsetup!=nullptr && !name.empty(); }
+    bool isSelectable() const { return (bool)selectable && !name.empty(); }
     bool isMultiConf() const { return (bool)multipleConf; }
     bool hasProfile() const { return (bool)profileConf; }
     bool isVariant() const { return (bool)aVariant; }
-    unsigned getRoleDep() const { return roleDepndent; }
+    uint8_t getRoleDep() const { return roleDepndent; }
     bool roleFit(int role) const { return ( !roleDepndent || !role || (roleDepndent == role) ); }
 };
 
