@@ -154,7 +154,7 @@ uint8_t gyro_flash_savings=0;
 // boot with flasg "inSetup":=true and release the screen for other purpouse by setting it false.
 global_flags gflags = {};
 
-int  ccp=60;
+int   ccp = 60;
 float tas = 0;
 float cas = 0;
 float aTE = 0;
@@ -164,8 +164,6 @@ float netto = 0;
 float as2f = 0;
 float s2f_delta = 0;
 float polar_sink = 0;
-
-int count=0;
 
 float mpu_target_temp=45.0;
 
@@ -239,9 +237,8 @@ static void grabMPU()
 
 }
 
-static void toyFeed() // Called at 2Hz from clientLoop or sensorloop
+static void toyFeed(int count) // Called at 5Hz from clientLoop or sensorloop
 {
-	static int count = 0;
     if (ToyNmeaPrtcl)
     {
         if (ahrs_rpyl_dataset.get())
@@ -267,30 +264,96 @@ static void toyFeed() // Called at 2Hz from clientLoop or sensorloop
             break;
         case SEEYOU_P:
             ToyNmeaPrtcl->sendSeeYouF(IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), te_vario.get(), ias.get(), altitude.get(), VCMode.getCMode());
-            if ( count%5 == 0 ) ToyNmeaPrtcl->sendSeeYouS(OAT.get(), VCMode.getCMode(), battery_voltage.get(), altitude.get());
+            if ( !(count%10) ) ToyNmeaPrtcl->sendSeeYouS(OAT.get(), VCMode.getCMode(), battery_voltage.get(), altitude.get());
             break;
         default:
             ESP_LOGE(FNAME, "Protocol %d not supported error", ToyNmeaPrtcl->getProtocolId());
         }
-		count++;
     }
+}
+
+static void commonThingsFirst()
+{
+    if (gflags.haveIMU)
+    {
+        grabMPU();
+    }
+}
+static void commonThingsLast(int count)
+{
+    if (IMU::getGliderAccelZ() > gload_pos_max.get()) {
+        gload_pos_max.set(IMU::getGliderAccelZ());
+    }
+    else if (IMU::getGliderAccelZ() < gload_neg_max.get()) {
+        gload_neg_max.set(IMU::getGliderAccelZ());
+    }
+
+    // Need to be done for client and main vario
+    polar_sink = Speed2Fly.sink(ias.get());
+    te_netto.set(te_vario.get() - polar_sink);
+    as2f = Speed2Fly.speed(te_netto.get(), !VCMode.getCMode());
+
+    s2f_ideal.set(std::roundf(as2f));
+    // low pass damping
+    s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta) * (1 / (s2f_delay.get() * 10));
+    // ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, te_netto.get(), as2f, s2f_delta );
+
+    if (OneWIRE) {
+        // read one wire sensors
+        OneWIRE->groupUpdate(Clock::getMillis());
+    }
+
+    if (gflags.haveIMU && HAS_MPU_TEMP_CONTROL) {
+        // ESP_LOGI(FNAME,"MPU temp control; T=%.2f", MPU.getTemperature() );
+        MPU.temp_control(count, xcvTemp);
+    }
+
+    AUDIO->updateTone();
+    const int screenEvent = ScreenEvent(ScreenEvent::MAIN_SCREEN).raw;
+    xQueueSend(uiEventQueue, &screenEvent, 0);
+}
+static void commonThings5Secs()
+{
+    SetupCommon::commitDirty(); // very important, flash NVS settings permanently
+
+    ESP_LOGI(FNAME, "Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+    if (uxTaskGetStackHighWaterMark(bpid) < 512)
+    {
+        ESP_LOGW(FNAME, "Warning %s task stack low: %d bytes", pcTaskGetName(NULL), uxTaskGetStackHighWaterMark(bpid));
+    }
+    if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000)
+    {
+        ESP_LOGW(FNAME, "Warning heap_caps_get_free_size getting low: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+    }
+    extern MessagePool MP;
+    ESP_LOGI(FNAME, "MPool in-use:%d, acq-fails: %d", MP.nrUsed(), MP.nrAcqFails());
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ESP_LOGI(FNAME, "TofDay %d.%03ds", (int)(tv.tv_sec % (60 * 60 * 24)), (int)(tv.tv_usec / 1000));
+
+    // static char buf[2048];
+    // vTaskGetRunTimeStats(buf);
+    // std::printf("Task runtime stats:\n%s\n", buf);
+
+    // DeviceManager* dm = DeviceManager::Instance();
+    // static_cast<TestQuery*>(dm->getProtocol( TEST_DEV2, TEST_P ))->sendTestQuery();  // all 5 seconds on burst
 }
 
 void clientLoop(void *pvParameters)
 {
-	int ccount = 0;
-	gflags.validTemperature = true;
+	int count = 0;
 	esp_task_wdt_add(NULL);
 
 	while (true)
 	{
 		TickType_t xLastWakeTime = xTaskGetTickCount();
-		ccount++;
+		count++; // 10 Hz
+
+        commonThingsFirst();
 		aTE += (te_vario.get() - aTE)* (1/(10*vario_av_delay.get()));
-		if( gflags.haveIMU ) {
-			grabMPU();
-		}
-		if( !(ccount%5) )
+
+		if( !(count%2) )
 		{
 			double tmpalt = altitude.get(); // get pressure from altitude
 			if( (fl_auto_transition.get() == 1) && ((int)( Units::meters2FL( altitude.get() )) + (int)(gflags.standard_setting) > transition_alt.get() ) ) {
@@ -304,48 +367,41 @@ void clientLoop(void *pvParameters)
 			tas = Atmosphere::TAS2( ias.get(), altitude.get(), OAT.get() );
 			if( airspeed_mode.get() == MODE_CAS )
 				cas = Atmosphere::CAS( dynamicP );
-			if( gflags.haveIMU && HAS_MPU_TEMP_CONTROL ){
-				MPU.temp_control( ccount, xcvTemp );
-			}
 			if( IMU::getGliderAccelZ() > gload_pos_max.get() ){
 				gload_pos_max.set( IMU::getGliderAccelZ() );
 			}else if( IMU::getGliderAccelZ() < gload_neg_max.get() ){
 				gload_neg_max.set( IMU::getGliderAccelZ() );
 			}
-			toyFeed();
-			if( true && !(ccount%5) ) { // todo need a mag_hdm.valid() flag
-				NmeaPrtcl *prtcl = static_cast<NmeaPrtcl*>(DEVMAN->getProtocol(NAVI_DEV, XCVARIO_P)); // Todo preliminary solution ..
-				if ( prtcl ) {
-					if( compass_nmea_hdm.get() ) {
-						prtcl->sendXCVNmeaHDM( mag_hdm.get() );
-					}
 
-					if( compass_nmea_hdt.get() ) {
-						prtcl->sendXCVNmeaHDT( mag_hdt.get() );
-					}
-				}
-			}
-			esp_task_wdt_reset();
 			if( uxTaskGetStackHighWaterMark( bpid ) < 512 ) {
 				ESP_LOGW(FNAME,"Warning client task stack low: %d bytes", uxTaskGetStackHighWaterMark( bpid ) );
 			}
-		}
+        }
 
-		// Need to be done for client and main vario (Oops)
-		polar_sink = Speed2Fly.sink( ias.get() );
-		te_netto.set(te_vario.get() - polar_sink);
-		as2f = Speed2Fly.speed( te_netto.get(), !VCMode.getCMode() );
+        commonThingsLast(count);
+        if (!(count % 2))
+        {
+            toyFeed(count);
+            if (true)
+            { // todo need a mag_hdm.valid() flag
+                if (ToyNmeaPrtcl)
+                {
+                    if (compass_nmea_hdm.get())
+                    {
+                        ToyNmeaPrtcl->sendXCVNmeaHDM(mag_hdm.get());
+                    }
 
-		s2f_ideal.set(as2f);
-		// low pass damping
-		s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta)* (1/(s2f_delay.get()*10));
-		// ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, te_netto.get(), as2f, s2f_delta );
+                    if (compass_nmea_hdt.get())
+                    {
+                        ToyNmeaPrtcl->sendXCVNmeaHDT(mag_hdt.get());
+                    }
+                }
+            }
+        }
+        if (!(count % 50)) { commonThings5Secs(); }
 
-		// Vario screen update for client
-		const int screenEvent = ScreenEvent(ScreenEvent::MAIN_SCREEN).raw;
-		xQueueSend(uiEventQueue, &screenEvent, 0);
-
-		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
+        esp_task_wdt_reset();
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
 	}
 }
 
@@ -360,22 +416,22 @@ void readSensors(void *pvParameters){
 
 	float tasraw = 0;
 	esp_task_wdt_add(NULL);
+    int count = 0;
 	int16_t landed = 0; // airborne detection counter
 
 	while (1)
 	{
-		count++;   // 10x per second
 		TickType_t xLastWakeTime = xTaskGetTickCount();
-		float T=OAT.get();
+		count++;   // 10x per second
+
+        float T=OAT.get();
 		if( !gflags.validTemperature ) {
 			T= 15 - ( (altitude.get()/100) * 0.65 );
 			// ESP_LOGW(FNAME,"T invalid, using 15 deg");
 		}
 		// ESP_LOGI(FNAME,"Start");
-		if( gflags.haveIMU  )  // 3th Generation HW, MPU6050 avail and feature enabled
-		{
-			grabMPU();  // IMU
-		}
+        commonThingsFirst();
+
 		// ESP_LOGI(FNAME,"IMU");
 		if( asSensor ){  // AS differential Sensor
 			bool ok=false;
@@ -469,7 +525,7 @@ void readSensors(void *pvParameters){
 		if( !(count % ccp) ) {
 			AverageVario::recalcAvgClimb();
 		}
-		if (FLAP && flapbox_enable.get()) { FLAP->progress(); }
+		if (FLAP && FLAP->haveAdcSensor()) { FLAP->progress(); }
 
 		// ESP_LOGI(FNAME,"Baro Pressure: %4.3f", baroP );
 		float altSTD = 0;
@@ -519,7 +575,7 @@ void readSensors(void *pvParameters){
 				landed = 0;
 			}
 			
-			toyFeed();
+			toyFeed(count);
 		}
 
 		if( theCompass ){
@@ -529,14 +585,13 @@ void readSensors(void *pvParameters){
 				// done periodically.
 				bool ok;
 				float heading = theCompass->getGyroHeading( &ok );
-				NmeaPrtcl *prtcl = static_cast<NmeaPrtcl*>(DEVMAN->getProtocol(NAVI_DEV, XCVARIO_P)); // Todo preliminary solution ..
 				if(ok){
 					if( (int)heading != (int)mag_hdm.get() && !(count%10) ){
 						mag_hdm.set( heading );
 					}
 					if( !(count%5) && compass_nmea_hdm.get() == true ) {
-						if ( prtcl ) {
-							prtcl->sendXCVNmeaHDM(heading);
+						if ( ToyNmeaPrtcl ) {
+							ToyNmeaPrtcl->sendXCVNmeaHDM(heading);
 						}
 					}
 				}
@@ -550,8 +605,8 @@ void readSensors(void *pvParameters){
 						mag_hdt.set( theading );
 					}
 					if( !(count%5) && ( compass_nmea_hdt.get() == true )  ) {
-						if ( prtcl ) {
-							prtcl->sendXCVNmeaHDM(heading);
+						if ( ToyNmeaPrtcl ) {
+							ToyNmeaPrtcl->sendXCVNmeaHDT(heading);
 						}
 					}
 				}
@@ -560,11 +615,6 @@ void readSensors(void *pvParameters){
 						mag_hdt.set( -1 );
 				}
 			}
-		}
-		if( IMU::getGliderAccelZ() > gload_pos_max.get() ){
-			gload_pos_max.set( IMU::getGliderAccelZ() );
-		}else if( IMU::getGliderAccelZ() < gload_neg_max.get() ){
-			gload_neg_max.set( IMU::getGliderAccelZ() );
 		}
 
 		// Check on new clients connecting
@@ -578,24 +628,7 @@ void readSensors(void *pvParameters){
 				ESP_LOGI(FNAME,"Client sync complete");
 			}
 		}
-		if( gflags.haveIMU && HAS_MPU_TEMP_CONTROL ){
-			// ESP_LOGI(FNAME,"MPU temp control; T=%.2f", MPU.getTemperature() );
-			MPU.temp_control( count, xcvTemp );
-		}
-		esp_task_wdt_reset();
-		if( uxTaskGetStackHighWaterMark( bpid ) < 512 ) {
-			ESP_LOGW(FNAME,"Warning sensor task stack low: %d bytes", uxTaskGetStackHighWaterMark( bpid ) );
-		}
 
-		// fixme Need to be done for client and main vario (Oops)
-		polar_sink = Speed2Fly.sink( ias.get() );
-		te_netto.set(te_vario.get() - polar_sink);
-		as2f = Speed2Fly.speed( te_netto.get(), !VCMode.getCMode() );
-
-		s2f_ideal.set(static_cast<int>(std::round(as2f)));
-		// low pass damping
-		s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta)* (1/(s2f_delay.get()*10));
-		// ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, netto, as2f, s2f_delta );
 
         // battery voltage update
         if ( count%10 == 0 ) {
@@ -605,38 +638,10 @@ void readSensors(void *pvParameters){
             }
         }
 
-        if ( OneWIRE ) {
-            // read one wire sensors
-            OneWIRE->groupUpdate(Clock::getMillis());
-        }
+        commonThingsLast(count);
+        if ((count % 50) == 0) { commonThings5Secs(); }
 
-		AUDIO->updateTone();
-		const int screenEvent = ScreenEvent(ScreenEvent::MAIN_SCREEN).raw;
-		xQueueSend(uiEventQueue, &screenEvent, 0);
-
-        if ((count%50) == 0)
-        {
-            ESP_LOGI(FNAME, "Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-            if (uxTaskGetStackHighWaterMark(tpid) < 256)
-            {
-                ESP_LOGW(FNAME, "Warning temperature task stack low: %d bytes", uxTaskGetStackHighWaterMark(tpid));
-            }
-            if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000)
-            {
-                ESP_LOGW(FNAME, "Warning heap_caps_get_free_size getting low: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-            }
-            extern MessagePool MP;
-            ESP_LOGI(FNAME, "MPool in-use:%d, acq-fails: %d", MP.nrUsed(), MP.nrAcqFails());
-
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
-            ESP_LOGI(FNAME, "TofDay %d.%03ds", (int)(tv.tv_sec % (60 * 60 * 24)), (int)(tv.tv_usec / 1000));
-
-            // static char buf[2048];
-            // vTaskGetRunTimeStats(buf);
-            // std::printf("Task runtime stats:\n%s\n", buf);
-        }
-
+		esp_task_wdt_reset();
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
 	}
 }
@@ -705,7 +710,7 @@ void system_startup(void *args){
 
 	AverageVario::begin();
 
-	BatVoltage = new AnalogInput((22.0+1.2)/1200, ADC_CHANNEL_7);
+	BatVoltage = new AnalogInput((22.0+1.2)/1200, ADC_CHANNEL_7); // created allways, but only used on master XCV
 	BatVoltage->begin(ADC_ATTEN_DB_0);  // for battery voltage
 	BatVoltage->setAdjust(factory_volt_adjust.get());
 	ccp = (int)(core_climb_period.get()*10);
