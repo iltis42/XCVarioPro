@@ -54,10 +54,10 @@ bool XCVSyncMsg::sendItem(const char *key, char type, void *value, int len)
 {
     Message* msg = _nmeaRef.newMessage();
 
-    ESP_LOGI(FNAME,"sendItem: %s", key );
+    ESP_LOGD(FNAME,"sendItem: %s", key );
     char sender = _is_master ? 'M' : 'C';
 
-    ESP_LOGI(FNAME,"sender: %c", sender );
+    ESP_LOGD(FNAME,"sender: %c", sender );
     msg->buffer =  "!xs";
     msg->buffer.push_back(sender);
     msg->buffer.push_back(',');
@@ -76,18 +76,33 @@ bool XCVSyncMsg::sendItem(const char *key, char type, void *value, int len)
     return DEV::Send(msg);
 }
 
+bool XCVSyncMsg::sendCAPs(int caps)
+{
+    Message* msg = _nmeaRef.newMessage();
+
+    ESP_LOGI(FNAME,"sendCAPs: %x", caps );
+    msg->buffer = "$PJPCAP, ";
+    msg->buffer += std::to_string(caps);
+    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
+    return DEV::Send(msg);
+}
+
+//
+// sync receiver routines
+//
+
 dl_action_t XCVSyncMsg::parseExcl_xsX(NmeaPlugin *plg)
 {
     ProtocolState *sm = plg->getNMEA().getSM();
     const std::vector<int> *word = &sm->_word_start;
 
-    ESP_LOGI(FNAME,"parseXS %s", sm->_frame.c_str() );
+    ESP_LOGD(FNAME,"parseXS %s", sm->_frame.c_str() );
     [[maybe_unused]] char sender_role = sm->_frame[3]; // Master | Client
     int pos = word->at(0);
     std::string key = NMEA::extractWord(sm->_frame, pos);
     char type = sm->_frame[word->at(1)];
     float val = atof(sm->_frame.c_str() + word->at(2));
-    ESP_LOGI(FNAME,"parsed NMEA: role=%c type=%c key=%s val=%f vali=%d", sender_role, type , key.c_str(), val, (int)val );
+    ESP_LOGD(FNAME,"parsed NMEA: role=%c type=%c key=%s val=%f vali=%d", sender_role, type , key.c_str(), val, (int)val );
     SetupCommon *item = SetupCommon::getMember(key.c_str());
     if ( item ) {
         if( type == 'F' ) {
@@ -120,10 +135,29 @@ dl_action_t XCVSyncMsg::parseExcl_xsSyncInit(NmeaPlugin *plg)
     return NOACTION;
 }
 
+dl_action_t XCVSyncMsg::parse_caps(NmeaPlugin *plg)
+{
+    // message e.g. "$PJPCAP, 123"
+    ProtocolState *sm = plg->getNMEA().getSM();
+    const std::vector<int> *word = &sm->_word_start;
+
+    if ( word->size() < 1 ) {
+        return NOACTION;
+    }
+
+    int pos = word->at(1);
+    int caps = std::stoi(NMEA::extractWord(sm->_frame, pos));
+    peer_caps.set(caps);
+    ESP_LOGI(FNAME, "XCV CAPS received %x", caps);
+
+    return NOACTION;
+}
+
 const ParserEntry XCVSyncMsg::_pt[] = {
     {Key("xsA"), XCVSyncMsg::parseExcl_xsX},
     {Key("xsC"), XCVSyncMsg::parseExcl_xsX},
     {Key("xsM"), XCVSyncMsg::parseExcl_xsX},
     {Key("xsSI"), XCVSyncMsg::parseExcl_xsSyncInit},
+    {Key("PCAP"), XCVSyncMsg::parse_caps},
     {}
 };

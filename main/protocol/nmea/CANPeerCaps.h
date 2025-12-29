@@ -21,12 +21,6 @@ enum DeviceId : uint8_t;
 
 namespace CANPeerCaps
 {
-    // encode
-    std::string encodeCaps(int cap_flags);
-
-    // receive caps
-    int decodeCaps(const char* caps_str);
-
     // update my caps
     void updateMyCapabilities(DeviceId did, bool add);
 

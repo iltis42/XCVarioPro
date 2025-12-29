@@ -69,16 +69,17 @@ enum ProtocolType : uint8_t
 
 
 // Capabilities resulting out of protocol negotiation
-enum XcvCaps : uint8_t
+enum XcvCaps : uint16_t
 {
-    GPS_CAP         = 1<<0, // "G"
-    FLARM_CAP       = 1<<1, // "F"
-    EXTWIND_CAP     = 1<<2, // "W"
-    RADIOCTRL_CAP   = 1<<3, // "R"
-    HEADING_CAP     = 1<<4, // "H"
-    FLAPSENS_CAP    = 1<<5, // "L"
-    GEARSENS_CAP    = 1<<6, // "E"
-    AHRS_CAP        = 1<<7 // "A"
+    GPS_CAP         = 1<<0,
+    FLARM_CAP       = 1<<1,
+    EXTWIND_CAP     = 1<<2,
+    RADIOCTRL_CAP   = 1<<3,
+    HEADING_CAP     = 1<<4,
+    FLAPSENS_CAP    = 1<<5,
+    GEARSENS_CAP    = 1<<6,
+    AHRS_CAP        = 1<<7,
+    TEMP_CAP        = 1<<8
 };
 
 constexpr int CAN_REG_PORT = 0x7f0;

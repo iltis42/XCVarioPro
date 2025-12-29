@@ -23,8 +23,9 @@ public:
 
 public:
     // only needed from SetupNG
-    bool sendItem(const char *key, char type, void *value, int len);
     bool sendInitSyncRequest();
+    bool sendItem(const char *key, char type, void *value, int len);
+    bool sendCAPs(int caps);
 
 private:
     bool _is_master;
@@ -33,5 +34,7 @@ private:
     // Received messages
     static dl_action_t parseExcl_xsX(NmeaPlugin *plg);
     static dl_action_t parseExcl_xsSyncInit(NmeaPlugin *plg);
+    static dl_action_t parse_caps(NmeaPlugin *plg);
+    
     static const ParserEntry _pt[];
 };

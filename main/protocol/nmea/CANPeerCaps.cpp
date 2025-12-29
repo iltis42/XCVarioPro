@@ -18,53 +18,17 @@
 
 // The XCV CAN peer capabilities query message.
 //
-// - Caps need to be know on early stage to configure the device properly. Thus the Xcv Sync message is not sufficient and 
-//      might not act in the desired timely fashion. A dedicated CAN message is used to query the peer capabilities
-//      right after power-on or reset.
-//      The suggested message is used from both sides, master and client (protocol).
-//   $PJPCAP, <token>, <protocol type>\r\n
-//
-// The expected peer response
-// - The respons is just a string with one letter per capability.
-//   $PJPCAP, <token>, <cap ids string>*<CRC>\r\n
+// - Caps need to be know on early stage to configure the device properly. The caps need to cross sync from own to peer caps.
+//      Thus the Xcv Sync message is not able to do that. A dedicated CAN message is used to propagate capabilities.
+//      The suggested message is used from both sides, master and client, to propagate own caps as soon as possible
+//      and on every change.
+//   $PJPCAP, <my caps>*<CRC>\r\n
 //
 // OR, piggiback on the registration query/response message from master to client
-//   $PJPREG, <token>, <protocol type>, <client caps>\r\n
-//   $PJMACC, <token>, <drive id>, <master id>, <cap ids string>*<CRC>\r\n
+//   $PJPREG, <token>, <protocol type>, <client caps>*<CRC>\r\n
+//   $PJMACC, <token>, <drive id>, <master id>, <master caps>*<CRC>\r\n
 //
 
-static const char *CAP_BITS = "GFWRHLEA";
-
-std::string CANPeerCaps::encodeCaps(int cap_flags)
-{
-    // to compose the cap flags message "$PJCAP, 123, caps_string"
-    std::string caps;
-    int all_caps = strlen(CAP_BITS);
-    for ( int i = 0; i < all_caps; i++ ) {
-        if ( cap_flags & (1 << i) ) {
-            caps += CAP_BITS[i];
-        }
-    }
-    ESP_LOGI(FNAME, "encodeCaps: %x->%s", cap_flags, caps.c_str());
-    return caps;
-}
-
-int CANPeerCaps::decodeCaps(const char* caps_str)
-{
-    // grab cap flags message "$PJCAP, 123, caps_string"
-    int caps = 0;
-    if ( caps_str != nullptr ) {
-        size_t len = strlen(caps_str);
-        for ( int i = 0; i < len; i++ ) {
-            const char *p = strchr(CAP_BITS, caps_str[i]);
-            if ( p != nullptr ) {
-                caps |= 1 << (int)(p-CAP_BITS);
-            }
-        }
-    }
-    ESP_LOGI(FNAME, "decodeCaps: %s->%x", caps_str, caps);
-    return caps;
-}
 
 // translate devices to capabilities
 void CANPeerCaps::updateMyCapabilities(DeviceId did, bool add)
@@ -96,6 +60,8 @@ void CANPeerCaps::updateMyCapabilities(DeviceId did, bool add)
     }
 }
 
+// Setup devices on peer based on capabilities
+// Those devices are then virtually connected to this XCVario via the CAN interface
 void CANPeerCaps::setupPeerProtos(int listen_port, int send_port)
 {
     // look for caps the peer has but not this device

@@ -891,7 +891,9 @@ void system_startup(void *args){
     }
 
     // Always check on one wire devices
-    DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS);
+    if ( DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS) ) {
+		my_caps.set( my_caps.get() | XcvCaps::TEMP_CAP );
+	}
     
     ESP_LOGI(FNAME,"Wirelss-ID: %s", SetupCommon::getID());
 	std::string wireless_id;

@@ -25,6 +25,7 @@
 #include "protocol/NMEA.h"
 #include "protocol/AliveMonitor.h"
 #include "protocol/nmea/SeeYouMsg.h"
+#include "protocol/nmea/XCVSyncMsg.h"
 #include "screen/element/Battery.h"
 #include "screen/element/Altimeter.h"
 #include "screen/element/PolarGauge.h"
@@ -168,20 +169,29 @@ static void flap_update_act() {
 
 void send_config( httpd_req *req ){
 	SetupCommon::giveConfigChanges( req );
-};
+}
 
 int restore_config(int len, char *data){
 	return( SetupCommon::restoreConfigChanges( len, data ) );
-};
+}
 
 void chg_mpu_target(){
 	mpu_target_temp = mpu_temperature.get();
-};
+}
+
+static void propagate_caps()
+{
+    // when my_caps changes, propagate to peer side
+    XCVSyncMsg* proto = SetupCommon::getSyncProto();
+    if ( proto ) {
+        proto->sendCAPs( my_caps.get() );
+    }
+}
 
 void chg_display_orientation(){
 	ESP_LOGI(FNAME, "display changed");
 	imu_reference.setDefault();
-};
+}
 
 static void ch_airborne_state(){
 	ESP_LOGI(FNAME, "airborne state changed");
@@ -437,8 +447,8 @@ SetupNG<mpud::raw_axes_t>	accl_bias("ACCL_BIAS", {} );
 SetupNG<float>              mpu_temperature("MPUTEMP", 45.0, true, SYNC_FROM_MASTER, PERSISTENT, chg_mpu_target, QUANT_NONE, LIMITS(-1, 60, 1)); // default for AHRS chip temperature (XCV 2023)
 SetupNG<int> 			xcv_role("XCVROLE", MASTER_ROLE, false, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(MASTER_ROLE, SECOND_ROLE, 1));
 // Bitfield to exchange status on connected devices between master and second
-SetupNG<int> 			my_caps("MACAPS", 0, false, SYNC_FROM_MASTER, VOLATILE );
-SetupNG<int>			peer_caps("SECAPS", 0, false, SYNC_FROM_CLIENT, VOLATILE );
+SetupNG<int> 			my_caps("MACAPS", 0, false, SYNC_NONE, VOLATILE, propagate_caps );
+SetupNG<int>			peer_caps("SECAPS", 0, false, SYNC_NONE, VOLATILE );
 // Those device entries are serving as factory reset minimum configuration
 SetupNG<DeviceNVS>		anemoi_devsetup("ANEMOI", DeviceNVS() );
 SetupNG<DeviceNVS>		flarm_devsetup("FLARM", DeviceNVS() );

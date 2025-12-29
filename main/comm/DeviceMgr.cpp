@@ -449,7 +449,6 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         dev = new Device(did);
         is_new = true;
         // Retrieve, or create a new data link
-        DataLink *dl = itf->newDataLink(listen_port);
         dev->_link = itf->newDataLink(listen_port);
         dev->_itf = itf;
         if ( dev->_link ) {
@@ -580,7 +579,8 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
                 ESP_LOGI(FNAME, "stopping CAN");
                 CAN->stop();
             }
-            else if ( itf == WIFI ) { // fixme, restart not reliably working
+            else if ( itf == WIFI ) {
+            // fixme, WiFi delete not reliably working (idf issue)
             //     ESP_LOGI(FNAME, "stopping Wifi");
             //     WIFI *tmp = WIFI;
             //     WIFI = nullptr;
@@ -616,6 +616,7 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
 
         if ( nvsave ) {
             const DeviceAttributes &da = getDevAttr(did);
+            ESP_LOGI(FNAME, "NV save removal for device %d", did);
             if ( da.nvsetup ) {
                 // clear entry in nvs
                 da.nvsetup->set(DeviceNVS(), false, false);
@@ -923,7 +924,7 @@ Device::~Device()
         // Detach data links from interface
         if ( _link->decrDeviceCount() == 0 ) {
             // last device on this link
-            ESP_LOGI(FNAME, "Last device on %s", _itf->getStringId());
+            ESP_LOGI(FNAME, "Last device on %s port %d", _itf->getStringId(), _link->getPort());
             _itf->DeleteDataLink(_link->getPort());
         }
         else {

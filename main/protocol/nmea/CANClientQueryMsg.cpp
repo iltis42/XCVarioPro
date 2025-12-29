@@ -78,7 +78,8 @@ bool CANClientQueryMsg::sendRegistrationQuery()
     msg->buffer = "$PJPREG, ";
     msg->buffer += Q_TOKEN;
     msg->buffer += ", XCVCLIENT";
-    msg->buffer += ", " + CANPeerCaps::encodeCaps(my_caps.get()) + "\r\n";
+    msg->buffer += ", " + std::to_string(my_caps.get());
+    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     return DEV::Send(msg);
 }
 
@@ -122,33 +123,14 @@ dl_action_t CANClientQueryMsg::registration(NmeaPlugin *plg)
         // look for optional master capabilities
         int master_caps = 0;
         if ( sm->_word_start.size() > 3 ) {
-            master_caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + sm->_word_start[3]);
-            ESP_LOGI(FNAME, "Mcaps received %d, %x", sm->_word_start.size(), master_caps);
+            master_caps = std::stoi(NMEA::extractWord(sm->_frame, pos));
+            ESP_LOGI(FNAME, "Mcaps received 0x%x", master_caps);
             peer_caps.set(master_caps);
             CANPeerCaps::setupPeerProtos(c_id, m_id);
         }
     }
     return NOACTION;
 }
-
-// dl_action_t CANClientQueryMsg::caps_response(NmeaPlugin *plg)
-// {
-//     // grab token from e.g. message "$PJPCAP, 123, cpas_string"
-//     ProtocolState *sm = plg->getNMEA().getSM();
-//     const std::vector<int> *word = &sm->_word_start;
-
-//     if ( word->size() < 2 ) {
-//         return NOACTION;
-//     }
-//     int caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + word->at(2));
-
-//     CANClientQueryMsg *me = reinterpret_cast<CANClientQueryMsg*>(plg);
-//     ESP_LOGI(FNAME, "Client received ACC");
-//     if ( sm->_frame.size() < 12 ) {
-//         return NOACTION;
-//     }
-//     return NOACTION;
-// }
 
 dl_action_t CANClientQueryMsg::restart_query(NmeaPlugin *plg)
 {

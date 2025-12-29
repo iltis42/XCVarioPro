@@ -64,6 +64,7 @@ public:
 
 	// housekeeping supporters
 	static void setSyncProto(XCVSyncMsg *sp) { syncProto = sp; }
+	static XCVSyncMsg* getSyncProto() { return syncProto; }
 	static bool isMaster();
 	static bool isClient();
     static bool isWired();

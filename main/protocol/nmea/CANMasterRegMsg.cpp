@@ -114,7 +114,7 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
         nproto = XCVSYNC_P;
         prio = 4;
         if ( sm->_word_start.size() > 2 ) {
-            client_caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + sm->_word_start[2]);
+            client_caps = std::stoi(NMEA::extractWord(sm->_frame, pos));
         }
     }
     if ( ndev != NO_DEVICE ) {
@@ -138,7 +138,7 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
                 msg->buffer.clear();
                 msg->buffer = "$PJMACC, " + token + ", " + std::to_string(client_ch) + ", " + std::to_string(master_ch);
                 if ( ndev == XCVARIOSECOND_DEV ) {
-                    msg->buffer += ", " + CANPeerCaps::encodeCaps(my_caps.get()); // add my caps
+                    msg->buffer += ", " + std::to_string(my_caps.get()); // add my caps
                     new_client = true;
                 }
                 msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
@@ -152,7 +152,7 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
 
         if ( new_client ) {
             // save and digest the client caps and add optional features
-            ESP_LOGI(FNAME, "Client caps: %s", client_caps);
+            ESP_LOGI(FNAME, "Client caps: %x", client_caps);
             peer_caps.set(client_caps);
             CANPeerCaps::setupPeerProtos(master_ch, client_ch);
         }
