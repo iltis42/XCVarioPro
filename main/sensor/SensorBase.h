@@ -1,0 +1,198 @@
+/***********************************************************
+ ***   THIS DOCUMENT CONTAINS PROPRIETARY INFORMATION.   ***
+ ***    IT IS THE EXCLUSIVE CONFIDENTIAL PROPERTY OF     ***
+ ***     Rohs Engineering Design AND ITS AFFILIATES.     ***
+ ***                                                     ***
+ ***       Copyright (C) Rohs Engineering Design         ***
+ ***********************************************************/
+
+#pragma once
+
+#include <cstdint>
+#include <cstring>  // for memcpy
+
+
+constexpr int SENSOR_HISTORY_DURATION_MS = 5000;  // milliseconds
+
+//
+// Memory-optimized fixed-size history buffer for sensors.
+// 
+// Uses a fixed-capacity circular buffer storing only values.
+// 
+// Only the timestamp of the latest reading is stored explicitly.
+// Previous timestamps are reconstructed backwards using the fixed interval.
+// 
+// - Timestamps in uint32_t milliseconds since boot.
+// - Capacity is computed to cover N seconds at the sensor's update rate.
+// 
+
+template <typename T>
+class FixedSensorHistory {
+public:
+    FixedSensorHistory() = delete;
+    explicit FixedSensorHistory(T* buf, size_t cap) : 
+        _capacity(cap), _head(0), _full(false), _heap_alloced(false), _buffer(buf) {
+        if ( buf == nullptr ) {
+            _buffer = (T*)malloc(cap + 4);
+            _heap_alloced = true;
+        }
+        *_buffer = T{};
+    }
+    ~FixedSensorHistory() {
+        if ( _heap_alloced ) free(_buffer);
+    }
+
+    void push(const T& value) {
+        int nxt = (_head + 1) % _capacity;
+        _buffer[nxt] = value;
+        _head = nxt;
+        if (_head == 0) _full = true;
+    }
+    size_t size() const {
+        return _full ? _capacity : _head;
+    }
+    T getHead() const {
+        return _buffer[_head];
+    }
+    T* getHeadPtr() const {
+        return &_buffer[_head];
+    }
+    void reset() {
+        _head = 0;
+        _full = false;
+        std::memset(_buffer, 0, sizeof(T) * _capacity);
+    }
+
+private:
+    size_t _capacity;
+    int    _head;       ///< Index of the next write position (also count when full)
+    uint8_t _full :1;   ///< Whether the buffer has wrapped around
+    uint8_t _heap_alloced :1; ///< Whether the buffer was heap allocated
+
+    alignas(T) T* _buffer;
+};
+
+
+//
+// Sensor template and base class using fixed-size history
+//
+class SensorBase {
+public:
+    SensorBase() = default;
+    virtual ~SensorBase();
+
+    virtual const char* name() const = 0;
+    virtual bool probe() = 0;
+    virtual bool setup() = 0;
+};
+
+template <typename T>
+class SensorTP : public SensorBase {
+public:
+    SensorTP() = delete;
+    SensorTP(void *buf, uint32_t ums) :
+        _history((T*)buf, HistoryCapacity(ums)),
+        _update_interval_ms(ums),
+        _latency_ms(0),
+        _last_update_time_ms(0)
+    {
+    }
+    virtual ~SensorTP() = default;
+
+    virtual T doRead() = 0;
+
+    // optional: diagnostic info
+    virtual bool healthy() const { return true; }
+
+
+    // Call this periodically from main loop or task.
+    bool update(uint32_t now_ms) {
+        if (now_ms - _last_update_time_ms < _update_interval_ms) {
+            return false;
+        }
+
+        T value = doRead();
+        _last_update_time_ms = now_ms - _latency_ms; // allways > 0 :)
+
+        _history.push(value);
+        return true;
+    }
+
+    // The sensor bypass to fill the history directly (e.g. from group read)
+    void pushToHistory(const T& value, uint32_t now_ms) {
+        _last_update_time_ms = now_ms - _latency_ms;
+        _history.push(value);
+    }
+
+    /**
+     * @brief Retrieve full history (caller provides buffer).
+     * @param out_buffer Buffer to fill (must be at least HistoryCapacity long).
+     * @param out_size Filled with actual number of samples.
+     */
+    // void getHistory(typename FixedSensorHistory<T, HistoryCapacity>::Reading* out_buffer,
+    //                 size_t& out_size) const {
+    //     _history.getHistory(out_buffer, out_size);
+    // }
+
+    // /**
+    //  * @brief Reconstruct full history with timestamps (oldest first).
+    //  */
+    // void getHistory(Reading* out_history, size_t& out_size) const {
+    //     size_t count = size();
+    //     if (count == 0) {
+    //         out_size = 0;
+    //         return;
+    //     }
+
+    //     out_size = count;
+
+    //     // Start from latest and go backwards
+    //     uint32_t ts = last_timestamp_ms_;
+    //     size_t idx = (head_ == 0) ? (Capacity - 1) : (head_ - 1);
+
+    //     for (size_t i = 0; i < count; ++i) {
+    //         out_history[i] = {ts, buffer_[idx]};
+    //         if (ts >= interval_ms_) {
+    //             ts -= interval_ms_;
+    //         } else {
+    //             ts = 0;  // Underflow protection (rare)
+    //         }
+
+    //         if (idx == 0) {
+    //             idx = Capacity - 1;
+    //         } else {
+    //             --idx;
+    //         }
+    //     }
+
+    //     // Reverse to have oldest first
+    //     for (size_t i = 0; i < count / 2; ++i) {
+    //         size_t j = count - 1 - i;
+    //         Reading temp = out_history[i];
+    //         out_history[i] = out_history[j];
+    //         out_history[j] = temp;
+    //     }
+    // }
+
+    // Get latest reading directly.
+    inline T getHead() const {
+        return _history.getHead();
+    }
+    inline T* getHeadPtr() const {
+        return _history.getHeadPtr();
+    }
+    inline int getLastUpdateTimeMs() const {
+        return _last_update_time_ms;
+    }
+
+protected:
+    // Capacity = ceil(5000 / _update_interval_ms)
+    static constexpr size_t HistoryCapacity(uint32_t ums) { return (SENSOR_HISTORY_DURATION_MS + ums - 1) / ums; }
+
+    FixedSensorHistory<T> _history;
+
+    uint32_t _update_interval_ms;  ///< Expected update interval
+    uint32_t _latency_ms;          ///< Sensor conversion/acquisition latency
+    uint32_t _last_update_time_ms; ///< Raw update time (before latency compensation)
+};
+
