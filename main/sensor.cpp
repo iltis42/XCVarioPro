@@ -260,8 +260,7 @@ static void toyFeed(int count) // Called at 5Hz from clientLoop or sensorloop
             ToyNmeaPrtcl->sendCambridge(te_vario.get(), tas, MC.get(), bugs.get(), altitude.get());
             break;
         case XCVARIO_P:
-            ToyNmeaPrtcl->sendStdXCVario(baroP, dynamicP, te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), altitude.get(), gflags.validTemperature,
-                                         IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), IMU::getGliderGyroX(), IMU::getGliderGyroY(), IMU::getGliderGyroZ());
+            ToyNmeaPrtcl->sendStdXCVario(baroP, dynamicP, VCMode.getCMode());
             break;
         case SEEYOU_P:
             ToyNmeaPrtcl->sendSeeYouF(IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), te_vario.get(), ias.get(), altitude.get(), VCMode.getCMode());

@@ -91,38 +91,33 @@ const ParserEntry XCVarioMsg::_pt[] = {
     Y.YY:   acceleration in Y-Axis,
     Z.ZZ:   acceleration in Z-Axis,
 */
-void NmeaPrtcl::sendStdXCVario(float baro, float dp, float te, float temp, float ias, float tas,
-                               float mc, int bugs, float aballast, bool cruise, float alt, bool validTemp,
-                               float acc_x, float acc_y, float acc_z,
-                               float gx, float gy, float gz)
+void NmeaPrtcl::sendStdXCVario(float baro, float dp, bool cruise)
 {
     if ( _dl.isBinActive() ) {
         return; // no NMEA output in binary mode
     }
     Message *msg = newMessage();
 
-    if (!validTemp)
-    {
+    float temp = OAT.get();
+    if ( temp < -1000.f) {
         temp = 0;
     }
 
     msg->buffer = "$PXCV,";
-    // msg->buffer += std::format("{:3.1f}", te); // commented because of an 150KB extra of lib code
     char str[50];
-    std::sprintf(str, "%3.1f", te);
+    std::sprintf(str, "%3.1f", te_vario.get());
     msg->buffer += str;
-    // msg->buffer += ',' + std::format("{:1.2f}", mc);
-    std::sprintf(str, ",%1.2f", mc);
+    std::sprintf(str, ",%1.2f", MC.get());
     msg->buffer += str;
-    msg->buffer += ',' + std::to_string(bugs);
+    msg->buffer += ',' + std::to_string(bugs.get());
     msg->buffer += ',';
     if (XCVarioMsg::getXcvProtocolVersion() <= 1)
     {
-        std::sprintf(str, "%1.3f", (aballast + 100.f) / 100.f);
+        std::sprintf(str, "%1.3f", (ballast.get() + 100.f) / 100.f);
         msg->buffer += str;
     }
     msg->buffer += ',' + std::to_string(!cruise);
-    std::sprintf(str, ",%2.1f", fast_iroundf(temp * 10.f) / 10.f);
+    std::sprintf(str, ",%2.1f", std::roundf(temp * 10.f) / 10.f);
     msg->buffer += str;
     std::sprintf(str, ",%4.1f", QNH.get());
     msg->buffer += str;
@@ -138,11 +133,11 @@ void NmeaPrtcl::sendStdXCVario(float baro, float dp, float te, float temp, float
         msg->buffer += str;
         std::sprintf(str, ",%3.1f", IMU::getXCSPitch());
         msg->buffer += str;
-        std::sprintf(str, ",%1.2f", acc_x);
+        std::sprintf(str, ",%1.2f", IMU::getGliderAccelX());
         msg->buffer += str;
-        std::sprintf(str, ",%1.2f", acc_y);
+        std::sprintf(str, ",%1.2f", IMU::getGliderAccelY());
         msg->buffer += str;
-        std::sprintf(str, ",%1.2f", acc_z);
+        std::sprintf(str, ",%1.2f", IMU::getGliderAccelZ());
         msg->buffer += str;
     }
     else
