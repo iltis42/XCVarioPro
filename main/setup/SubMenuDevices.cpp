@@ -18,7 +18,7 @@
 #include "comm/SerialLine.h"
 #include "comm/WifiApSta.h"
 #include "protocol/NMEA.h"
-#include "protocol/nmea/CANPeerCaps.h"
+#include "protocol/CANPeerCaps.h"
 #include "setup/DataMonitor.h"
 #include "sensor.h"
 #include "logdefnone.h"

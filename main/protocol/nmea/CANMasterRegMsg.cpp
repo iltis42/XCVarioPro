@@ -10,7 +10,7 @@
 
 #include "protocol/nmea_util.h"
 #include "protocol/Clock.h"
-#include "protocol/nmea/CANPeerCaps.h"
+#include "protocol/CANPeerCaps.h"
 #include "comm/DeviceMgr.h"
 #include "comm/Messages.h"
 #include "setup/SetupNG.h"

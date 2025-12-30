@@ -19,7 +19,7 @@
 #include "protocol/ProtocolItf.h"
 #include "protocol/NMEA.h"
 #include "protocol/MagSensBin.h"
-#include "protocol/nmea/CANPeerCaps.h"
+#include "protocol/CANPeerCaps.h"
 #include "setup/DataMonitor.h"
 #include "setup/SetupNG.h"
 #include "Compass.h"
