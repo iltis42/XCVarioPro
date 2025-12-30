@@ -302,7 +302,7 @@ static bool remove_dev(DeviceId did) // true if restart is needed
     }
     ESP_LOGI(FNAME, "remove %d", did);
     ret = DEVMAN->removeDevice(did, true);
-    CANPeerCaps::updateMyCapabilities(did, false);
+    CANPeerCaps::updateCapsFromDev(did, false);
     if ( did == NAVI_DEV ) {
         // remove a flarm host on the same itf
         Device *fhdev = DEVMAN->getDevice(FLARM_HOST_DEV);
@@ -418,7 +418,7 @@ static void create_dev(DeviceId did, InterfaceId iid)
         // no protocol, just add device (eg OW temp sensor)
         DEVMAN->addDevice(did, NO_ONE, da.port, da.port, iid, true);
     }
-    CANPeerCaps::updateMyCapabilities(did, true);
+    CANPeerCaps::updateCapsFromDev(did, true);
 }
 static int create_device_action(SetupMenuSelect *p)
 {

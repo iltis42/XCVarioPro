@@ -43,6 +43,7 @@
 #include "math/Trigonometry.h"
 #include "protocol/NMEA.h"
 #include "protocol/nmea/JumboCmdMsg.h"
+#include "protocol/CANPeerCaps.h"
 
 #include <algorithm>
 #include <array>
@@ -143,7 +144,7 @@ void SetupMenu::initGearWarning() {
 		gpio_set_pull_mode(io, GPIO_PULLUP_ONLY);
 		gpio_pullup_en(io);
         // add gear warn to my caps
-        my_caps.set( my_caps.get() | XcvCaps::GEARSENS_CAP );
+        CANPeerCaps::addCapability(XcvCaps::GEARSENS_CAP);
 	}
 	ESP_LOGI(FNAME,"initGearWarning: IO: %d", io );
 }

@@ -29,6 +29,7 @@
 #include "protocol/NMEA.h"
 #include "protocol/WatchDog.h"
 #include "protocol/nmea/XCVSyncMsg.h"
+#include "protocol/CANPeerCaps.h"
 #include "screen/SetupRoot.h"
 #include "screen/BootUpScreen.h"
 #include "screen/MessageBox.h"
@@ -780,7 +781,7 @@ void system_startup(void *args){
 	{
 		gflags.haveIMU = true;
         // add AHRS to my caps
-        my_caps.set( my_caps.get() | XcvCaps::AHRS_CAP );
+        CANPeerCaps::addCapability(XcvCaps::AHRS_CAP);
 		mpu_target_temp = mpu_temperature.get();
 		ESP_LOGI( FNAME,"MPU initialize");
 		MPU.initialize();  // this will initialize the chip and set default configurations
@@ -892,7 +893,7 @@ void system_startup(void *args){
 
     // Always check on one wire devices
     if ( DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS) ) {
-		my_caps.set( my_caps.get() | XcvCaps::TEMP_CAP );
+		CANPeerCaps::addCapability(XcvCaps::TEMP_CAP);
 	}
     
     ESP_LOGI(FNAME,"Wirelss-ID: %s", SetupCommon::getID());

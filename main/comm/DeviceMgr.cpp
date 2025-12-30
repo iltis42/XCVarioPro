@@ -771,7 +771,7 @@ void DeviceManager::reserectFromNvs()
                 }
             }
             // update my caps
-            CANPeerCaps::updateMyCapabilities(did, true);
+            CANPeerCaps::updateCapsFromDev(did, true);
         }
     }
     ESP_LOGI(FNAME, "Reserected %d dev entries from NVS", nr_set_up);

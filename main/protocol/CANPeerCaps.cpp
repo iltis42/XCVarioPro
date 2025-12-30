@@ -29,9 +29,18 @@
 //   $PJMACC, <token>, <drive id>, <master id>, <master caps>*<CRC>\r\n
 //
 
+void CANPeerCaps::addCapability(int cap)
+{
+    my_caps.set(my_caps.get() | cap);
+}
+
+void CANPeerCaps::removeCapability(int cap)
+{
+    my_caps.set(my_caps.get() & (~cap));
+}
 
 // translate devices to capabilities
-void CANPeerCaps::updateMyCapabilities(DeviceId did, bool add)
+void CANPeerCaps::updateCapsFromDev(DeviceId did, bool add)
 {
     int cap = 0;
     switch ( did ) {
@@ -53,9 +62,9 @@ void CANPeerCaps::updateMyCapabilities(DeviceId did, bool add)
     }
     if ( cap != 0 ) {
         if ( add ) {
-            my_caps.set(my_caps.get() | cap);
+            addCapability(cap);
         } else {
-            my_caps.set(my_caps.get() & (~cap));
+            removeCapability(cap);
         }
     }
 }

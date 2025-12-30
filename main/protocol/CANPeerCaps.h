@@ -21,8 +21,14 @@ enum DeviceId : uint8_t;
 
 namespace CANPeerCaps
 {
-    // update my caps
-    void updateMyCapabilities(DeviceId did, bool add);
+    // add a capability
+    void addCapability(int cap);
+
+    // remove a capability
+    void removeCapability(int cap);
+    
+    // update my caps from connected devices
+    void updateCapsFromDev(DeviceId did, bool add);
 
     // setup peer protocols based on caps
     void setupPeerProtos(int listen_port, int send_port);
