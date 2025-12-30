@@ -80,7 +80,7 @@ void glider_menu_create(SetupMenu *top) {
 		fill_glider_selection(glt);
 		top->addEntry(glt);
 
-		SetupMenu *pa = new SetupMenu("Polar Points", glider_menu_create_polarpoints);
+		SetupMenu *pa = new SetupMenu("Reference Polar", glider_menu_create_polarpoints);
 		pa->setHelp("Adjust the polar at 3 points, in the commonly used metric system");
 		top->addEntry(pa);
 
