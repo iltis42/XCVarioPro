@@ -289,7 +289,10 @@ float Flap::getSpeedBand(float wkf, float &maxv) const
 float Flap::getSpeed(float wkf) const
 {
     int wki = getWkIndex(wkf);
-    return flevel[wki].prep_speed + (wkf - wki) * flevel[wki].speed_delta;
+    if ( wki < flevel.size() ) {
+       return flevel[wki].prep_speed + (wkf - wki) * flevel[wki].speed_delta;
+    }
+    return 0.f;
 }
 
 float Flap::getFlapPosition() const
