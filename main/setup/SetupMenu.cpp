@@ -34,7 +34,7 @@
 #include "KalmanMPU6050.h"
 #include "PressureSensor.h"
 #include "AnalogInput.h"
-#include "AirspeedSensor.h"
+#include "sensor/press_diff/AirspeedSensor.h"
 #include "AdaptUGC.h"
 #include "sensor.h"
 #include "logdefnone.h"
