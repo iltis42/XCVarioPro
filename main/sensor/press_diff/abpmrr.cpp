@@ -1,217 +1,61 @@
-#include "ABPMRR.h"
+#include "abpmrr.h"
 #include "setup/SetupNG.h"
-#include <logdefnone.h>
+#include "logdef.h"
+
+#include <I2Cbus.hpp>
 
 #include <cmath>
 
-ABPMRR::ABPMRR()
+#define I2C_ADDRESS_ABPMRR    0x28    ///< 7-bit address =0x28. 8-bit is 0x50. Depends on the order code (this is for code "I")
+
+
+/* Register address */
+// #define ADDR_READ_MR            0x00    /* write to this address to start conversion */
+ 
+// ABPMRRD sensor full scale range and units
+// const int16_t ABPMRRFullScaleRange = 1;  // 1 psi
+ 
+// ABPMRRD Sensor type (10% to 90%)
+// Output (% of 2^14 counts) = P max. 80% x (Pressure applied – P min. ) + 10%
+
+const int16_t ABPMRRMinScaleCounts = 1638;
+const int16_t ABPMRRFullScaleCounts = 14746;
+
+const int16_t ABPMRRSpan = ABPMRRFullScaleCounts - ABPMRRMinScaleCounts;
+ 
+// ABPMRRD sensor differential pressure style 
+// const int16_t ABPMRRZeroCounts = (ABPMRRMinScaleCounts + ABPMRRFullScaleCounts) / 2;
+ 
+#define MAX_AUTO_CORRECTED_OFFSET 50
+
+ABPMRR::ABPMRR() : AsSensI2c(&i2c1, I2C_ADDRESS_ABPMRR)
 {
-	address = I2C_ADDRESS_ABPMRR;
-	psi = 0;
-	temperature = 0;
-	airspeed = 0;
-	P_dat = 0;  // 14 bit pressure data
-	T_dat = 0;  // 11 bit temperature data
-	error = ESP_OK;
-	_status = 0;
-	_offset = 0;
-	bus = 0;
-	changeConfig();
+    changeConfig();
 }
 
-ABPMRR::~ABPMRR()
+void ABPMRR::changeConfig()
 {
+    _multiplier = (2.f * 6894.76 / ABPMRRSpan) * ((100.0 + speedcal.get()) / 100.0);
+    ESP_LOGI(FNAME, "changeConfig, speed multiplier %f, speed cal: %f ", _multiplier, speedcal.get());
 }
 
-// combine measure and collect into one function that returns the status code only, and holds the results in variables
-// other subroutines for returning clean values should be get functions
-
-void ABPMRR::changeConfig(){
-	multiplier = ABPMRRmultiplier * ((100.0 + speedcal.get()) / 100.0);
-	ESP_LOGI(FNAME,"changeConfig, speed multiplier %f, speed cal: %f ", multiplier, speedcal.get() );
-}
-
-
-int ABPMRR::measure()
+float ABPMRR::getTemperature()
 {
-	char ret;
-	ret = fetch_pressure(P_dat, T_dat);
-	// ESP_LOGI(FNAME,"ABPMRR::fetch_pressure: %d", P_dat );
-	return ret;
+	float temp = t_dat;
+	temp = temp / 10;         // now in deg F
+	temp = (temp -32) / 1.8f; // now in deg C
+	return temp;
 }
 
-// #define RANDOM_TEST
-#define Press_H data[0]
-#define Press_L data[1]
-#define Temp_H  data[2]
-#define Temp_L  data[3]
-
-char ABPMRR::fetch_pressure(uint16_t &P_dat, uint16_t &T_dat)
+bool ABPMRR::offsetPlausible(uint32_t offset)
 {
-	// ESP_LOGI(FNAME,"ABPMRR::fetch_pressure");
-	char _status;
-	uint8_t data[4];
-	esp_err_t err = bus->readBytes(address, 0, 4, data );
-	if( err != ESP_OK ) {
-		_status = 5;   // i2c error detected
-		ESP_LOGW(FNAME,"fetch_pressure() I2C error");
-		return _status;
-	}
-#ifdef RANDOM_TEST
-	Press_H = esp_random() % 255;
-	Press_L = esp_random() % 255;
-	Temp_L = esp_random() % 255;
-#endif
-	// ESP_LOG_BUFFER_HEXDUMP(FNAME,data,4, ESP_LOG_INFO);
-	_status = (Press_H >> 6) & 0x03;
-	P_dat = (((uint16_t)(Press_H & 0x3f)) << 8) | Press_L;
-	T_dat = (((uint16_t)Temp_H) << 3) | (Temp_L >>5);
-	// ESP_LOGI(FNAME,"fetch_pressure() status: %d, err %d,  P:%04x T: %04x",  _status, err, P_dat, T_dat );
-	return _status;
+    ESP_LOGI(FNAME, "ABPMRR offsetPlausible( %ld )", offset);
+    constexpr int lower_val = 8192 - 200;
+    constexpr int upper_val = 8192 + 200;
+    return (offset > lower_val) && (offset < upper_val);
 }
 
-float ABPMRR::readPascal( float minimum, bool &ok ){
-	measure();
-	if( _status == 0 )
-		ok=true;
-	else{
-		ESP_LOGE(FNAME,"Retry measure, status :%d  p=%d", _status, P_dat );
-		measure();
-		if( _status == 0 )
-			ok=true;
-		else{
-			ESP_LOGE(FNAME,"Warning, status :%d  p=%d, bad even retry", _status, P_dat );
-			ok=false;
-		}
-	}
-	float _pascal = (P_dat - _offset) * multiplier;
-	if ( _pascal < minimum ) {
-		_pascal = 0.0;
-	};
-
-	// ESP_LOGI(FNAME,"pressure: %f offset: %d raw: %d  raw-off:%f m:%f", _pascal, (int)_offset, P_dat,  (_offset - P_dat),  ABPMRRmultiplier );
-	return( _pascal );
-}
-
-bool    ABPMRR::selfTest( int& adval ){
-	uint8_t data[4];
-	esp_err_t err = ESP_FAIL;
-	for( int i=0; i<4; i++ ){
-		err = bus->readBytes(address, 0, 4, data );
-		if( err == ESP_OK )
-			break;
-	}
-	if( err != ESP_OK ){
-		ESP_LOGI(FNAME,"ABPMRR selftest, scan for I2C address %02x FAILED",I2C_ADDRESS_ABPMRR );
-		return false;
-	}
-	ESP_LOGI(FNAME,"ABPMRR selftest, scan for I2C address %02x PASSED",I2C_ADDRESS_ABPMRR );
-	measure();
-	adval = P_dat;
-	if( error != ESP_OK )
-		return false;
-	else
-		return true;
-}
-
-float ABPMRR::getPSI(void){             // returns the PSI of last measurement
-	// convert and store PSI
-	psi=( static_cast<float>(static_cast<int16_t>(P_dat)-ABPMRRZeroCounts))  / static_cast<float>(ABPMRRSpan)* static_cast<float>(ABPMRRFullScaleRange);
-	return psi;
-}             
-
-float ABPMRR::getTemperature(void){     // returns temperature of last measurement
-	temperature= (static_cast<float>(static_cast<int16_t>(T_dat)));
-	temperature = (temperature / 10);   // now in deg F
-	temperature = ((temperature -32) / 1.8f);   // now in deg C
-	return temperature;
-}
-
-float ABPMRR::getAirSpeed(void){        // calculates and returns the airspeed in m/s IAS
-	/* Velocity calculation from a pitot tube explanation */
-	/* +/- 1PSI, approximately 100 m/s */
-	const float rhom = (2.0*100)/1.225; // density of air plus multiplier
-	// velocity = sqrt( (2*psi) / rho )   or sqt( psi /
-	float velocity = abs( sqrt(psi*rhom) );
-	// ESP_LOGI(FNAME,"velocity %f", velocity );
-	return velocity;
-}
-
-
-bool ABPMRR::offsetPlausible(uint32_t aoffset )
+int ABPMRR::getMaxACOffset()
 {
-	ESP_LOGI(FNAME,"ABPMRR offsetPlausible( %ld )", aoffset );
-	const int lower_val = 8192-200;
-	const int upper_val = 8192+200;
-	if( (aoffset > lower_val ) && (aoffset < upper_val )  )
-		return true;
-	else
-		return false;
+    return MAX_AUTO_CORRECTED_OFFSET;
 }
-
-bool ABPMRR::doOffset( bool force ){
-	ESP_LOGI(FNAME,"ABPMRR doOffset()");
-
-	_offset = as_offset.get();
-	if( _offset < 0 ) {
-		ESP_LOGI(FNAME,"offset not yet done: need to recalibrate" );
-	} else {
-		ESP_LOGI(FNAME,"offset from NVS: %0.1f", _offset );
-	}
-
-	uint16_t adcval = 0,
-			T;
-	fetch_pressure( adcval, T );
-
-	ESP_LOGI(FNAME,"offset from ADC %d", adcval );
-
-	bool plausible = offsetPlausible( adcval );
-	if( plausible ) {
-		ESP_LOGI(FNAME,"offset from ADC is plausible");
-	} else {
-		ESP_LOGI(FNAME,"offset from ADC is NOT plausible");
-	}
-
-	int deviation = abs( _offset - adcval );
-	if( deviation < MAX_AUTO_CORRECTED_OFFSET ) {
-		ESP_LOGI(FNAME,"Deviation in bounds");
-	} else {
-		ESP_LOGI(FNAME,"Deviation out of bounds");
-	}
-
-	// Long term stability of Sensor as from datasheet 0.5% per year -> 4000 * 0.005 = 20
-	if( (_offset < 0 ) || ( plausible && (deviation < MAX_AUTO_CORRECTED_OFFSET ) ) || autozero.get() )
-	{
-		ESP_LOGI(FNAME,"Airspeed OFFSET correction ongoing, calculate new _offset...");
-		if( autozero.get() )
-			autozero.set(0);
-		uint32_t rawOffset=0;
-		for( int i=0; i<100; i++){
-			fetch_pressure( adcval, T );
-			rawOffset += adcval;
-			vTaskDelay(10 / portTICK_PERIOD_MS);
-		}
-		_offset = rawOffset / 100;
-		if( offsetPlausible( _offset ) )
-		{
-			ESP_LOGI(FNAME,"Offset procedure finished, offset: %f", _offset);
-			if( as_offset.get() != _offset ){
-				as_offset.set( _offset );
-				ESP_LOGI(FNAME,"Stored new offset in NVS");
-			}
-			else {
-				ESP_LOGI(FNAME,"New offset equal to value from NVS");
-			}
-		}
-		else {
-			ESP_LOGW(FNAME,"Offset out of tolerance, ignore odd offset value");
-		}
-	}
-	else
-	{
-		ESP_LOGI(FNAME,"No new Calibration: flying with plausible pressure");
-	}
-	return true;
-}
-
-

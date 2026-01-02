@@ -27,6 +27,7 @@ const int OneWireBus::_ONEWIRE_BUS_GPIO = GPIO_NUM_23;
 
 OneWireBus::OneWireBus() : InterfaceCtrl(false, false)
 {
+   	gpio_set_drive_capability(GPIO_NUM_23, GPIO_DRIVE_CAP_1);
 }
 
 OneWireBus* OneWireBus::create()

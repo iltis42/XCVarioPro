@@ -3,7 +3,6 @@
 
 #include "Cipher.h"
 #include "BME280_ESP32_SPI.h"
-#include "mcp3221.h"
 #include "ESP32NVS.h"
 #include "sensor/press_diff/mp50040p.h"
 #include "sensor/press_diff/ms4525do.h"
@@ -98,7 +97,7 @@ BMP:
 #define SPL06_007_TE   0x76
 
 
-AirspeedSensor *asSensor=0;
+AirspeedSensor *asSensor = nullptr;
 
 SemaphoreHandle_t spiMutex=NULL;
 
@@ -434,9 +433,8 @@ void readSensors(void *pvParameters){
 
 		// ESP_LOGI(FNAME,"IMU");
 		if( asSensor ){  // AS differential Sensor
-			bool ok=false;
-			float p = asSensor->readPascal(60, ok);
-			if( ok ) {
+			float p = asSensor->doRead();
+			if(!std::isnan(p) && p>60.f) {
 				dynamicP = p;
 			}
 		}
@@ -686,10 +684,6 @@ void system_startup(void *args){
 	bool selftestPassed=true;
 	ESP_LOGI(FNAME, "startup on core %d", xPortGetCoreID());
 
-	MCP = new MCP3221();
-	MCP->setBus( &i2c );
-	gpio_set_drive_capability(GPIO_NUM_23, GPIO_DRIVE_CAP_1);
-
 	esp_wifi_set_mode(WIFI_MODE_NULL);
 	spiMutex = xSemaphoreCreateMutex();
 	ESP_LOGI( FNAME, "Log level set globally to INFO %d; Max Prio: %d Wifi: %d",  ESP_LOG_INFO, configMAX_PRIORITIES, ESP_TASKD_EVENT_PRIO-5 );
@@ -921,11 +915,8 @@ void system_startup(void *args){
 	boot_screen->finish(0);
 
 	ESP_LOGI(FNAME,"Airspeed sensor init..  type configured: %d", airspeed_sensor_type.get() );
-	int offset;
-	bool found = false;
 	if( hardwareRevision.get() >= XCVARIO_20 ){ // autodetect new type of sensors in any case
 		ESP_LOGI(FNAME," HW revision 3, check configured airspeed sensor");
-		bool valid_config=true;
 		switch( airspeed_sensor_type.get() ){
 		case PS_TE4525:
 			asSensor = new MS4525DO();
@@ -944,103 +935,94 @@ void system_startup(void *args){
 			ESP_LOGI(FNAME,"PS_MCPH21 configured");
 			break;
 		default:
-			valid_config = false;
 			ESP_LOGI(FNAME,"No valid config found");
 			break;
 		}
-		if( valid_config ){
+		if ( asSensor ) {  // there is a configured sensor
 			ESP_LOGI(FNAME,"There is valid config for airspeed sensor: check this one first...");
-			asSensor->setBus( &i2c );
-			if( asSensor->selfTest( offset ) ){
+			if( asSensor->probe() ){
 				ESP_LOGI(FNAME,"Selftest for configured sensor OKAY");
-				found = true;
 			}
 			else{
 				ESP_LOGI(FNAME,"AS sensor not found");
 				delete asSensor;
+				asSensor = nullptr;
 			}
 		}
 		// Probe any kind of ever known sensors
-		if( !found ){   // behaves same as above, so we can't detect this, needs to be setup in factory
+		if( !asSensor ){   // behaves same as above, so we can't detect this, needs to be setup in factory
 			ESP_LOGI(FNAME,"Try MCPH21");
 			asSensor = new MCPH21();
-			asSensor->setBus( &i2c );
 			ESP_LOGI(FNAME,"Try MCPH21");
-			if( asSensor->selfTest( offset ) ){
+			if( asSensor->probe() ){
 				airspeed_sensor_type.set( PS_MCPH21 );
-				found = true;
 			}
 			else{
 				ESP_LOGI(FNAME,"MCPH21 sensor not found");
 				delete asSensor;
+				asSensor = nullptr;
 			}
 			delay( 100 );
 		}
-		if( !found ){
+		if( !asSensor ){
 			ESP_LOGI(FNAME,"Try ABPMRR");
 			asSensor = new ABPMRR();
-			asSensor->setBus( &i2c );
-			if( asSensor->selfTest( offset ) ){
+			if( asSensor->probe() ){
 				airspeed_sensor_type.set( PS_ABPMRR );
-				found = true;
 			}
 			else{
 				ESP_LOGI(FNAME,"ABPMRR sensor not found");
 				delete asSensor;
+				asSensor = nullptr;
 			}
 		}
-		if( !found ){   // behaves same as above, so we can't detect this, needs to be setup in factory
+		if( !asSensor ){   // behaves same as above, so we can't detect this, needs to be setup in factory
 			ESP_LOGI(FNAME,"Configured sensor not found");
 			asSensor = new MS4525DO();
-			asSensor->setBus( &i2c );
 			ESP_LOGI(FNAME,"Try MS4525");
-			if( asSensor->selfTest( offset ) ){
+			if( asSensor->probe() ){
 				airspeed_sensor_type.set( PS_ABPMRR );
-				found = true;
 			}
 			else{
 				ESP_LOGI(FNAME,"MS4525DO sensor not found");
 				delete asSensor;
+				asSensor = nullptr;
 			}
 		}
-		if( !found ){
+		if( !asSensor ){
 			ESP_LOGI(FNAME,"Try MP5004DP");
 			asSensor = new MP5004DP();
-			asSensor->setBus( &i2c );
-			if( asSensor->selfTest( offset ) ){
+			if( asSensor->probe() ){
 				ESP_LOGI(FNAME,"MP5004DP selfTest OK");
 				airspeed_sensor_type.set( PS_MP3V5004 );
-				found = true;
 			}
 			else{
 				ESP_LOGI(FNAME,"MP5004DP sensor not found");
 				delete asSensor;
+				asSensor = nullptr;
 			}
 		}
 	}
 	logged_tests += "AS Sensor offset: ";
-	if( found ){
-		ESP_LOGI(FNAME,"AS Speed sensors self test PASSED, offset=%d", offset);
-		asSensor->doOffset();
-		bool offset_plausible = asSensor->offsetPlausible( offset );
-		bool ok=false;
-		float p=asSensor->readPascal(60, ok);
-		if( ok )
+	if( asSensor ){
+		ESP_LOGI(FNAME,"AS Speed sensors self test PASSED");
+		bool as_ok = asSensor->setup();
+		float p = asSensor->doRead();
+		if (!std::isnan(p) && p>60.f) {
 			dynamicP = p;
+		}
 		ias.set( Atmosphere::pascal2kmh( dynamicP ) );
 
         // Initialize the airborne status
         airborne.set(ias.get() > Speed2Fly.getStallSpeed());
 
 		ESP_LOGI(FNAME,"Aispeed sensor current speed=%f", ias.get() );
-		if( !offset_plausible && ( ias.get() < 50 ) ){
-			ESP_LOGE(FNAME,"Error: air speed presure sensor offset out of bounds, act value=%d", offset );
+		if( !as_ok && ( ias.get() < 50 ) ){
 			MBOX->pushMessage(2, "AS Sensor: NEED ZERO");
 			logged_tests += failed_text;
 			selftestPassed = false;
 		}
 		else {
-			ESP_LOGI(FNAME,"air speed offset test PASSED, readout value in bounds=%d", offset );
 			logged_tests += passed_text;
 			boot_screen->finish(1);
 		}

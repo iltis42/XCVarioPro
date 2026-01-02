@@ -2,36 +2,22 @@
 #pragma once
 
 #include "AirspeedSensor.h"
-#include "I2Cbus.hpp"
 
+#include "../adc/mcp3221.h"
 
-const float correction    = 5000.0/4096.0;  // according to above formula, this is the relation between adc readout and Pascal
-
-const float alpha = 0.4;
-const float min_pascal = 10.0;
-
-class MP5004DP: public AirspeedSensor {
+class MP5004DP : public AirspeedSensor
+{
 public:
-	MP5004DP() {
-		_offset = 0;
-	    _alpha = alpha;
-	    _haveDevice = false;
-	    _correction = correction;
-	    changeConfig();
-	}
-	bool    doOffset( bool force=false );
-	float   readPascal( float minimum, bool &ok );
-	bool    selfTest( int& adval );
-	bool    offsetPlausible( uint32_t offset );
-	void    setBus( I2C_t *_theBus );
-	void    changeConfig();
+    MP5004DP();
+    const char *name() const override { return "MP5004DP"; }
+    bool probe() override;
+    void changeConfig();
+
+protected:
+	bool fetch_pressure(uint32_t &p, uint16_t &t) override;
+    bool offsetPlausible(uint32_t offset) override;
+    int  getMaxACOffset() override;
 
 private:
-	float _offset;
-	float _alpha;
-	bool _haveDevice;
-	float _correction;
+    MCP3221 _mcp;
 };
-
-
-

@@ -840,7 +840,7 @@ static void system_menu_create_airspeed(SetupMenu *top) {
 
 	SetupMenuSelect *auze = new SetupMenuSelect("Set AS Zero", RST_IMMEDIATE, nullptr, &autozero);
 	top->addEntry(auze);
-	auze->setHelp("Recalculate zero point for airspeed sensor on next power on");
+	auze->setHelp("Recalculate zero point for airspeed sensor (immidiate restart)");
 	auze->addEntry("Cancel");
 	auze->addEntry("Start");
 

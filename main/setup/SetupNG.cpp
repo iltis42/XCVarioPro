@@ -339,7 +339,7 @@ SetupNG<int>		    rotary_dir( "ROTARY_DIR", 0 );
 SetupNG<int>		    rotary_inc( "ROTARY_INC", 1 );
 SetupNG<int>		    student_mode( "STUD_MOD", 0 );
 SetupNG<float>		    password( "PASSWORD", 0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 1000, 1));
-SetupNG<int>		    autozero( "AUTOZERO", 1 );  // AS autozero at factory
+SetupNG<int>		    autozero( "AUTOZERO", 1, false );  // AS autozero at factory
 SetupNG<int>		    ahrs_rpyl_dataset("RPYL", 0 );
 SetupNG<int>		    ahrs_autozero("AHRSAZ", 0 );
 SetupNG<float>		    ahrs_gyro_factor("AHRSMGYF", 100, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, &percentage_limits);

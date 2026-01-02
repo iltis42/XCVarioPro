@@ -1,71 +1,37 @@
 #pragma once
 
-#include "I2Cbus.hpp"
+#include "esp_err.h"
 
-#define  MCP3221_CONVERSE 0x4d //10011010 NOTE IF IT ENDS IN 1, this is the READ ADDRESS. This is all this device does.
-                                 //It opens a conversation via this specific READ address
-
-//Library for the MCP3221 12 BIT ADC.
-/*
-      MCP3221  Top View
-
-      +  -o   o- SCL
-      -  -o
-      S  -o   o- SDA
+namespace i2cbus {
+    class I2C;
+}
 
 
-
- */
+// Connect module using I2C port pins sda and scl. The output is referenced to the supply voltage which can be
+// 2.7v to 5.0v. The read will return the correct voltage, if you supply the correct supplyVoltage when instantiating.
 
 class MCP3221
 {
 public:
-  /*
-  Creates instance
-  Connect module using I2C port pins sda and scl. The output is referenced to the supply voltage which can be
-  2.7v to 5.0v. The read will return the correct voltage, if you supply the correct supplyVoltage when instantiating.
-  */
-  MCP3221();
+    MCP3221(i2cbus::I2C *b);
+    ~MCP3221() = default;
 
-  bool begin();
-  void setBus( I2C_t *theBus ) {  bus = theBus; };
+    // check for reply with I2C bus address
+    esp_err_t selfTest();
 
-  /*
-  Destroys instance.
-  */
-  ~MCP3221();
+    // raw read value of airspeed sensor
+    int readVal();
 
-  // raw read value of airspeed sensor
-  int readVal();
+    // Reads the analog register of the MCP3221 and converts it to a useable value. (a voltage)
+    esp_err_t readRaw(uint16_t &val);
 
-  // check for reply with I2C bus address
-  esp_err_t selfTest();
-
-  /*
-  Reads the analog register of the MCP3221 and converts it to a useable value. (a voltage)
-  */
-  esp_err_t readRaw(uint16_t &val);
-
-  // alpha = 1.0  means no filter
-  //         0.1  means 10 samples until full value
-
-  float readAVG( float alpha );
-  inline bool haveDevice() {
-	  uint16_t val;
-	  if( readRaw( val ) == ESP_OK )
-	     return true;
-	  else
-		 return false;
-  }
+    // alpha = 1.0  means no filter
+    //         0.1  means 10 samples until full value
+    // float readAVG(float alpha);
 
 private:
-  // I2C i2c;
-  I2C_t *bus;
-  char _data[2];
-  int  errorcount;
-  float exponential_average;
-  bool  _noDevice;
+    i2cbus::I2C *_bus;
+    const uint8_t _address;
+    // float exponential_average;
 };
 
-
-extern MCP3221 *MCP;

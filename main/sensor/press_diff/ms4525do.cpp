@@ -1,226 +1,61 @@
-#include "MS4525DO.h"
+#include "ms4525do.h"
+
 #include "setup/SetupNG.h"
-#include "logdefnone.h"
+#include "logdef.h"
+
+#include <I2Cbus.hpp>
 
 #include <cmath>
 
 #define MAX_AUTO_CORRECTED_OFFSET 50
 
-MS4525DO::MS4525DO()
+
+constexpr char I2C_ADDRESS_MS4525DO   = 0x28;    /**< 7-bit address =0x28. 8-bit is 0x50. Depends on the order code (this is for code "I") */
+ 
+// Register address
+// #define ADDR_READ_MR            0x00    /* write to this address to start conversion */
+ 
+// MS4525D sensor full scale range and units
+// const int16_t MS4525FullScaleRange = 1;  // 1 psi
+ 
+// MS4525D Sensor type (A or B) comment out the wrong type assignments
+// Type A (10% to 90%)
+const int16_t MS4525MinScaleCounts = 1638;
+const int16_t MS4525FullScaleCounts = 14746;
+  
+const int16_t MS4525Span = MS4525FullScaleCounts - MS4525MinScaleCounts;
+ 
+// MS4525D sensor differential pressure
+// const int16_t MS4525ZeroCounts = (MS4525MinScaleCounts + MS4525FullScaleCounts) / 2;
+
+MS4525DO::MS4525DO() : AsSensI2c(&i2c1, I2C_ADDRESS_MS4525DO)
 {
-	address = I2C_ADDRESS_MS4525DO;
-	psi = 0;
-	temperature = 0;
-	airspeed = 0;
-	P_dat = 0;  // 14 bit pressure data
-	T_dat = 0;  // 11 bit temperature data
-	error = ESP_OK;
-	_status = 0;
-	_offset = 0;
-	bus = 0;
-	changeConfig();
+    changeConfig();
 }
 
-MS4525DO::~MS4525DO()
-{
-
-}
 
 void MS4525DO::changeConfig(){
-	_multiplier = multiplier * ((100.0 + speedcal.get()) / 100.0);
+	_multiplier = (2. * 6894.76 / MS4525Span) * ((100.0 + speedcal.get()) / 100.0);
 }
 
-// combine measure and collect into one function that returns the status code only, and holds the results in variables
-// other subroutines for returning clean values should be get functions
-int MS4525DO::measure()
+float MS4525DO::getTemperature(void)
 {
-	char ret;
-	ret = fetch_pressure(P_dat, T_dat);
-	// ESP_LOGI(FNAME,"MS4525DO::fetch_pressure: %d", P_dat );
-	return ret;
+    float temp = t_dat;
+    temp = temp / 10;          // now in deg F
+    temp = (temp - 32) / 1.8f; // now in deg C
+    return temp;
 }
 
 
-char MS4525DO::fetch_pressure(uint16_t &P_dat, uint16_t &T_dat)
+bool MS4525DO::offsetPlausible(uint32_t offset)
 {
-	// ESP_LOGI(FNAME,"MS4525DO::fetch_pressure");
-	char _status;
-	char Press_H;
-	char Press_L;
-	char Temp_H;
-	char Temp_L;
-
-	uint8_t data[4];
-	esp_err_t err = bus->readBytes(address, 0, 4, data );
-	if( err != ESP_OK ) {
-		_status = 5;   // i2c error detected
-		return _status;
-	}
-
-	Press_H = data[0];
-	Press_L = data[1];
-	Temp_H = data[2];
-	Temp_L = data[3];
-	// ESP_LOG_BUFFER_HEXDUMP(FNAME,data,4, ESP_LOG_INFO);
-
-	_status = (Press_H >> 6) & 0x03;
-	Press_H = Press_H & 0x3f;
-	P_dat = (((uint16_t)Press_H) << 8) | Press_L;
-
-	Temp_L = (Temp_L >> 5);
-	T_dat = (((uint16_t)Temp_H) << 3) | Temp_L;
-
-	return _status;
+    ESP_LOGI(FNAME, "MS4525DO offsetPlausible(%ld)", offset);
+    constexpr int lower_val = 7700;
+    constexpr int upper_val = 8300;
+    return (offset > lower_val) && (offset < upper_val);
 }
 
-float   MS4525DO::readPascal( float minimum, bool &ok ){
-	measure();
-	if( _status == 0 )
-		ok=true;
-	else{
-		ESP_LOGI(FNAME,"Retry measure, status :%d  p=%d", _status, P_dat );
-		measure();
-		if( _status == 0 )
-			ok=true;
-		else{
-			ESP_LOGI(FNAME,"Warning, status :%d  p=%d, bad even retry", _status, P_dat );
-			ok=false;
-		}
-	}
-
-	float _pascal = (_offset - P_dat) * _multiplier;
-	if ( (_pascal < minimum) && (minimum != 0) ) {
-		_pascal = 0.0;
-	};
-	return( _pascal );
-}
-
-bool    MS4525DO::selfTest( int& adval ){
-	uint8_t data[4];
-	esp_err_t err = ESP_FAIL;
-	for( int i=0; i<4; i++ ){
-		err = bus->readBytes(address, 0, 4, data );
-		if( err == ESP_OK )
-			break;
-	}
-	if( err != ESP_OK ){
-		ESP_LOGI(FNAME,"MS4525DO selftest, scan for I2C address %02x FAILED",I2C_ADDRESS_MS4525DO );
-		return false;
-	}
-	ESP_LOGI(FNAME,"MS4525DO selftest, scan for I2C address %02x PASSED",I2C_ADDRESS_MS4525DO );
-	measure();
-	adval = P_dat;
-	if( error != ESP_OK )
-		return false;
-	else
-		return true;
-}
-
-float MS4525DO::getPSI(void){             // returns the PSI of last measurement
-	// convert and store PSI
-	psi=( static_cast<float>(static_cast<int16_t>(P_dat)-MS4525ZeroCounts))  / static_cast<float>(MS4525Span)* static_cast<float>(MS4525FullScaleRange);
-
-	return psi;
-}             
-
-float MS4525DO::getTemperature(void){     // returns temperature of last measurement
-	temperature= (static_cast<float>(static_cast<int16_t>(T_dat)));
-	temperature = (temperature / 10);   // now in deg F
-	temperature = ((temperature -32) / 1.8f);   // now in deg C
-	return temperature;
-}
-
-float MS4525DO::getAirSpeed(void){        // calculates and returns the airspeed
-	/* Velocity calculation from a pitot tube explanation */
-	/* +/- 1PSI, approximately 100 m/s */
-	float rho = 1.225; // density of air
-	// velocity = squareroot( (2*differential) / rho )
-	float velocity;
-	if (psi<0) {
-		velocity = -sqrt(-(2*psi) / rho);
-	}else{
-		velocity = sqrt((2*psi) / rho);
-	}
-	velocity = velocity*10;
-
-	return velocity;
-}
-
-
-bool MS4525DO::offsetPlausible(uint32_t aoffset )
+int MS4525DO::getMaxACOffset()
 {
-	ESP_LOGI(FNAME,"MS4525DO offsetPlausible( %ld )", aoffset );
-	int lower_val = 7700;
-	int upper_val = 8300;
-	if( (aoffset > lower_val ) && (aoffset < upper_val )  )
-		return true;
-	else
-		return false;
+    return MAX_AUTO_CORRECTED_OFFSET;
 }
-
-bool MS4525DO::doOffset( bool force ){
-	ESP_LOGI(FNAME,"MS4525DO doOffset()");
-
-	_offset = as_offset.get();
-	if( _offset < 0 ) {
-		ESP_LOGI(FNAME,"offset not yet done: need to recalibrate" );
-	} else {
-		ESP_LOGI(FNAME,"offset from NVS: %0.1f", _offset );
-	}
-
-	uint16_t adcval = 0,
-			T;
-	fetch_pressure( adcval, T );
-
-	ESP_LOGI(FNAME,"offset from ADC %d", adcval );
-
-	bool plausible = offsetPlausible( adcval );
-	if( plausible ) {
-		ESP_LOGI(FNAME,"offset from ADC is plausible");
-	} else {
-		ESP_LOGI(FNAME,"offset from ADC is NOT plausible");
-	}
-
-	int deviation = abs( _offset - adcval );
-	if( deviation < MAX_AUTO_CORRECTED_OFFSET ) {
-		ESP_LOGI(FNAME,"Deviation in bounds");
-	} else {
-		ESP_LOGI(FNAME,"Deviation out of bounds");
-	}
-
-	// Long term stability of Sensor as from datasheet 0.5% per year -> 4000 * 0.005 = 20
-	if( (_offset < 0 ) || ( plausible && (deviation < MAX_AUTO_CORRECTED_OFFSET ) ) || autozero.get() )
-	{
-		ESP_LOGI(FNAME,"Airspeed OFFSET correction ongoing, calculate new _offset...");
-		if( autozero.get() )
-			autozero.set(0);
-		uint32_t rawOffset=0;
-		for( int i=0; i<100; i++){
-			fetch_pressure( adcval, T );
-			rawOffset += adcval;
-			vTaskDelay(10 / portTICK_PERIOD_MS);
-		}
-		_offset = rawOffset / 100;
-		if( offsetPlausible( _offset ) )
-		{
-			ESP_LOGI(FNAME,"Offset procedure finished, offset: %f", _offset);
-			if( as_offset.get() != _offset ) {
-				as_offset.set( _offset );
-				ESP_LOGI(FNAME,"Stored new offset in NVS");
-			}
-			else {
-				ESP_LOGI(FNAME,"New offset equal to value from NVS");
-			}
-		}
-		else{
-			ESP_LOGW(FNAME,"Offset out of tolerance, ignore odd offset value");
-		}
-	}
-	else
-	{
-		ESP_LOGI(FNAME,"No new Calibration: flying with plausible pressure");
-	}
-	return true;
-}
-
-

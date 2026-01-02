@@ -37,10 +37,9 @@ void LeakTest::start(PressureSensor* bmpBA, PressureSensor* bmpTE, AirspeedSenso
 
 		// Collect readings
 		for (int j = 0; j < LOOPS; j++) {
-			bool okSpeed = false;
 			if (asSensor) {
-				float s = asSensor->readPascal(5, okSpeed);
-				if (okSpeed) {
+				float s = asSensor->doRead();
+				if (!std::isnan(s) && s>5.f) {
 					speed += s;
 					loops_run++;
 				}
