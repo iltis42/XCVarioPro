@@ -15,6 +15,7 @@ public:
     ~MCPH21() = default;
 
     const char *name() const override { return "MCPH21"; }
+    bool setup() override;
     bool probe() override;
     void changeConfig();
 
