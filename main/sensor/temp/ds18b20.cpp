@@ -11,7 +11,7 @@
 #include "comm/OneWireBus.h"
 #include "sensor.h"
 #include "setup/SetupNG.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <onewire_bus.h>
 #include <onewire_crc.h>
@@ -28,11 +28,11 @@ constexpr int DS18B20_RESOLUTION_12B = 0x7f; // 12-bit resolution
 
 // OneWIRE need to be created earlier and live longer than the sensor
 
-DS18B20::DS18B20(onewire_device_address_t addr) : OwSens(addr)
+DS18B20::DS18B20(onewire_device_address_t addr) : OwSens(addr, SensorId::TEMPERATURE)
 {
     setNVSVar(&OAT);
     setFilter(new LowPassFilter(0.3f));
-
+    SensorRegistry::removeFromUpdateLoop(SensorId::TEMPERATURE);
 }
 
 bool DS18B20::setup()

@@ -30,6 +30,7 @@
 #include "screen/element/Altimeter.h"
 #include "screen/element/PolarGauge.h"
 #include "screen/element/MultiGauge.h"
+#include "sensor/press_diff/AirspeedSensor.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
@@ -405,7 +406,7 @@ SetupNG<float>       	flap_takeoff("FLAPTO", 0,  false, SYNC_BIDIR, PERSISTENT, 
 SetupNG<int> 			audio_mute_sink( "AUDISS", 0 );
 SetupNG<int> 			audio_mute_gen( "AUDISG", AUDIO_ON );
 SetupNG<int>			vario_mode("VAMOD", CRUISE_ONLY_NETTO, true, SYNC_NONE, PERSISTENT, change_cruise);  // switch to netto mode when cruising
-SetupNG<int>			airspeed_sensor_type("PTYPE", PS_NONE, false);
+SetupNG<int>			airspeed_sensor("PTYPE", AirspeedSensor::PS_NONE, false);
 SetupNG<int>			cruise_audio_mode("CAUDIO", 0 );
 SetupNG<int>			netto_mode("NETMOD", NETTO_RELATIVE, true, SYNC_NONE, PERSISTENT, change_cruise);  // regard polar sink
 SetupNG<float>			v_max("VMAX", 270, true, SYNC_FROM_MASTER, PERSISTENT, 0, QUANT_HSPEED, &polar_speed_limits);

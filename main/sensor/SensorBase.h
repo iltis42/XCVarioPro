@@ -29,6 +29,7 @@
 
 constexpr int SENSOR_HISTORY_DURATION_MS = 5000;  // milliseconds
 
+enum SensorId : uint8_t;
 
 template <typename T>
 class FixedSensorHistory {
@@ -81,15 +82,17 @@ private:
 //
 class SensorBase {
 public:
-    SensorBase(uint32_t ums) : _update_interval_ms(ums), _latency_ms(0), _last_update_time_ms(0) {}
+    SensorBase(int ums, SensorId id);
     virtual ~SensorBase();
 
     virtual const char* name() const = 0;
     virtual bool probe() = 0;
     virtual bool setup() = 0;
+    virtual bool update(uint32_t now_ms) = 0;
+    int getDutyCycle() const { return _update_interval_ms; }
 
 protected:
-    uint32_t _update_interval_ms;  ///< Expected update interval
+    int _update_interval_ms;  ///< Expected update interval
     uint32_t _latency_ms;          ///< Sensor conversion/acquisition latency
     uint32_t _last_update_time_ms; ///< Raw update time (before latency compensation)
 };
@@ -98,8 +101,8 @@ template <typename T>
 class SensorTP : public SensorBase {
 public:
     SensorTP() = delete;
-    SensorTP(void *buf, uint32_t ums) :
-        SensorBase(ums),
+    SensorTP(void *buf, uint32_t ums, SensorId id) :
+        SensorBase(ums, id),
         _history((T*)buf, HistoryCapacity(ums))
     {
     }
@@ -123,7 +126,7 @@ public:
     // virtual bool healthy() const { return true; }
 
     // Call this periodically from main loop or task.
-    bool update(uint32_t now_ms) {
+    bool update(uint32_t now_ms) override {
         if (now_ms - _last_update_time_ms < _update_interval_ms) {
             return false;
         }
@@ -139,12 +142,11 @@ public:
         _history.push(value);
         if constexpr (std::is_same_v<T, float>) { // only for float types
             if (_nvsvar) {
+                float nvsval = value;
                 if ( _filter ) {
-                    float filtered = _filter->filter(value);
-                    _nvsvar->set(filtered, true, false);
-                } else {
-                    _nvsvar->set(value, true, false);
+                    nvsval = _filter->filter(value);
                 }
+                if ( ! std::isnan(nvsval) ) _nvsvar->set(nvsval, true, false);
             }
         }
     }

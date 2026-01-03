@@ -1,6 +1,6 @@
 #include "abpmrr.h"
 #include "setup/SetupNG.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <I2Cbus.hpp>
 
@@ -8,6 +8,7 @@
 
 #define I2C_ADDRESS_ABPMRR    0x28    ///< 7-bit address =0x28. 8-bit is 0x50. Depends on the order code (this is for code "I")
 
+// fixme ABPMRR and MS4525DO are nearly identical, but delivering mirrored results. (ABPMRR negativ on positive pressure diff)
 
 /* Register address */
 // #define ADDR_READ_MR            0x00    /* write to this address to start conversion */
@@ -43,7 +44,7 @@ float ABPMRR::getTemperature()
 {
 	float temp = t_dat;
 	temp = temp / 10;         // now in deg F
-	temp = (temp -32) / 1.8f; // now in deg C
+	temp = (temp - 32) / 1.8f; // now in deg C
 	return temp;
 }
 

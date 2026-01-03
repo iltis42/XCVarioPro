@@ -8,6 +8,8 @@
 
 #include "Filters.h"
 
+#include "Atmosphere.h"
+
 #include <cmath>
 
 void LowPassFilter::reset(float init_val)
@@ -16,9 +18,11 @@ void LowPassFilter::reset(float init_val)
 }
 float LowPassFilter::filter(float input)
 {
-    if ( std::isnan(input) ) {
-        return _last_output; // do not update on NaN input
-    }
     _last_output = _alpha * (input - _last_output) + _last_output;
     return _last_output;
+}
+
+float AirSpeedFilter::filter(float input)
+{
+    return Atmosphere::pascal2kmh(fabsf(_lpf.filter(input)));
 }

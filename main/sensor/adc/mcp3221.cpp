@@ -1,7 +1,7 @@
 
 #include "mcp3221.h"
 
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <I2Cbus.hpp>
 

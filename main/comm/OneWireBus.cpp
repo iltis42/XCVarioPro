@@ -10,7 +10,7 @@
 
 #include "sensor/temp/ds18b20.h"
 #include "comm/Devices.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <onewire_bus.h>
 #include <onewire_bus_interface.h>

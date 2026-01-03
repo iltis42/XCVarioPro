@@ -27,7 +27,7 @@ public:
 	vector_3d<T>& operator/=(const T s2);
 	T dot(const vector_3d<T>& v2);
 	vector_3d<T> cross(const vector_3d<T> &v2 ) const;
-	T get_norm() const { return sqrt(x*x + y*y + z*z); }
+	T get_norm() const { return sqrtf(x*x + y*y + z*z); }
 	T get_norm2() const { return x*x + y*y + z*z; }
 	T normalize();
 	vector_3d<T> get_normalized() const;

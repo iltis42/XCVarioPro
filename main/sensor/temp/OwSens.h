@@ -10,6 +10,8 @@
 
 #include "sensor/SensorBase.h"
 
+#include "../SensorMgr.h"
+
 #include <onewire_types.h>
 #include <cstdint>
 
@@ -17,8 +19,7 @@
 class OwSens : public SensorTP<float> {
 public:
     OwSens() = delete;
-    OwSens(onewire_device_address_t addr) : SensorTP<float>(nullptr, 1000), _address(addr) {
-        _update_interval_ms = 1000;
+    OwSens(onewire_device_address_t addr, SensorId id) : SensorTP<float>(nullptr, 1000, id), _address(addr) {
         _latency_ms = 800;
     };
     virtual uint8_t family() = 0;

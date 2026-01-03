@@ -58,7 +58,6 @@ typedef enum e_amp_shutdown { AMP_STAY_ON, AMP_SHUTDOWN, AMP_SHUTDOWN_5S } e_amp
 enum e_flap_sensor { FLAP_SENSOR_DISABLE, FLAP_SENSOR_ENABLE };
 typedef enum e_cruise_audio { AUDIO_S2F, AUDIO_VARIO } e_cruise_audio_2;
 typedef enum e_vario_mode { VARIO_BRUTTO, VARIO_NETTO, CRUISE_ONLY_NETTO } e_vario_mode_t;
-enum e_airspeed_sensor_type { PS_ABPMRR, PS_TE4525, PS_MP3V5004, PS_MCPH21, PS_NONE };
 typedef enum e_netto_mode { NETTO_NORMAL, NETTO_RELATIVE } e_netto_mode_t;
 typedef enum e_screen_mode { SCREEN_OFF, SCREEN_DYNAMIC, SCREEN_ON, SCREEN_PRIMARY } e_screen_mode_t;
 enum e_windanalyser_mode { WA_OFF=0, WA_STRAIGHT=1, WA_CIRCLING=2, WA_BOTH=3, WA_EXTERNAL=4 }; // do nto change (bit-field)
@@ -501,7 +500,7 @@ extern SetupNG<float>       flap_takeoff;
 extern SetupNG<int> 		audio_mute_sink;
 extern SetupNG<int> 		audio_mute_gen;
 extern SetupNG<int>			vario_mode;
-extern SetupNG<int>			airspeed_sensor_type;
+extern SetupNG<int>			airspeed_sensor;
 extern SetupNG<int>			cruise_audio_mode;
 extern SetupNG<int>			netto_mode;
 extern SetupNG<float>		v_max;

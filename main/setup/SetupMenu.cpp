@@ -1340,14 +1340,14 @@ void system_menu_create_hardware(SetupMenu *top) {
 			top->addEntry(ahrs);
 		}
 
-		SetupMenuSelect * pstype = new SetupMenuSelect( "AS Sensor Type", RST_ON_EXIT, nullptr, &airspeed_sensor_type );
+		SetupMenuSelect * pstype = new SetupMenuSelect( "AS Sensor Type", RST_ON_EXIT, nullptr, &airspeed_sensor );
 		top->addEntry( pstype );
 		pstype->setHelp( "Factory default for type of pressure sensor, will not erase on factory reset (reboots)");
+		pstype->addEntry( "Autodetect");
 		pstype->addEntry( "ABPMRR");
 		pstype->addEntry( "TE4525");
 		pstype->addEntry( "MP5004");
 		pstype->addEntry( "MCPH21");
-		pstype->addEntry( "Autodetect");
 
         SetupMenu *bat = new SetupMenu("Battery Meter", system_menu_create_battery);
         bat->setHelp("Adjust voltage thresholds for battery state indication");

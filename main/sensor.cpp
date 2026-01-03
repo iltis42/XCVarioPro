@@ -4,10 +4,10 @@
 #include "Cipher.h"
 #include "BME280_ESP32_SPI.h"
 #include "ESP32NVS.h"
-#include "sensor/press_diff/mp50040p.h"
-#include "sensor/press_diff/ms4525do.h"
-#include "sensor/press_diff/abpmrr.h"
-#include "sensor/press_diff/mcph21.h"
+#include "sensor/press_diff/AirspeedSensor.h"
+#include "sensor/SensorMgr.h"
+// #include "sensor/press_diff/abpmrr.h"
+// #include "sensor/press_diff/mcph21.h"
 #include "BMPVario.h"
 #include "comm/BTspp.h"
 #include "comm/BTnus.h"
@@ -417,11 +417,24 @@ void readSensors(void *pvParameters){
 	esp_task_wdt_add(NULL);
     int count = 0;
 	int16_t landed = 0; // airborne detection counter
+    uint32_t spartse_time;
 
 	while (1)
 	{
 		TickType_t xLastWakeTime = xTaskGetTickCount();
 		count++;   // 10x per second
+
+        // pick the time
+        spartse_time = Clock::getMillis();
+
+        // loop over all sensors
+        for (SensorEntry *e = SensorRegistry::begin(); e != SensorRegistry::end(); ++e)
+        {
+            if ( ! e->isActive() ) break;
+            if ( e->dutycycle && ! (count%e->dutycycle) ) {
+                e->sensor->update(spartse_time);
+            }
+        }
 
         float T=OAT.get(); // fixme
 		if( !gflags.validTemperature ) {
@@ -432,13 +445,12 @@ void readSensors(void *pvParameters){
         commonThingsFirst();
 
 		// ESP_LOGI(FNAME,"IMU");
-		if( asSensor ){  // AS differential Sensor
-			float p = asSensor->doRead();
-			if(!std::isnan(p) && p>60.f) {
-				dynamicP = p;
-			}
+		if ( asSensor ) {
+            // AS differential Sensor
+			dynamicP = asSensor->getHead();
 		}
-		_millis=millis();
+
+        _millis=millis();
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
 		// ESP_LOGI(FNAME,"AS");
@@ -769,7 +781,7 @@ void system_startup(void *args){
         MenuRoot->begin(new OTA());
         return;
     }
-	
+
     if( hardwareRevision.get() >= XCVARIO_21 )
 	{
 		gflags.haveIMU = true;
@@ -811,7 +823,7 @@ void system_startup(void *args){
 			delay( 10 );
 		}
 		accelG /= samples;
-		float accel = sqrt(accelG[0]*accelG[0]+accelG[1]*accelG[1]+accelG[2]*accelG[2]);
+		float accel = std::sqrtf(accelG[0]*accelG[0]+accelG[1]*accelG[1]+accelG[2]*accelG[2]);
 		char ahrs[10];
 		sprintf(ahrs, "%.2f", accel);
 		logged_tests += "MPU6050 AHRS (" + std::string(ahrs) + "g): ";
@@ -885,190 +897,79 @@ void system_startup(void *args){
     }
 
     // Always check on one wire devices
-    if ( DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS) ) {
-		CANPeerCaps::addCapability(XcvCaps::TEMP_CAP);
-	}
-    
-    ESP_LOGI(FNAME,"Wirelss-ID: %s", SetupCommon::getID());
-	std::string wireless_id;
-	if( DEVMAN->isIntf(BT_SPP) || DEVMAN->isIntf(BT_LE)) {
-		ESP_LOGI(FNAME,"Use BT");
-		wireless_id.assign("BT Id: ");
-	}
-	else  if( DEVMAN->isIntf(WIFI_APSTA) ) {
-		ESP_LOGI(FNAME,"Use WiFi");
-		wireless_id.assign("WLAN: ");
-	}
-	if ( ! gflags.schedule_reboot && custom_wireless_id.get().id[0] == '\0' ) {
-		custom_wireless_id.set(SetupCommon::getDefaultID()); // Default ID created from MAC address CRC
-	}
-	if ( wireless_id.length() > 0 ) {
-		wireless_id += SetupCommon::getID();
-		MBOX->pushMessage(1, wireless_id.c_str() );
-	}
+    if (DEVMAN->addDevice(TEMPSENS_DEV, NO_ONE, 0, 0, OW_BUS))
+    {
+        CANPeerCaps::addCapability(XcvCaps::TEMP_CAP);
+    }
 
-	{
-		Cipher crypt;
-		gflags.ahrsKeyValid = crypt.checkKeyAHRS();
-		ESP_LOGI( FNAME, "AHRS key valid=%d", gflags.ahrsKeyValid );
-	}
-	boot_screen->finish(0);
+    ESP_LOGI(FNAME, "Wirelss-ID: %s", SetupCommon::getID());
+    std::string wireless_id;
+    if (DEVMAN->isIntf(BT_SPP) || DEVMAN->isIntf(BT_LE))
+    {
+        ESP_LOGI(FNAME, "Use BT");
+        wireless_id.assign("BT Id: ");
+    }
+    else if (DEVMAN->isIntf(WIFI_APSTA))
+    {
+        ESP_LOGI(FNAME, "Use WiFi");
+        wireless_id.assign("WLAN: ");
+    }
+    if (!gflags.schedule_reboot && custom_wireless_id.get().id[0] == '\0')
+    {
+        custom_wireless_id.set(SetupCommon::getDefaultID()); // Default ID created from MAC address CRC
+    }
+    if (wireless_id.length() > 0)
+    {
+        wireless_id += SetupCommon::getID();
+        MBOX->pushMessage(1, wireless_id.c_str());
+    }
 
-	ESP_LOGI(FNAME,"Airspeed sensor init..  type configured: %d", airspeed_sensor_type.get() );
-	if( hardwareRevision.get() >= XCVARIO_20 ){ // autodetect new type of sensors in any case
-		ESP_LOGI(FNAME," HW revision 3, check configured airspeed sensor");
-		switch( airspeed_sensor_type.get() ){
-		case PS_TE4525:
-			asSensor = new MS4525DO();
-			ESP_LOGI(FNAME,"MS4525DO configured");
-			break;
-		case PS_ABPMRR:
-			asSensor = new ABPMRR();
-			ESP_LOGI(FNAME,"ABPMRR configured");
-			break;
-		case PS_MP3V5004:
-			asSensor = new MP5004DP();
-			ESP_LOGI(FNAME,"PS_MP3V5004 configured");
-			break;
-		case PS_MCPH21:
-			asSensor = new MCPH21();
-			ESP_LOGI(FNAME,"PS_MCPH21 configured");
-			break;
-		default:
-			ESP_LOGI(FNAME,"No valid config found");
-			break;
-		}
-		if ( asSensor ) {  // there is a configured sensor
-			ESP_LOGI(FNAME,"There is valid config for airspeed sensor: check this one first...");
-			if( asSensor->probe() ){
-				ESP_LOGI(FNAME,"Selftest for configured sensor OKAY");
-			}
-			else{
-				ESP_LOGI(FNAME,"AS sensor not found");
-				delete asSensor;
-				asSensor = nullptr;
-			}
-		}
-		// Probe any kind of ever known sensors
-		if( !asSensor ){   // behaves same as above, so we can't detect this, needs to be setup in factory
-			ESP_LOGI(FNAME,"Try MCPH21");
-			asSensor = new MCPH21();
-			ESP_LOGI(FNAME,"Try MCPH21");
-			if( asSensor->probe() ){
-				airspeed_sensor_type.set( PS_MCPH21 );
-			}
-			else{
-				ESP_LOGI(FNAME,"MCPH21 sensor not found");
-				delete asSensor;
-				asSensor = nullptr;
-			}
-			delay( 100 );
-		}
-		if( !asSensor ){
-			ESP_LOGI(FNAME,"Try ABPMRR");
-			asSensor = new ABPMRR();
-			if( asSensor->probe() ){
-				airspeed_sensor_type.set( PS_ABPMRR );
-			}
-			else{
-				ESP_LOGI(FNAME,"ABPMRR sensor not found");
-				delete asSensor;
-				asSensor = nullptr;
-			}
-		}
-		if( !asSensor ){   // behaves same as above, so we can't detect this, needs to be setup in factory
-			ESP_LOGI(FNAME,"Configured sensor not found");
-			asSensor = new MS4525DO();
-			ESP_LOGI(FNAME,"Try MS4525");
-			if( asSensor->probe() ){
-				airspeed_sensor_type.set( PS_ABPMRR );
-			}
-			else{
-				ESP_LOGI(FNAME,"MS4525DO sensor not found");
-				delete asSensor;
-				asSensor = nullptr;
-			}
-		}
-		if( !asSensor ){
-			ESP_LOGI(FNAME,"Try MP5004DP");
-			asSensor = new MP5004DP();
-			if( asSensor->probe() ){
-				ESP_LOGI(FNAME,"MP5004DP selfTest OK");
-				airspeed_sensor_type.set( PS_MP3V5004 );
-			}
-			else{
-				ESP_LOGI(FNAME,"MP5004DP sensor not found");
-				delete asSensor;
-				asSensor = nullptr;
-			}
-		}
-	}
-	logged_tests += "AS Sensor offset: ";
-	if( asSensor ){
-		ESP_LOGI(FNAME,"AS Speed sensors self test PASSED");
-		bool as_ok = asSensor->setup();
-		float p = asSensor->doRead();
-		if (!std::isnan(p) && p>60.f) {
-			dynamicP = p;
-		}
-		ias.set( Atmosphere::pascal2kmh( dynamicP ) );
+    {
+        Cipher crypt;
+        gflags.ahrsKeyValid = crypt.checkKeyAHRS();
+        ESP_LOGI(FNAME, "AHRS key valid=%d", gflags.ahrsKeyValid);
+    }
+    boot_screen->finish(0);
+
+    // Configure airspeed sensor
+    asSensor = AirspeedSensor::autoSetup();
+    logged_tests += "AS Sensor offset: ";
+    if (asSensor)
+    {
+        ESP_LOGI(FNAME, "AS Speed sensor %s self test PASSED", asSensor->name());
+        bool as_ok = asSensor->setup();
+        float p = asSensor->doRead();
+        if (!std::isnan(p) && p > 60.f) {
+            dynamicP = p;
+        }
+        ias.set(Atmosphere::pascal2kmh(dynamicP));
 
         // Initialize the airborne status
         airborne.set(ias.get() > Speed2Fly.getStallSpeed());
 
-		ESP_LOGI(FNAME,"Aispeed sensor current speed=%f", ias.get() );
-		if( !as_ok && ( ias.get() < 50 ) ){
-			MBOX->pushMessage(2, "AS Sensor: NEED ZERO");
-			logged_tests += failed_text;
-			selftestPassed = false;
-		}
-		else {
-			logged_tests += passed_text;
-			boot_screen->finish(1);
-		}
-	}
-	else{
-		ESP_LOGE(FNAME,"Error with air speed pressure sensor, no working sensor found!");
-		MBOX->pushMessage(2, "AS Sensor: NOT FOUND");
-		logged_tests += "NOT FOUND\n";
-		selftestPassed = false;
-		asSensor = 0;
-	}
+        ESP_LOGI(FNAME, "Aispeed sensor current speed=%f", ias.get());
+        if (!as_ok && (ias.get() < 50))
+        {
+            MBOX->pushMessage(2, "AS Sensor: NEED ZERO");
+            logged_tests += failed_text;
+            selftestPassed = false;
+        }
+        else
+        {
+            logged_tests += passed_text;
+            boot_screen->finish(1);
+        }
+    }
+    else
+    {
+        ESP_LOGE(FNAME, "Error with air speed pressure sensor, no working sensor found!");
+        MBOX->pushMessage(2, "AS Sensor: NOT FOUND");
+        logged_tests += "NOT FOUND\n";
+        selftestPassed = false;
+        asSensor = 0;
+    }
 
-	// ESP_LOGI(FNAME,"Now start T sensor test");
-	// // Temp Sensor test
-	// if( !SetupCommon::isClient()  ) {
-		// ESP_LOGI(FNAME,"Now start T sensor test");
-		// temperature = DEVICE_DISCONNECTED_C;
-		// if( ds18b20.reset() )
-		// {
-		// 	t_devices = ds18b20.search(t_addr, 1);
-		// 	// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
-		// }
-		// if( t_devices ){
-		// 	ESP_LOGI(FNAME,"Temp devices %d", t_devices);
-		// 	uint8_t err = ds18b20.getTemp(t_addr[0], temperature );
-		// 	if( err ){
-		// 		temperature = DEVICE_DISCONNECTED_C;
-		// 	}
-		// }
-		// ESP_LOGI(FNAME,"End T sensor test");
-		// logged_tests += "Ext. Temp. Sensor: ";
-		// if( temperature == DEVICE_DISCONNECTED_C ) {
-		// 	ESP_LOGE(FNAME,"Error: Self test Temperatur Sensor failed; returned T=%2.2f", temperature );
-		// 	MBOX->pushMessage(1, "Temp Sensor: NOT FOUND");
-		// 	gflags.validTemperature = false;
-		// 	logged_tests += "NOT FOUND\n";
-		// }else
-		// {
-		// 	ESP_LOGI(FNAME,"Self test Temperatur Sensor PASSED; returned T=%2.2f", temperature );
-		// 	gflags.validTemperature = true;
-		// 	logged_tests += passed_text;
-
-		// }
-	// }
-
-	ESP_LOGI(FNAME,"Absolute pressure sensors init, detect type of sensor type..");
+    ESP_LOGI(FNAME,"Absolute pressure sensors init, detect type of sensor type..");
 	float ba_t, ba_p, te_t, te_p;
 	SPL06_007 *splBA = new SPL06_007( SPL06_007_BARO );
 	SPL06_007 *splTE = new SPL06_007( SPL06_007_TE );

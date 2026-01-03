@@ -1,7 +1,7 @@
 #include "ms4525do.h"
 
 #include "setup/SetupNG.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <I2Cbus.hpp>
 

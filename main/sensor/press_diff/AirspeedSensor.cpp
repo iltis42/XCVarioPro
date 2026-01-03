@@ -8,15 +8,92 @@
 
 #include "AirspeedSensor.h"
 
+#include "abpmrr.h"
+#include "mcph21.h"
+#include "mp50040p.h"
+#include "ms4525do.h"
+#include "Atmosphere.h"
+#include "../SensorMgr.h"
 #include "setup/SetupNG.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
 
 static float as_buffer[ (SENSOR_HISTORY_DURATION_MS / 100) + 4 ]; // history buffer for airspeed sensor
 
-AirspeedSensor::AirspeedSensor() : SensorTP<float>(as_buffer, 100)
+AirspeedSensor::AirspeedSensor() : SensorTP<float>(as_buffer, 100, SensorId::DIFFPRESSURE)
 {
+    setNVSVar(&ias);
+    setFilter(new AirSpeedFilter(0.25f));
+}
+
+static AirspeedSensor* factory(AirspeedSensor::ASens_Type type)
+{
+    AirspeedSensor* tmp = nullptr;
+    switch (type) {
+    case AirspeedSensor::PS_ABPMRR:
+        tmp = new ABPMRR();
+        break;
+    case AirspeedSensor::PS_TE4525:
+        tmp = new MS4525DO();
+        break;
+    case AirspeedSensor::PS_MP3V5004:
+        tmp = new MP5004DP();
+        break;
+    case AirspeedSensor::PS_MCPH21:
+        tmp = new MCPH21();
+        break;
+    default:
+        ESP_LOGI(FNAME, "Not supported sensor");
+        break;
+    }
+    if ( tmp ) {
+        ESP_LOGI(FNAME, "%s created", tmp->name());
+    }
+    return tmp;
+}
+
+AirspeedSensor* AirspeedSensor::autoSetup()
+{
+    ESP_LOGI(FNAME, "Airspeed sensor init..  type configured: %d", airspeed_sensor.get());
+    AirspeedSensor *as_sens = nullptr;
+    if (airspeed_sensor.get() != PS_NONE)
+    {
+        as_sens = factory((ASens_Type)airspeed_sensor.get());
+
+        // there is a configured sensor
+        ESP_LOGI(FNAME, "There is valid config for airspeed sensor: check this one first...");
+        if (as_sens->probe()) {
+            ESP_LOGI(FNAME, "Selftest for configured sensor OKAY");
+        }
+        else {
+            ESP_LOGI(FNAME, "AS sensor not found");
+            delete as_sens;
+            as_sens = nullptr;
+        }
+    }
+
+    // Probe any kind of ever known sensors
+    if (!as_sens)
+    {
+        // behaves same as above, so we can't detect this, needs to be setup in factory
+        for ( ASens_Type t = PS_ABPMRR; t < PS_MAX_TYPES; t = static_cast<ASens_Type>(t + 1) ) {
+            as_sens = factory(t);
+            ESP_LOGI(FNAME, "Try %s", as_sens->name());
+            if ( as_sens && as_sens->probe() ) {
+                airspeed_sensor.set( t );
+                break;
+            }
+            else {
+                ESP_LOGI(FNAME, "Sensor not found");
+                delete as_sens;
+                as_sens = nullptr;
+            }
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
+    }
+
+    return as_sens;
 }
 
 bool AirspeedSensor::setup()
@@ -101,7 +178,7 @@ float AirspeedSensor::doRead()
             return NAN;
         }
     }
-    float _pascal = (p_raw - _offset) * _multiplier;
-    ESP_LOGI(FNAME,"pressure: %f offset: %d raw: %u  raw-off:%f m:%f", _pascal, (int)_offset, (unsigned)p_raw,  (_offset - p_raw),  _multiplier );
-    return _pascal;
+    float pascal = (static_cast<float>(p_raw) - _offset) * _multiplier;
+    ESP_LOGI(FNAME,"pressure: %f offset: %d raw: %u  raw-off:%f m:%f", pascal, (int)_offset, (unsigned)p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier );
+    return pascal;
 }

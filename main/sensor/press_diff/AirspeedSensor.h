@@ -4,8 +4,12 @@
 
 class AirspeedSensor : public SensorTP<float> {
 public:
+	using ASens_Type = enum { PS_NONE, PS_ABPMRR, PS_TE4525, PS_MP3V5004, PS_MCPH21, PS_MAX_TYPES };
+
 	AirspeedSensor();
 	virtual ~AirspeedSensor() {};
+
+	static AirspeedSensor* autoSetup();
 
 	bool  setup() override;
 	float doRead() override;

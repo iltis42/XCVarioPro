@@ -41,25 +41,35 @@
 //
 
 float Atmosphere::TAS(float ias, float baro, float temp) {
-     return (ias * sqrt(1.225 / (baro * 100.0 / (287.058 * (273.15 + temp)))));
+     return (ias * std::sqrtf(1.225 / (baro * 100.0 / (287.058 * (273.15 + temp)))));
 }
 
 // TAS=IAS/sqrt( 288.15/(T+273.15) * (P/1013.25) )
 float Atmosphere::TAS2(float ias, float altitude, float temp) {
-    return (ias / sqrt(288.15 / (temp + 273.15) * (Atmosphere::calcPressureISA(altitude) / 1013.25)));
+    return (ias / std::sqrtf(288.15 / (temp + 273.15) * (Atmosphere::calcPressureISA(altitude) / 1013.25)));
 }
 
 // TAS=IAS/sqrt( 288.15/(T+273.15) * (P/1013.25) )
 float Atmosphere::CAS(float dp) {
-    return (1225.0 * sqrt(5.0 * (pow((dp / 101325.0) + 1.0, (2.0 / 7)) - 1.0)));
+    return (1225.0 * std::sqrtf(5.0f * (std::powf((dp / 101325.0f) + 1.0, (2.0 / 7)) - 1.0)));
 }
 
 float Atmosphere::IAS(float tas, float alti, float temp) {
-    return (tas / sqrt(1.225 / (Atmosphere::calcPressureISA(alti) * 100.0 / (287.058 * (273.15 + temp)))));
+    return (tas / std::sqrtf(1.225f / (Atmosphere::calcPressureISA(alti) * 100.0f / (287.058f * (273.15f + temp)))));
 }
 
 float Atmosphere::pascal2kmh(float pascal) {
-    return sqrt(2 * pascal / 1.225) * 3.6;
+    if ( pascal < 0.0f ) {
+        return 0.0f;
+    }
+    return std::sqrtf(2.f * pascal / 1.225f) * 3.6;
+}
+
+float Atmosphere::pascal2ms(float pascal) {
+    if ( pascal < 0.0f ) {
+        return 0.0f;
+    }
+    return std::sqrtf(2.f * pascal / 1.225f);
 }
 
 float Atmosphere::kmh2pascal(float kmh) {
@@ -67,14 +77,14 @@ float Atmosphere::kmh2pascal(float kmh) {
 }
 
 float Atmosphere::calcAltitude(float SeaLevel_Pres, float pressure) {
-    return (44330.0 * (1.0 - pow((double)(pressure) / SeaLevel_Pres, (1.0 / 5.255))));
+    return (44330.0f * (1.0f - std::powf((float)(pressure) / SeaLevel_Pres, (1.0f / 5.255f))));
 }
 
 // respect temp gradient 6.5 K / km
 float Atmosphere::calcPressure(float seaLevelPressure, float altitude) {
-    return (seaLevelPressure * pow((1.0 - ((double)(altitude) / 44330.76923)), 5.255));
+    return (seaLevelPressure * std::powf((1.0f - ((float)(altitude) / 44330.76923f)), 5.255f));
 }
 
 float Atmosphere::calcQNHPressure(float pressure, float altitude) {
-    return pressure / pow((1.0 - (6.5 * (double)(altitude) / 288150.0)), 5.255);
+    return pressure / std::powf((1.0f - (6.5f * (float)(altitude) / 288150.0f)), 5.255f);
 }

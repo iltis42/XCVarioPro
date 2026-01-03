@@ -28,3 +28,14 @@ private:
     float _alpha;
     float _last_output;
 };
+
+
+// A air speed converter and low-pass filter
+class AirSpeedFilter : public BaseFilterItf
+{
+public:
+    explicit AirSpeedFilter(float alpha) : _lpf(alpha) {}
+    float filter(float input) override;
+private:
+    LowPassFilter _lpf;
+};
