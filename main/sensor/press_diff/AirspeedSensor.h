@@ -2,6 +2,8 @@
 
 #include "../SensorBase.h"
 
+enum AS_MODE : uint8_t { MODE_IAS, MODE_TAS, MODE_CAS };
+
 class AirspeedSensor : public SensorTP<float> {
 public:
 	using ASens_Type = enum { PS_NONE, PS_ABPMRR, PS_TE4525, PS_MP3V5004, PS_MCPH21, PS_MAX_TYPES };

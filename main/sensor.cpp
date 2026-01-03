@@ -500,36 +500,36 @@ void readSensors(void *pvParameters){
 				S2FSWITCH->checkCruiseMode();
 			}
 		}
-		float iasraw = Atmosphere::pascal2kmh( dynamicP );
-		if( baroP != 0 )
-			tasraw =  Atmosphere::TAS( iasraw , baroP, T);  // True airspeed in km/h
+		// float iasraw = Atmosphere::pascal2kmh( dynamicP );
+		// if( baroP != 0 )
+		// 	tasraw =  Atmosphere::TAS( iasraw , baroP, T);  // True airspeed in km/h
 
-		// ESP_LOGI("FNAME","P: %f  IAS:%f", dynamicP, iasraw );
+		// // ESP_LOGI("FNAME","P: %f  IAS:%f", dynamicP, iasraw );
 
-		if( airspeed_mode.get() == MODE_CAS ){
-			float casraw=Atmosphere::CAS( dynamicP );
-			cas += (casraw-cas)*0.25;       // low pass filter
-			// ESP_LOGI(FNAME,"IAS=%f, TAS=%f CAS=%f baro=%f", iasraw, tasraw, cas, baroP );
-		}
-		static float new_ias = 0;
-		new_ias = ias.get() + (iasraw - ias.get())*0.25;
-		if( (int( ias.get()+0.5 ) != int( new_ias+0.5 ) ) || !(count%20) ){
-			ias.set( new_ias );  // low pass filter
-		}
+		// if( airspeed_mode.get() == MODE_CAS ){
+		// 	float casraw=Atmosphere::CAS( dynamicP );
+		// 	cas += (casraw-cas)*0.25;       // low pass filter
+		// 	// ESP_LOGI(FNAME,"IAS=%f, TAS=%f CAS=%f baro=%f", iasraw, tasraw, cas, baroP );
+		// }
+		// static float new_ias = 0;
+		// new_ias = ias.get() + (iasraw - ias.get())*0.25;
+		// if( (int( ias.get()+0.5 ) != int( new_ias+0.5 ) ) || !(count%20) ){
+		// 	ias.set( new_ias );  // low pass filter
+		// }
 		if( airspeed_max.get() < ias.get() ){
 			airspeed_max.set( ias.get() );
 		}
-		// ESP_LOGI("FNAME","P: %f  IAS:%f IASF: %d", dynamicP, iasraw, ias );
-		tas += (tasraw-tas)*0.25;       // low pass filter
-		// ESP_LOGI(FNAME,"IAS=%f, T=%f, TAS=%f baroP=%f", ias, T, tas, baroP );
+		// // ESP_LOGI("FNAME","P: %f  IAS:%f IASF: %d", dynamicP, iasraw, ias );
+		// tas += (tasraw-tas)*0.25;       // low pass filter
+		// // ESP_LOGI(FNAME,"IAS=%f, T=%f, TAS=%f baroP=%f", ias, T, tas, baroP );
 
-		// Slip angle estimation
-		float as = tas/3.6;                  // tas in m/s
-		const float K = 4000 * 180/M_PI;      // airplane constant and Ay correction factor
-		if( tas > 25.0 ){
-			slip_angle.set(slip_angle.get() + ((IMU::getGliderAccelY()*K / (as*as)) - slip_angle.get())*0.12);   // with atan(x) = x for small x
-			// ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", as, IMU::getGliderAccelY()*K / (as*as), slip_angle.get() );
-		}
+		// // Slip angle estimation
+		// float as = tas/3.6;                  // tas in m/s
+		// const float K = 4000 * 180/M_PI;      // airplane constant and Ay correction factor
+		// if( tas > 25.0 ){
+		// 	slip_angle.set(slip_angle.get() + ((IMU::getGliderAccelY()*K / (as*as)) - slip_angle.get())*0.12);   // with atan(x) = x for small x
+		// 	// ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", as, IMU::getGliderAccelY()*K / (as*as), slip_angle.get() );
+		// }
 
 		// ESP_LOGI(FNAME,"count %d ccp %d", count, ccp );
 		if( !(count % ccp) ) {
