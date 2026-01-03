@@ -12,7 +12,7 @@
 #include <vector>
 
 #define sqr(x) x *x
-#define hypotenuse(x, y) sqrt(sqr(x) + sqr(y))
+#define hypotenuse(x, y) std::sqrtf(sqr(x) + sqr(y))
 
 // Kalman Variables
 Kalman IMU::kalmanX; // Create the Kalman instances
@@ -21,7 +21,7 @@ Kalman IMU::kalmanZ;
 
 float  IMU::filterPitch_rad = 0;
 float  IMU::filterRoll_rad = 0;
-double  IMU::filterYaw = 0;
+float  IMU::filterYaw = 0;
 
 uint64_t IMU::last_rts=0;
 vector_i   IMU::raw_gyro(0,0,0);
@@ -198,13 +198,13 @@ void IMU::Process()
 		float lf = loadFactor > 2.0 ? 2.0 : loadFactor;
 		loadFactor = lf < 0 ? 0 : lf; // limit to 0..2g
 		// the yz portion of w is proportional to the length of YZ portion of the normalized axis.
-		circle_omega = w * sqrt(axis.y*axis.y + axis.z*axis.z) * (std::signbit(gyro_rad.z)?-1.f:1.f);
+		circle_omega = w * std::sqrtf(axis.y*axis.y + axis.z*axis.z) * (std::signbit(gyro_rad.z)?-1.f:1.f);
 		// tan(roll):= petal force/G = m w v / m g
 		float tanw = -circle_omega * getTAS() / (3.6f * 9.80665f);
 		roll = atan( tanw );
 		if ( ahrs_roll_check.get() ) {
 			// expected extra load c = sqrt(aa+bb) - 1, here a = 1/9.81 x atan, b=1
-			float loadz_exp = sqrt(tanw*tanw/(9.80665f*9.80665f)+1.f) - 1.f;
+			float loadz_exp = std::sqrtf(tanw*tanw/(9.80665f*9.80665f)+1.f) - 1.f;
 			float loadz_check = (loadz_exp > 0.f) ? std::min(std::max((accel.z-.99f)/loadz_exp,0.f), 1.f) : 0.f;
 			// ESP_LOGI( FNAME,"tanw: %f loadexp: %.2f loadf: %.2f c:%.2f", tanw, loadz_exp, loadFactor, loadz_check );
 			// Scale according to real experienced load factor with x 0..1
@@ -356,14 +356,14 @@ float IMU::getVerticalOmega()
 	return circle_omega;
 }
 
-double IMU::PitchFromAccel()
+float IMU::PitchFromAccel()
 {
-	return -atan2(accel.x, accel.z) * RAD_TO_DEG;
+	return -atan2f(accel.x, accel.z) * RAD_TO_DEG;
 }
 
-double IMU::PitchFromAccelRad()
+float IMU::PitchFromAccelRad()
 {
-	return -atan2(accel.x, accel.z);
+	return -atan2f(accel.x, accel.z);
 }
 
 // void IMU::RollPitchFromAccel(double *roll, double *pitch)

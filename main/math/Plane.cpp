@@ -14,7 +14,7 @@
 Plane::Plane(const vector_f &p0, const vector_f &n)
 {
     // normalize
-    float len = std::sqrt(n.x*n.x + n.y*n.y + n.z*n.z);
+    float len = std::sqrtf(n.x*n.x + n.y*n.y + n.z*n.z);
     _nn.x = n.x/len;
     _nn.y = n.y/len;
     _nn.z = n.z/len;

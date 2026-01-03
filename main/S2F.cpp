@@ -77,7 +77,7 @@ void S2F::recalculatePolar()
 	d = v2 - v3;
 	a1 = d == 0. ? 0. : (w2 - w3 - a2 * (v2 * v2 - v3 * v3)) / d;
 	a0 = w3 - a2 * v3 * v3 - a1 * v3;
-	const float loading_factor = sqrt((myballast + 100.0) / 100.0);
+	const float loading_factor = std::sqrtf((myballast + 100.0) / 100.0);
 	a0 = a0 * loading_factor;
 	a2 = a2 / loading_factor; // wingload  e.g. 100l @ 500 kg = 1.2 and G-Force
 	a0 = a0 * ((bugs.get() + 100.0) / 100.0);
@@ -203,7 +203,7 @@ float S2F::sink( float v_in ) {
 	}
 	v = v/3.6; // airspeed in meters per second
 	float n=getN();
-	float sqn = sqrt(n);
+	float sqn = std::sqrtf(n);
 	float s = a0*n*sqn + a1*v*n + a2*v*v*sqn;
 	// ESP_LOGI(FNAME,"S2F::sink() V:%0.1f sink:%2.2f G-Load:%1.2f", v_in, s, n );
 	return s;
@@ -228,9 +228,9 @@ float S2F::speed( float netto_vario, bool circling )
 		stf = _circling_speed;
 	}else{
 		if( s2f_blockspeed.get() )
-			stf = 3.6*sqrt( ((a0-MC.get())) / a2 );  // no netto vario, no G impact
+			stf = 3.6*std::sqrtf( ((a0-MC.get())) / a2 );  // no netto vario, no G impact
 		else
-			stf = 3.6*sqrt( (a0-MC.get()+netto_vario) / a2 );
+			stf = 3.6*std::sqrtf( (a0-MC.get()+netto_vario) / a2 );
 	}
 	// ESP_LOGI(FNAME,"speed() S2F: %f netto_vario: %f circ: %d, a0: %f, MC %f", stf, netto_vario, circling, a0, MC.get() );
 	// ESP_LOGI(FNAME,"max speed %.1f km/h", v_max.get() );
@@ -255,7 +255,7 @@ void S2F::recalcSinkNSpeeds()
 	_circling_speed = 1.2*_min_sink_speed;
 	_circling_sink = sink( _circling_speed );
 	// use user defined/confirmed stall speed
-	const float loading_factor = sqrt((myballast + 100.0) / 100.0);
+	const float loading_factor = std::sqrtf((myballast + 100.0) / 100.0);
 	_stall_speed_ms = polar_stall_speed.get() / 3.6 * std::sqrtf(loading_factor);
 
 	ESP_LOGI(FNAME,"Airspeed @ min Sink =%3.1f kmh", _min_sink_speed );

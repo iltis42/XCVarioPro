@@ -219,8 +219,8 @@ static void mpuTask(void*)
         float gyroRoll             = roll + mpud::math::gyroDegPerSec(rawGyro.x, kGyroFS) * kDeltaTime;
         float gyroPitch            = pitch + mpud::math::gyroDegPerSec(rawGyro.y, kGyroFS) * kDeltaTime;
         float gyroYaw              = yaw + mpud::math::gyroDegPerSec(rawGyro.z, kGyroFS) * kDeltaTime;
-        float accelRoll            = atan2(-rawAccel.x, rawAccel.z) * kRadToDeg;
-        float accelPitch = atan2(rawAccel.y, sqrt(rawAccel.x * rawAccel.x + rawAccel.z * rawAccel.z)) * kRadToDeg;
+        float accelRoll            = atan2f(-rawAccel.x, rawAccel.z) * kRadToDeg;
+        float accelPitch = atan2f(rawAccel.y, sqrtf(rawAccel.x * rawAccel.x + rawAccel.z * rawAccel.z)) * kRadToDeg;
         // Fusion
         roll  = gyroRoll * 0.95f + accelRoll * 0.05f;
         pitch = gyroPitch * 0.95f + accelPitch * 0.05f;

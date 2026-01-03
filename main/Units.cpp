@@ -114,7 +114,7 @@ float Units::Airspeed2Kmh(float as)
 
 float Units::ActualWingloadCorrection(float v)
 {
-	return v * sqrt(100.0 / (ballast.get() + 100.0)); // ballast is in percent overweight
+	return v * std::sqrtf(100.0 / (ballast.get() + 100.0)); // ballast is in percent overweight
 }
 
 float Units::TemperatureUnit(float t)

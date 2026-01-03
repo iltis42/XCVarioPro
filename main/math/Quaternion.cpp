@@ -29,9 +29,9 @@ Quaternion::Quaternion(float w, float x, float y, float z)
 // rotate radian angle around axis
 Quaternion::Quaternion(const float angle, const vector_f& axis)
 {
-    float fac = std::sin(0.5 * angle);
+    float fac = std::sinf(0.5f * angle);
 
-    _w = std::cos(0.5 * angle);
+    _w = std::cosf(0.5f * angle);
     _x = fac * axis.x;
     _y = fac * axis.y;
     _z = fac * axis.z;
@@ -46,7 +46,7 @@ float Quaternion::getAngle() const
 float Quaternion::getAngleAndAxis(vector_f& axis) const
 {
     float angle = getAngle();
-    float sinphi2 = fabs(angle) > 1e-7 ? 1.0f / sin(0.5f * angle) : 0.0;
+    float sinphi2 = fabsf(angle) > 1e-7 ? 1.0f / sinf(0.5f * angle) : 0.0;
 
     // null rotation -> return null vector
     axis.x = _x;
@@ -88,7 +88,7 @@ Quaternion slerp(Quaternion q1, Quaternion q2, double lambda)
 	theta = (float) acos(dotproduct);
 	if (theta<0.0) theta=-theta;
 
-	st = (float) sin(theta);
+	st = (float) sinf(theta);
 	sut = (float) sin(lambda*theta);
 	sout = (float) sin((1-lambda)*theta);
 	coeff1 = sout/st;
@@ -101,7 +101,7 @@ Quaternion slerp(Quaternion q1, Quaternion q2, double lambda)
 // Get a normalized version of quaternion
 Quaternion Quaternion::get_normalized() const
 {
-    float len = sqrt(_w*_w + _x*_x + _y*_y + _z*_z);
+    float len = std::sqrtf(_w*_w + _x*_x + _y*_y + _z*_z);
     Quaternion q2( _w/len, _x/len, _y/len, _z/len );
     // ESP_LOGI(FNAME,"Q1: a=%.3f b=%.3f c=%.3f d=%.3f  Q2: a=%.3f b=%.3f c=%.3f d=%.3f", a, b, c, d, q2.a, q2.b, q2.c, q2.d );
     return q2;
@@ -109,7 +109,7 @@ Quaternion Quaternion::get_normalized() const
 // Normalize quaternion
 Quaternion& Quaternion::normalize()
 {
-    float len = sqrt(_w*_w + _x*_x + _y*_y + _z*_z);
+    float len = std::sqrtf(_w*_w + _x*_x + _y*_y + _z*_z);
     _w = _w/len;
     _x = _x/len;
     _y = _y/len;
@@ -183,17 +183,17 @@ vector_f Quaternion::toEulerRad() const
     vector_f result;
 
     // roll
-    result.x = atan2(2.f*(_w*_x + _y*_z),1.f - 2.f*(_x*_x + _y*_y));
+    result.x = atan2f(2.f*(_w*_x + _y*_z),1.f - 2.f*(_x*_x + _y*_y));
 
     // pitch
-    result.y = (-(My_PIf)/2.f + 2.f* atan2(sqrt(1.f+ 2.f*(_w*_y - _x*_z)), sqrt(1- 2*(_w*_y - _x*_z))));
+    result.y = (-(My_PIf)/2.f + 2.f* atan2f(std::sqrtf(1.f+ 2.f*(_w*_y - _x*_z)), std::sqrtf(1- 2*(_w*_y - _x*_z))));
     // or asin(2*(a*c - d*b));
 
     // yaw
     if (_z==0)
         result.z = 0.0f;
     else
-        result.z = atan2(2.f*(_w*_z + _x*_y),1.f - 2.f*(_y*_y + _z*_z));
+        result.z = atan2f(2.f*(_w*_z + _x*_y),1.f - 2.f*(_y*_y + _z*_z));
     return result;
 
 
@@ -239,7 +239,7 @@ Quaternion Quaternion::AlignVectors(const vector_f &start, const vector_f &dest)
 
 	rotationAxis = from.cross(to);
 
-	float s = sqrt( (1.f+cosTheta)*2.f );
+	float s = std::sqrtf( (1.f+cosTheta)*2.f );
 
 	return Quaternion(
 		s * 0.5f,
@@ -263,7 +263,7 @@ Quaternion Quaternion::fromRotationMatrix(const vector_d &X, const vector_d &Y)
 
     // check the diagonal
     if ( trace > 0.0 ) {
-        double s = std::sqrt(trace + 1.0);
+        double s = std::sqrtf(trace + 1.0);
         result._w = s / 2.0;
         s = 0.5 / s;
 
@@ -282,7 +282,7 @@ Quaternion Quaternion::fromRotationMatrix(const vector_d &X, const vector_d &Y)
         int j = (i + 1) % 3;
         int k = (i + 2) % 3;
 
-        double s = std::sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
+        double s = std::sqrtf((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
         vector_d v;
         v[i] = s * 0.5;
         s = 0.5 / s;
@@ -306,13 +306,13 @@ Quaternion Quaternion::fromAccelerometer(const vector_f& accel_par)
 
     // There is a singularity at an.z == -1
     if ( an.z < -0.999999f ) {
-        float half_cos = sqrt(0.5f*(1.0f - an.z));
+        float half_cos = std::sqrtf(0.5f*(1.0f - an.z));
         float temp = .5f / half_cos;
         Quaternion orientation( -an.y*temp, half_cos, 0.0, an.x*temp );
         //ESP_LOGI(FNAME,"Quat: %.3f %.3f %.3f %.3f", orientation.a, orientation.b, orientation.c, orientation.d );
         return orientation;
     } else {
-        float half_cos = sqrt(0.5f*(1.0f + an.z));
+        float half_cos = std::sqrtf(0.5f*(1.0f + an.z));
         float temp = .5f / half_cos;
         Quaternion orientation( half_cos, -an.y*temp, an.x*temp, 0.0 );
         //ESP_LOGI(FNAME,"Quat: %.3f %.3f %.3f %.3f", orientation.a, orientation.b, orientation.c, orientation.d );
@@ -348,7 +348,7 @@ Quaternion Quaternion::fromGyro(const vector_f& omega, float dtime)
 // Grad
 float Compass_atan2( float y, float x )
 {
-    float result = rad2deg(atan2(y, x));
+    float result = rad2deg(atan2f(y, x));
 
     // As left turn means plus, euler angles come with 0° for north, -90° for east, -+180 degree for south and for 90° west
     // compass rose goes vice versa, so east is 90° means we need to invert
