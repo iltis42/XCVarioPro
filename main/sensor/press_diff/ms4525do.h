@@ -14,11 +14,11 @@ public:
     virtual ~MS4525DO() = default;
 
     const char *name() const override;
-    void changeConfig();
-    void setSubType(bool positive) override;
+    void changeConfig() override;
     inline void setAbpmrr() { setSubType(false); }
 
 protected:
+    void setSubType(bool positive) override;
     bool offsetPlausible(int32_t offset) override;
     int getMaxACOffset() override;
 

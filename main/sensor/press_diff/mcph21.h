@@ -15,9 +15,9 @@ public:
     ~MCPH21() = default;
 
     const char *name() const override { return "MCPH21"; }
-    bool setup() override;
     bool probe() override;
-    void changeConfig();
+    bool setup() override;
+    void changeConfig() override;
 
 protected:
     bool fetch_pressure(int32_t &p, uint16_t &t) override;

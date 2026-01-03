@@ -12,20 +12,20 @@
 
 namespace i2cbus {
     class I2C;
-} 
+}
 
-class AsSensI2c : public AirspeedSensor {
+class AsSensI2c : public AirspeedSensor
+{
 public:
-	AsSensI2c(i2cbus::I2C *b, char addr) : AirspeedSensor(), _bus(b), _address(addr) {};
-	virtual ~AsSensI2c() {};
-	
-	bool probe() override;
+    AsSensI2c(i2cbus::I2C *b, char addr) : AirspeedSensor(), _bus(b), _address(addr) {};
+    virtual ~AsSensI2c() {};
+
+    bool probe() override;
 
 protected:
-	bool fetch_pressure(int32_t &p, uint16_t &t) override;
-	virtual void setSubType(bool positive) {} // dedicated to ABPMRR and MS4525DO
-    i2cbus::I2C  *_bus;
+    bool fetch_pressure(int32_t &p, uint16_t &t) override;
+    virtual void setSubType(bool positive) {} // dedicated to ABPMRR and MS4525DO
+    i2cbus::I2C *_bus;
     const uint8_t _address;
-	int           _sign_read_count = 0;
+    int _sign_read_count = 0;
 };
-

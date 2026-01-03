@@ -27,6 +27,41 @@ MCPH21::MCPH21() : AsSensI2c(&i2c1, I2C_ADDRESS_MCPH21)
     changeConfig();
 }
 
+bool MCPH21::probe()
+{
+    ESP_LOGI(FNAME, "MCPH21 selftest I2C addr: %x", _address);
+    uint8_t byte[2] = {0};
+    esp_err_t err = _bus->testConnection(_address);
+    if (err != ESP_OK) {
+        ESP_LOGI(FNAME, "MCPH21 testConnection: FAIL I2C addr: %x", _address);
+        return false;
+    }
+    err = _bus->readByte(_address, 0x01, byte);
+    if (err != ESP_OK) {
+        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01 failed");
+        return false;
+    }
+    else {
+        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01: %x ", byte[0]);
+    }
+    err = _bus->readByte(_address, 0xA8, byte);
+    if (err != ESP_OK) {
+        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8 failed");
+        return false;
+    }
+    else {
+        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8: %x", byte[0]);
+    }
+    return true;
+}
+
+bool MCPH21::setup()
+{
+    // set continuous mode
+    esp_err_t err = _bus->writeByte(_address, 0x30, 0x0B); // continuous mode, sleep 62.5msec
+    return AirspeedSensor::setup();
+}
+
 void MCPH21::changeConfig()
 {
 	_multiplier = 6250.f / 8388608.f * ((100.0 + speedcal.get()) / 100.0);
@@ -63,39 +98,18 @@ bool MCPH21::fetch_pressure(int32_t &p, uint16_t &t)
     return true;
 }
 
-bool MCPH21::setup()
+bool MCPH21::offsetPlausible(int32_t offset)
 {
-    // set continuous mode
-    esp_err_t err = _bus->writeByte(_address, 0x30, 0x0B); // continuous mode, sleep 62.5msec
-    return AirspeedSensor::setup();
+    constexpr int lower_val = 838861 - MAX_AUTO_CORRECTED_OFFSET;
+    constexpr int upper_val = 838861 + MAX_AUTO_CORRECTED_OFFSET;
+    bool plausible = (offset > lower_val) && (offset < upper_val);
+    ESP_LOGI(FNAME, "offsetPlausible( %ld ) Deviation: %.1f%% RET:%d", offset, (((float)offset - 838861.0f) / MAX_AUTO_CORRECTED_OFFSET) * 100.0f, plausible);
+    return plausible;
 }
 
-bool MCPH21::probe()
+int MCPH21::getMaxACOffset()
 {
-    ESP_LOGI(FNAME, "MCPH21 selftest I2C addr: %x", _address);
-    uint8_t byte[2] = {0};
-    esp_err_t err = _bus->testConnection(_address);
-    if (err != ESP_OK) {
-        ESP_LOGI(FNAME, "MCPH21 testConnection: FAIL I2C addr: %x", _address);
-        return false;
-    }
-    err = _bus->readByte(_address, 0x01, byte);
-    if (err != ESP_OK) {
-        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01 failed");
-        return false;
-    }
-    else {
-        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01: %x ", byte[0]);
-    }
-    err = _bus->readByte(_address, 0xA8, byte);
-    if (err != ESP_OK) {
-        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8 failed");
-        return false;
-    }
-    else {
-        ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8: %x", byte[0]);
-    }
-    return true;
+    return MAX_AUTO_CORRECTED_OFFSET;
 }
 
 float MCPH21::getTemperature()
@@ -115,28 +129,4 @@ float MCPH21::getTemperature()
         ESP_LOGI(FNAME, "MCPH21 T val read ok: T: %.2f", temp);
     }
     return temp;
-}
-
-// float MCPH21::getAirSpeed(void){        // calculates and returns the airspeed in m/s IAS
-// 	/* Velocity calculation from a pitot tube explanation */
-// 	/* +/- 1PSI, approximately 100 m/s */
-// 	const float rhom = (2.0*100)/1.225; // density of air plus multiplier
-// 	// velocity = sqrt( (2*psi) / rho )   or sqt( psi /
-// 	float velocity = abs( sqrt(psi*rhom) );
-// 	// ESP_LOGI(FNAME,"velocity %f", velocity );
-// 	return velocity;
-// }
-
-bool MCPH21::offsetPlausible(int32_t offset)
-{
-    constexpr int lower_val = 838861 - MAX_AUTO_CORRECTED_OFFSET;
-    constexpr int upper_val = 838861 + MAX_AUTO_CORRECTED_OFFSET;
-    bool plausible = (offset > lower_val) && (offset < upper_val);
-    ESP_LOGI(FNAME, "offsetPlausible( %ld ) Deviation: %.1f%% RET:%d", offset, (((float)offset - 838861.0f) / MAX_AUTO_CORRECTED_OFFSET) * 100.0f, plausible);
-    return plausible;
-}
-
-int MCPH21::getMaxACOffset()
-{
-    return MAX_AUTO_CORRECTED_OFFSET;
 }

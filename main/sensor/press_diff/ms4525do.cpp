@@ -62,15 +62,6 @@ void MS4525DO::setSubType(bool positive)
     }
 }
 
-float MS4525DO::getTemperature(void)
-{
-    float temp = t_dat;
-    temp = temp / 10;          // now in deg F
-    temp = (temp - 32) / 1.8f; // now in deg C
-    return temp;
-}
-
-
 bool MS4525DO::offsetPlausible(int32_t offset)
 {
     if ( _is_abpmrr ) {
@@ -88,4 +79,12 @@ bool MS4525DO::offsetPlausible(int32_t offset)
 int MS4525DO::getMaxACOffset()
 {
     return MAX_AUTO_CORRECTED_OFFSET;
+}
+
+float MS4525DO::getTemperature(void)
+{
+    float temp = t_dat;
+    temp = temp / 10;          // now in deg F
+    temp = (temp - 32) / 1.8f; // now in deg C
+    return temp;
 }

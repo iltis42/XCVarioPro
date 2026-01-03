@@ -44,11 +44,6 @@ MP5004DP::MP5004DP() : AirspeedSensor(), _mcp(&i2c1)
     changeConfig();
 }
 
-void MP5004DP::changeConfig()
-{
-    _multiplier = MP50040P_CORR * ((100.0 + speedcal.get()) / 100.0);
-}
-
 bool MP5004DP::probe()
 {
     if (_mcp.selfTest() != ESP_OK)
@@ -56,6 +51,11 @@ bool MP5004DP::probe()
         return false;
     }
     return _mcp.readVal() >= 0;
+}
+
+void MP5004DP::changeConfig()
+{
+    _multiplier = MP50040P_CORR * ((100.0 + speedcal.get()) / 100.0);
 }
 
 bool MP5004DP::fetch_pressure(int32_t &p, uint16_t &t)

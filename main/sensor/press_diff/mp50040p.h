@@ -11,7 +11,7 @@ public:
     MP5004DP();
     const char *name() const override { return "MP5004DP"; }
     bool probe() override;
-    void changeConfig();
+    void changeConfig() override;
 
 protected:
 	bool fetch_pressure(int32_t &p, uint16_t &t) override;
