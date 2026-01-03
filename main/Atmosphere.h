@@ -10,7 +10,7 @@ namespace Atmosphere {
 
 float TAS(float ias, float baro, float temp);
 float TAS2(float ias, float altitude, float temp);
-float CAS(float dp);
+// float CAS(float dp);
 float IAS(float tas, float alti, float temp);
 float pascal2kmh(float pascal);
 float pascal2ms(float pascal);

@@ -76,7 +76,6 @@ extern AnalogInput *AnalogInWk;
 extern float airspeed;
 extern float aTE;
 extern float tas;
-extern float cas;
 extern float aTES2F;
 extern float as2f;
 extern float s2f_delta;

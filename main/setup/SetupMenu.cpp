@@ -200,7 +200,7 @@ int select_battery_type(SetupMenuSelect *p) {
 	return 0;
 }
 
-const std::array<std::string_view, 3> velocity_mode = {"IAS", "TAS", "CAS"};
+const std::array<std::string_view, 3> velocity_mode = {"IAS", "TAS"};
 static int update_velocity_buzz(SetupMenuSelect *p) {
 	SetupMenu *velocity = static_cast<SetupMenu*>(p->getParent()->getParent()->getEntry(3));
 	velocity->setBuzzword(velocity_mode[airspeed_mode.get()].data());
@@ -826,11 +826,9 @@ void options_menu_create_units(SetupMenu *top) {
 
 static void system_menu_create_airspeed(SetupMenu *top) {
 	SetupMenuSelect *amode = new SetupMenuSelect("Airspeed Mode", RST_NONE, update_velocity_buzz, &airspeed_mode);
-	amode->setHelp("Select mode of Airspeed indicator to display IAS (Indicated AirSpeed), TAS (True AirSpeed) or CAS (calibrated airspeed)", 180);
+	amode->setHelp("Select mode of Airspeed indicator to display IAS (Indicated AirSpeed), TAS (True AirSpeed)", 180);
 	amode->addEntry(velocity_mode[0].data());
 	amode->addEntry(velocity_mode[1].data());
-	amode->addEntry(velocity_mode[2].data());
-	// amode->addEntry("Slip Angle");
 	top->addEntry(amode);
 
 	SetupMenuValFloat *spc = new SetupMenuValFloat("AS Calibration", "%", nullptr, false, &speedcal);

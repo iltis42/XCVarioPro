@@ -39,8 +39,6 @@ static const char *SpeedModeStr() {
         return "IAS";
     } else if (airspeed_mode.get() == MODE_TAS) {
         return "TAS";
-    } else if (airspeed_mode.get() == MODE_CAS) {
-        return "CAS";
     } else {
         return "-";
     }

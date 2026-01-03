@@ -49,10 +49,9 @@ float Atmosphere::TAS2(float ias, float altitude, float temp) {
     return (ias / std::sqrtf(288.15 / (temp + 273.15) * (Atmosphere::calcPressureISA(altitude) / 1013.25)));
 }
 
-// TAS=IAS/sqrt( 288.15/(T+273.15) * (P/1013.25) )
-float Atmosphere::CAS(float dp) {
-    return (1225.0 * std::sqrtf(5.0f * (std::powf((dp / 101325.0f) + 1.0, (2.0 / 7)) - 1.0)));
-}
+// float Atmosphere::CAS(float dp) {
+//     return (1225.0 * std::sqrtf(5.0f * (std::powf((dp / 101325.0f) + 1.0, (2.0 / 7)) - 1.0)));
+// }
 
 float Atmosphere::IAS(float tas, float alti, float temp) {
     return (tas / std::sqrtf(1.225f / (Atmosphere::calcPressureISA(alti) * 100.0f / (287.058f * (273.15f + temp)))));

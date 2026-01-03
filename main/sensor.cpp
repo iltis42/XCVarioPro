@@ -156,7 +156,6 @@ global_flags gflags = {};
 
 int   ccp = 60;
 float tas = 0;
-float cas = 0;
 float aTE = 0;
 float alt_external;
 float altSTD;
@@ -364,8 +363,6 @@ void clientLoop(void *pvParameters)
 			}
 			dynamicP = Atmosphere::kmh2pascal(ias.get());
 			tas = Atmosphere::TAS2( ias.get(), altitude.get(), OAT.get() );
-			if( airspeed_mode.get() == MODE_CAS )
-				cas = Atmosphere::CAS( dynamicP );
 			if( IMU::getGliderAccelZ() > gload_pos_max.get() ){
 				gload_pos_max.set( IMU::getGliderAccelZ() );
 			}else if( IMU::getGliderAccelZ() < gload_neg_max.get() ){
@@ -506,11 +503,6 @@ void readSensors(void *pvParameters){
 
 		// // ESP_LOGI("FNAME","P: %f  IAS:%f", dynamicP, iasraw );
 
-		// if( airspeed_mode.get() == MODE_CAS ){
-		// 	float casraw=Atmosphere::CAS( dynamicP );
-		// 	cas += (casraw-cas)*0.25;       // low pass filter
-		// 	// ESP_LOGI(FNAME,"IAS=%f, TAS=%f CAS=%f baro=%f", iasraw, tasraw, cas, baroP );
-		// }
 		// static float new_ias = 0;
 		// new_ias = ias.get() + (iasraw - ias.get())*0.25;
 		// if( (int( ias.get()+0.5 ) != int( new_ias+0.5 ) ) || !(count%20) ){
