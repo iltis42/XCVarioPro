@@ -11,12 +11,8 @@ class DataLink;
 // There is no temperature control for XCV hardware < 23, GPIO Pin there is wired to CAN slope control
 #define HAS_MPU_TEMP_CONTROL (CAN && !CAN->hasSlopeSupport())
 
-typedef enum
-{ // never change, nvs item (!)
-	CAN_SPEED_250KBIT,
-	CAN_SPEED_500KBIT,
-	CAN_SPEED_1MBIT
-} CanSpeed;
+// never change, nvs item (!)
+enum CanSpeed : uint8_t { CAN_SPEED_250KBIT = 1, CAN_SPEED_500KBIT, CAN_SPEED_1MBIT };
 
 class CANbus final : public InterfaceCtrl
 {
