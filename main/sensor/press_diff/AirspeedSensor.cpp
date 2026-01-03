@@ -123,18 +123,16 @@ bool AirspeedSensor::setup()
         ESP_LOGI(FNAME, "offset from ADC is NOT plausible");
     }
 
-    int deviation = std::abs(_offset - adcval);
-    if (deviation < getMaxACOffset())
-    {
+    bool deviation_ok = std::abs(adcval - (int)_offset) < getMaxACOffset();
+    if (deviation_ok) {
         ESP_LOGI(FNAME, "Deviation in bounds");
     }
-    else
-    {
+    else {
         ESP_LOGI(FNAME, "Deviation out of bounds");
     }
 
     // Long term stability of Sensor as from datasheet 0.5% per year -> 4000 * 0.005 = 20
-    if (_offset < 0 || (plausible && deviation < getMaxACOffset()) || autozero.get())
+    if (_offset < 0 || (plausible && deviation_ok) || autozero.get())
     {
         ESP_LOGI(FNAME, "Airspeed OFFSET correction ongoing, calculate new _offset...");
         if (autozero.get())
@@ -147,13 +145,11 @@ bool AirspeedSensor::setup()
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         _offset = std::roundf(rawOffset / 100.f);
-        if (offsetPlausible(_offset))
-        {
+        if (offsetPlausible(_offset)) {
             ESP_LOGI(FNAME, "Offset procedure finished, offset: %f", _offset);
             as_offset.set(_offset);
         }
-        else
-        {
+        else {
             ESP_LOGW(FNAME, "Offset out of tolerance, ignore odd offset value");
         }
     }
@@ -180,7 +176,6 @@ float AirspeedSensor::doRead()
         }
     }
     float pascal = (static_cast<float>(p_raw) - _offset) * _multiplier;
-    // ESP_LOGI(FNAME,"P:%f offset:%d raw:%ld  raw-off:%f m:%f T:%u", pascal, (int)_offset, p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier, t_dat );
-    ESP_LOGI(FNAME,"P:%f raw-off:%f T:%u", pascal, (static_cast<float>(p_raw) - _offset),  t_dat );
+    ESP_LOGI(FNAME,"P:%f offset:%d raw:%ld  raw-off:%f m:%f T:%u", pascal, (int)_offset, p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier, t_dat );
     return pascal;
 }
