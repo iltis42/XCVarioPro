@@ -48,9 +48,9 @@ float ABPMRR::getTemperature()
 	return temp;
 }
 
-bool ABPMRR::offsetPlausible(uint32_t offset)
+bool ABPMRR::offsetPlausible(int32_t offset)
 {
-    ESP_LOGI(FNAME, "ABPMRR offsetPlausible( %ld )", offset);
+    ESP_LOGI(FNAME, "ABPMRR offsetPlausible( %d )", offset);
     constexpr int lower_val = 8192 - 200;
     constexpr int upper_val = 8192 + 200;
     return (offset > lower_val) && (offset < upper_val);

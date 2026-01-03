@@ -37,7 +37,7 @@ bool AsSensI2c::probe()
 #define Temp_H  data[2]
 #define Temp_L  data[3]
 
-bool AsSensI2c::fetch_pressure(uint32_t &p, uint16_t &t)
+bool AsSensI2c::fetch_pressure(int32_t &p, uint16_t &t)
 {
     // ESP_LOGI(FNAME,"fetch_pressure");
     uint8_t data[4];
@@ -57,7 +57,7 @@ bool AsSensI2c::fetch_pressure(uint32_t &p, uint16_t &t)
     uint8_t stat = (Press_H >> 6) & 0x03;
     p = ((Press_H & 0x3f) << 8) | Press_L;
     t = (Temp_H << 3) | (Temp_L >> 5);
-    ESP_LOGI(FNAME,"fetch_pressure() status: %d, err %d,  P:%u T: %u",  stat, err, (unsigned)p, (unsigned)t );
+    ESP_LOGI(FNAME,"fetch_pressure() status: %d, err %d,  P:%d T: %u",  stat, err, p, (unsigned)t );
     return stat == 0;
 }
 

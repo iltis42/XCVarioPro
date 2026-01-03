@@ -58,7 +58,7 @@ bool MP5004DP::probe()
     return _mcp.readVal() >= 0;
 }
 
-bool MP5004DP::fetch_pressure(uint32_t &p, uint16_t &t)
+bool MP5004DP::fetch_pressure(int32_t &p, uint16_t &t)
 {
     p = _mcp.readVal();
     return p != 0;
@@ -72,9 +72,9 @@ bool MP5004DP::fetch_pressure(uint32_t &p, uint16_t &t)
  *  @ 4096 full swing Vs adc val:
  *  614   812   1024 + add +-1% for ADC
  */
-bool MP5004DP::offsetPlausible(uint32_t offset)
+bool MP5004DP::offsetPlausible(int32_t offset)
 {
-    ESP_LOGI(FNAME, "MP5004DP offsetPlausible( %ld )", offset);
+    ESP_LOGI(FNAME, "MP5004DP offsetPlausible( %d )", offset);
     constexpr int lower_val = 608;
     constexpr int upper_val = 1067;
 

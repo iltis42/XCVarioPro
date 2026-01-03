@@ -9,6 +9,9 @@
 
 #define MAX_AUTO_CORRECTED_OFFSET 50
 
+// ABPMRR and MS4525DO share the same I2C identity and are nearly identical, but delivering mirrored results,
+// more or lees given by their tube connector setup. (ABPMRR negativ on positive pressure diff)
+// This is here taken into account by a flag that can be set in MS4525DO to behave like an ABPMRR.
 
 constexpr char I2C_ADDRESS_MS4525DO   = 0x28;    /**< 7-bit address =0x28. 8-bit is 0x50. Depends on the order code (this is for code "I") */
  
@@ -33,9 +36,17 @@ MS4525DO::MS4525DO() : AsSensI2c(&i2c1, I2C_ADDRESS_MS4525DO)
     changeConfig();
 }
 
+const char *MS4525DO::name() const {
+    if (_is_abpmrr) {
+        return "ABPMRR";
+    }
+    else {
+        return "MS4525DO";
+    }
+}
 
-void MS4525DO::changeConfig(){
-	_multiplier = (2. * 6894.76 / MS4525Span) * ((100.0 + speedcal.get()) / 100.0);
+void MS4525DO::changeConfig() {
+    _multiplier = (2.f * 6894.76 / MS4525Span) * ((100.0 + speedcal.get()) / 100.0);
 }
 
 float MS4525DO::getTemperature(void)
@@ -47,12 +58,18 @@ float MS4525DO::getTemperature(void)
 }
 
 
-bool MS4525DO::offsetPlausible(uint32_t offset)
+bool MS4525DO::offsetPlausible(int32_t offset)
 {
-    ESP_LOGI(FNAME, "MS4525DO offsetPlausible(%ld)", offset);
-    constexpr int lower_val = 7700;
-    constexpr int upper_val = 8300;
-    return (offset > lower_val) && (offset < upper_val);
+    if ( _is_abpmrr ) {
+        constexpr int lower_val = 8192 - 200;
+        constexpr int upper_val = 8192 + 200;
+        return (offset > lower_val) && (offset < upper_val);
+    }
+    else {
+        constexpr int lower_val = 7700;
+        constexpr int upper_val = 8300;
+        return (offset > lower_val) && (offset < upper_val);
+    }
 }
 
 int MS4525DO::getMaxACOffset()

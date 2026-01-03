@@ -40,7 +40,7 @@ void MCPH21::changeConfig()
 #define Temp_H  data[2]
 #define Temp_L  data[3]
 
-bool MCPH21::fetch_pressure(uint32_t &p, uint16_t &t)
+bool MCPH21::fetch_pressure(int32_t &p, uint16_t &t)
 {
     // ESP_LOGI(FNAME,"MCPH21::fetch_pressure");
     uint8_t pres[3];
@@ -79,7 +79,8 @@ bool MCPH21::fetch_pressure(uint32_t &p, uint16_t &t)
     Press_L = esp_random() % 255;
     Temp_L = esp_random() % 255;
 #endif
-    p = (pres[0] << 16) + (pres[1] << 8) + pres[2];
+    p = (int32_t(pres[0]) << 16) + (int32_t(pres[1]) << 8) + int32_t(pres[2]);
+    if (p & 0x800000) p |= 0xFF000000; // sign extend negative numbers
     return true;
 }
 
@@ -88,29 +89,24 @@ bool MCPH21::probe()
     ESP_LOGI(FNAME, "MCPH21 selftest I2C addr: %x", _address);
     uint8_t byte[2] = {0};
     esp_err_t err = _bus->testConnection(_address);
-    if (err != ESP_OK)
-    {
+    if (err != ESP_OK) {
         ESP_LOGI(FNAME, "MCPH21 testConnection: FAIL I2C addr: %x", _address);
         return false;
     }
     err = _bus->readByte(_address, 0x01, byte);
-    if (err != ESP_OK)
-    {
+    if (err != ESP_OK) {
         ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01 failed");
         return false;
     }
-    else
-    {
+    else {
         ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0x01: %x ", byte[0]);
     }
     err = _bus->readByte(_address, 0xA8, byte);
-    if (err != ESP_OK)
-    {
+    if (err != ESP_OK) {
         ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8 failed");
         return false;
     }
-    else
-    {
+    else {
         ESP_LOGI(FNAME, "MCPH21 selftest read Chip ID reg 0xA8: %x", byte[0]);
     }
     return true;
@@ -145,7 +141,7 @@ float MCPH21::getTemperature()
 // 	return velocity;
 // }
 
-bool MCPH21::offsetPlausible(uint32_t offset)
+bool MCPH21::offsetPlausible(int32_t offset)
 {
     constexpr int lower_val = 838861 - MAX_AUTO_CORRECTED_OFFSET;
     constexpr int upper_val = 838861 + MAX_AUTO_CORRECTED_OFFSET;

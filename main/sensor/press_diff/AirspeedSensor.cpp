@@ -109,11 +109,11 @@ bool AirspeedSensor::setup()
         ESP_LOGI(FNAME, "offset from NVS: %0.1f", _offset);
     }
 
-    uint32_t adcval = 0;
+    int32_t adcval = 0;
     uint16_t temp;
     fetch_pressure(adcval, temp);
 
-    ESP_LOGI(FNAME, "offset from ADC %u", (unsigned)adcval);
+    ESP_LOGI(FNAME, "offset from ADC %ld", adcval);
 
     bool plausible = offsetPlausible(adcval);
     if (plausible) {
@@ -139,7 +139,7 @@ bool AirspeedSensor::setup()
         ESP_LOGI(FNAME, "Airspeed OFFSET correction ongoing, calculate new _offset...");
         if (autozero.get())
             autozero.set(0);
-        uint32_t rawOffset = 0;
+        int32_t rawOffset = 0;
         for (int i = 0; i < 100; i++)
         {
             fetch_pressure(adcval, temp);
@@ -166,20 +166,21 @@ bool AirspeedSensor::setup()
 
 float AirspeedSensor::doRead()
 {
-    uint32_t p_raw;
+    int32_t p_raw;
     uint16_t t_dat;
     bool ok = fetch_pressure(p_raw, t_dat);
     if (!ok)
     {
-        ESP_LOGE(FNAME, "Retry measure, status :%d  p=%u", ok, (unsigned)p_raw);
+        ESP_LOGE(FNAME, "Retry measure, status :%d  p=%ld", ok, p_raw);
         ok = fetch_pressure(p_raw, t_dat);
         if (!ok)
         {
-            ESP_LOGE(FNAME, "Warning, status :%d  p=%u, bad even retry", ok, (unsigned)p_raw);
+            ESP_LOGE(FNAME, "Warning, status :%d  p=%ld, bad even retry", ok, p_raw);
             return NAN;
         }
     }
     float pascal = (static_cast<float>(p_raw) - _offset) * _multiplier;
-    ESP_LOGI(FNAME,"pressure: %f offset: %d raw: %u  raw-off:%f m:%f", pascal, (int)_offset, (unsigned)p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier );
+    // ESP_LOGI(FNAME,"P:%f offset:%d raw:%ld  raw-off:%f m:%f T:%u", pascal, (int)_offset, p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier, t_dat );
+    ESP_LOGI(FNAME,"P:%f raw-off:%f T:%u", pascal, (static_cast<float>(p_raw) - _offset),  t_dat );
     return pascal;
 }

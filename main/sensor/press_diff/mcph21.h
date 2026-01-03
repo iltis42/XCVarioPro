@@ -19,8 +19,8 @@ public:
     void changeConfig();
 
 protected:
-    bool fetch_pressure(uint32_t &p, uint16_t &t) override;
-    bool offsetPlausible(uint32_t offset) override;
+    bool fetch_pressure(int32_t &p, uint16_t &t) override;
+    bool offsetPlausible(int32_t offset) override;
     int  getMaxACOffset() override;
 
 private:

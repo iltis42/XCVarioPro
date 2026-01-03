@@ -16,7 +16,7 @@ public:
     void changeConfig();
 
 protected:
-    bool offsetPlausible(uint32_t offset) override;
+    bool offsetPlausible(int32_t offset) override;
     int  getMaxACOffset() override;
 
 private:
