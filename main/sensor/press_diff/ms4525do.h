@@ -15,7 +15,8 @@ public:
 
     const char *name() const override;
     void changeConfig();
-    void setAbpmrr() { _is_abpmrr = true; }
+    void setSubType(bool positive) override;
+    inline void setAbpmrr() { setSubType(false); }
 
 protected:
     bool offsetPlausible(int32_t offset) override;

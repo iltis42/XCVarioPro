@@ -49,6 +49,19 @@ void MS4525DO::changeConfig() {
     _multiplier = (2.f * 6894.76 / MS4525Span) * ((100.0 + speedcal.get()) / 100.0);
 }
 
+void MS4525DO::setSubType(bool positive)
+{
+    // This will set the correct sensor type for the next XCV boot and
+    // provide the proper zero offset tollerances
+    _is_abpmrr = ! positive;
+    if ( _is_abpmrr ) {
+        airspeed_sensor.set( AirspeedSensor::PS_ABPMRR );
+    }
+    else {
+        airspeed_sensor.set( AirspeedSensor::PS_TE4525 );
+    }
+}
+
 float MS4525DO::getTemperature(void)
 {
     float temp = t_dat;

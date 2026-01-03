@@ -21,7 +21,7 @@ protected:
 	virtual bool fetch_pressure(int32_t &p, uint16_t &t) = 0;
 	virtual bool offsetPlausible(int32_t offset ) = 0;
 	virtual int getMaxACOffset() = 0;
-	float _offset = 0.; // raw adc offset value (float because of nvs storage)
+	int32_t _offset = 0.; // raw adc offset value (float in nvs storage)
 	float _multiplier = 1.0f;
 };
 

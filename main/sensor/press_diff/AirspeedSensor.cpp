@@ -8,13 +8,13 @@
 
 #include "AirspeedSensor.h"
 
-#include "abpmrr.h"
 #include "mcph21.h"
 #include "mp50040p.h"
 #include "ms4525do.h"
 #include "Atmosphere.h"
 #include "../SensorMgr.h"
 #include "setup/SetupNG.h"
+#include "math/Floats.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
@@ -33,8 +33,12 @@ static AirspeedSensor* factory(AirspeedSensor::ASens_Type type)
     AirspeedSensor* tmp = nullptr;
     switch (type) {
     case AirspeedSensor::PS_ABPMRR:
-        tmp = new ABPMRR();
+    {
+        MS4525DO *abpmrr = new MS4525DO();
+        abpmrr->setAbpmrr();
+        tmp = abpmrr;
         break;
+    }
     case AirspeedSensor::PS_TE4525:
         tmp = new MS4525DO();
         break;
@@ -106,7 +110,7 @@ bool AirspeedSensor::setup()
         ESP_LOGI(FNAME, "offset not yet done: need to recalibrate");
     }
     else {
-        ESP_LOGI(FNAME, "offset from NVS: %0.1f", _offset);
+        ESP_LOGI(FNAME, "offset from NVS: %df", _offset);
     }
 
     int32_t adcval = 0;
@@ -123,7 +127,7 @@ bool AirspeedSensor::setup()
         ESP_LOGI(FNAME, "offset from ADC is NOT plausible");
     }
 
-    bool deviation_ok = std::abs(adcval - (int)_offset) < getMaxACOffset();
+    bool deviation_ok = std::abs(adcval - _offset) < getMaxACOffset();
     if (deviation_ok) {
         ESP_LOGI(FNAME, "Deviation in bounds");
     }
@@ -144,9 +148,9 @@ bool AirspeedSensor::setup()
             rawOffset += adcval;
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        _offset = std::roundf(rawOffset / 100.f);
+        _offset = fast_iroundf(rawOffset / 100.f);
         if (offsetPlausible(_offset)) {
-            ESP_LOGI(FNAME, "Offset procedure finished, offset: %f", _offset);
+            ESP_LOGI(FNAME, "Offset procedure finished, offset: %d", _offset);
             as_offset.set(_offset);
         }
         else {
@@ -175,7 +179,7 @@ float AirspeedSensor::doRead()
             return NAN;
         }
     }
-    float pascal = (static_cast<float>(p_raw) - _offset) * _multiplier;
-    ESP_LOGI(FNAME,"P:%f offset:%d raw:%ld  raw-off:%f m:%f T:%u", pascal, (int)_offset, p_raw,  (static_cast<float>(p_raw) - _offset),  _multiplier, t_dat );
+    float pascal = static_cast<float>(p_raw - _offset) * _multiplier;
+    ESP_LOGI(FNAME,"P:%f offset:%d raw:%ld  raw-off:%f m:%f T:%u", pascal, _offset, p_raw,  static_cast<float>(p_raw - _offset),  _multiplier, t_dat);
     return pascal;
 }
